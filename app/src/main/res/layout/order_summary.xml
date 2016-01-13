@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/order_summary_layout"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingRight="8dp"
+    android:paddingLeft="8dp"
+    android:paddingTop="8dp"
+    android:paddingBottom="8dp"
+    android:background="@drawable/card_background">
+    <TextView
+        android:id="@+id/customer_name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Naresh Kumar"
+        android:textSize="@dimen/customer_name_size"
+        android:gravity="center"
+        android:paddingLeft="8dp"
+        />
+    <Button
+        android:id="@+id/call_button"
+        android:layout_height="40dp"
+        android:layout_width="wrap_content"
+        android:layout_alignBaseline="@+id/customer_name"
+        android:text="Call"
+        android:layout_alignParentRight="true"
+        android:paddingRight="8dp"
+        android:layout_alignBottom="@+id/customer_name"
+        android:onClick="callCustomer" />
+
+
+    <View
+        android:id="@+id/divider"
+        android:layout_width="match_parent"
+        android:layout_below="@+id/customer_name"
+        android:layout_height="1dp"
+        android:layout_marginTop="8dp"
+        android:background="@android:color/darker_gray"/>
+
+    <TextView
+        android:id="@+id/order_id"
+        android:layout_below="@+id/divider"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="#1010101"
+        android:textSize="@dimen/summary_size"
+        android:gravity="center"
+        android:paddingLeft="8dp"
+        />
+    <TextView
+        android:id="@+id/cart_price"
+        android:layout_alignBaseline="@+id/order_id"
+        android:layout_alignParentRight="true"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="200.00"
+        android:textColor="@color/style_color_primary"
+        android:textSize="@dimen/summary_size"
+        android:gravity="center"
+        android:paddingRight="8dp"
+        />
+    <TextView
+        android:layout_below="@+id/order_id"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Time for delivery"
+        android:textSize="@dimen/summary_size"
+        android:gravity="center"
+        android:paddingLeft="8dp"
+        />
+    <TextView
+        android:id="@+id/delivery_time"
+        android:layout_below="@+id/cart_price"
+        android:layout_alignParentRight="true"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="25 Minutes"
+        android:textColor="@color/style_color_primary"
+        android:textSize="@dimen/summary_size"
+        android:gravity="center"
+        android:paddingRight="8dp"
+        />
+    <TextView
+        android:id="@+id/address_heading"
+        android:layout_below="@+id/delivery_time"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Address"
+        android:textSize="@dimen/summary_size"
+        android:textStyle="bold"
+        android:gravity="center"
+        android:paddingLeft="8dp"
+        android:paddingTop="8dp"
+        />
+    <TextView
+        android:id="@+id/address"
+        android:layout_below="@+id/address_heading"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Address"
+        android:textSize="@dimen/summary_size"
+        android:gravity="center"
+        android:paddingLeft="8dp"
+        />
+
+    <Button
+        android:id="@+id/navigate_button"
+        android:layout_height="40dp"
+        android:layout_width="wrap_content"
+        android:layout_alignBaseline="@id/address"
+        android:text="Navigate"
+        android:layout_alignParentRight="true"
+        android:paddingRight="8dp"
+        android:onClick="" />
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/address"
+        android:layout_marginTop="16dp">
+        <Button
+            android:id="@+id/card_payment"
+            android:layout_height="40dp"
+            android:layout_width="160dp"
+            android:layout_marginLeft="8dp"
+            android:text="Card Payment"
+            android:paddingRight="8dp"
+            android:background="@color/style_color_primary_light"
+            android:onClick="cardPaymentClicked" />
+        <Button
+            android:id="@+id/cash_payment"
+            android:layout_height="40dp"
+            android:layout_width="160dp"
+            android:layout_alignParentRight="true"
+            android:layout_marginRight="8dp"
+            android:text="Cash Paymnet"
+            android:paddingRight="8dp"
+            android:background="@color/style_color_primary"
+            android:onClick="cashPaymentClicked" />
+    </RelativeLayout>
+</RelativeLayout>

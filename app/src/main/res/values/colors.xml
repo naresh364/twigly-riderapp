@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--<color name="style_color_primary">#2d5d82</color>
+    <color name="style_color_primary_dark">#21425d</color>
+    <color name="style_color_accent">#01bcd5</color>-->
+    <color name="style_color_primary">#44917b</color>
+    <color name="style_color_primary_light">#18bb9c</color>
+    <!--<color name="style_color_primary">@color/md_teal_500</color>-->
+
+    <!--<color name="style_color_accent">@color/md_orange_500</color>
+    <color name="style_color_accent_dark">@color/md_orange_800</color>-->
+    <color name="style_color_accent">#FF6600</color>
+
+    <color name="style_color_primary_dark">#00695C</color>
+    <color name="fab_color_pressed">#007787</color>
+    <color name="fab_color_shadow">#44000000</color>
+
+    <color name="btn_default_light_normal">#00000000</color>
+    <color name="btn_default_light_pressed">#40ffffff</color>
+    <color name="btn_send_normal">#02c754</color>
+    <color name="btn_send_pressed">#006633</color>
+    <color name="btn_default_shadow">#99000000</color>
+    <color name="btn_context_menu_normal">#ffffff</color>
+    <color name="btn_context_menu_pressed">#40000000</color>
+    <color name="btn_context_menu_text_red">#ffff0000</color>
+
+    <color name="text_like_counter">#2b5a83</color>
+
+    <color name="bg_comments">#ffffff</color>
+
+
+    <!--100% — FF
+    95% — F2
+    90% — E6
+    85% — D9
+    80% — CC
+    75% — BF
+    70% — B3
+    65% — A6
+    60% — 99
+    55% — 8C
+    50% — 80
+    45% — 73
+    40% — 66
+    35% — 59
+    30% — 4D
+    25% — 40
+    20% — 33
+    15% — 26
+    10% — 1A
+    5% — 0D
+    0% — 00-->
+    <color name="black_semi_transparent_100">#FF000000</color>
+    <color name="black_semi_transparent_90">#E6000000</color>
+    <color name="black_semi_transparent_80_new">#cc00000a</color>
+    <color name="black_semi_transparent_80">#CC000000</color>
+    <color name="black_semi_transparent_60">#99000000</color>
+    <color name="black_semi_transparent_10">#1A000000</color>
+
+
+
+
+    <color name="transparent">#00000000</color>
+    <color name="background">#e5e5e5</color>
+    <color name="half_black">#808080</color>
+    <color name="pitch_black">#000000</color>
+    <color name="white">#fafafa</color>
+    <color name="plain_white">#ffffff</color>
+    <color name="white_pressed">#f1f1f1</color>
+
+    <color name="pink_600">#D81B60</color>
+
+    <color name="pink_500">#e91e63</color>
+    <color name="pink_400">#ec407a</color>
+    <color name="blue_semi_transparent">#805677fc</color>
+    <color name="blue_semi_transparent_pressed">#80738ffe</color>
+
+    <color name="food_item_couner_color">#757575</color>
+
+
+    <color name="card_pressed_kitkat">#10000000</color>
+    <color name="card_activated_kitkat">#ADE1F4</color>
+
+
+    <color name="divider">#dcdcdc</color>
+
+    <color name="new_minus_button">#111111</color>
+
+</resources>
