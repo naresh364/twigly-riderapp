@@ -1,6 +1,15 @@
 package com.app.twiglydb;
 
+import android.Manifest;
+import android.annotation.TargetApi;
+import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.net.Uri;
+import android.os.Build;
+import android.support.design.widget.Snackbar;
+import android.support.v4.app.ActivityCompat;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -11,9 +20,10 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.app.twiglydb.models.Order;
+import com.app.twiglydb.network.ServerCalls;
 
 import java.util.List;
-import java.util.Timer;
+import java.util.Locale;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
@@ -38,8 +48,17 @@ public class OrderSummaryAdapter extends RecyclerView.Adapter<OrderSummaryAdapte
         public TextView cartPrice;
         @InjectView(R.id.address)
         public TextView address;
+        @InjectView(R.id.delivery_time)
+        public TextView deliveryTime;
         @InjectView(R.id.call_button)
         public Button callButton;
+        @InjectView(R.id.navigate_button)
+        public Button navigateButton;
+        @InjectView(R.id.card_payment_button)
+        public Button cardPaymentButton;
+        @InjectView(R.id.cash_payment_button)
+        public Button cashPaymentButton;
+
         public OrderViewHolder(View v) {
             super(v);
             ButterKnife.inject(this,v);
@@ -48,9 +67,11 @@ public class OrderSummaryAdapter extends RecyclerView.Adapter<OrderSummaryAdapte
 
     List<Order> orders;
     Context context;
+    DBLocationService locationService;
     public OrderSummaryAdapter(Context context, List<Order> orders) {
         this.context = context;
         this.orders = orders;
+        locationService = new DBLocationService(context);
     }
 
     @Override
@@ -58,6 +79,9 @@ public class OrderSummaryAdapter extends RecyclerView.Adapter<OrderSummaryAdapte
         final View view = LayoutInflater.from(context).inflate(R.layout.order_summary_card, parent, false);
         final OrderViewHolder orderViewHolder = new OrderViewHolder(view);
         orderViewHolder.callButton.setOnClickListener(this);
+        orderViewHolder.navigateButton.setOnClickListener(this);
+        orderViewHolder.cashPaymentButton.setOnClickListener(this);
+        orderViewHolder.cardPaymentButton.setOnClickListener(this);
         return orderViewHolder;
     }
 
@@ -69,17 +93,15 @@ public class OrderSummaryAdapter extends RecyclerView.Adapter<OrderSummaryAdapte
     @Override
     public void onBindViewHolder(OrderViewHolder holder, int position) {
         holder.customer_name.setText(orders.get(position).getName());
-        holder.cartPrice.setText(orders.get(position).getTotal()+"");
+        holder.cartPrice.setText(String.format("%.2f",orders.get(position).getTotal()));
         holder.address.setText(orders.get(position).getAddress());
-        holder.orderId.setText(orders.get(position).getOrderId()+"");
+        holder.orderId.setText(orders.get(position).getOrderId() + "");
+        holder.deliveryTime.setText(orders.get(position).getDeliveryTime());
 
-        holder.cartPrice.setTag(holder);
-        holder.address.setTag(holder);
+        holder.cardPaymentButton.setTag(holder);
+        holder.navigateButton.setTag(holder);
+        holder.cashPaymentButton.setTag(holder);
         holder.callButton.setTag(holder);
-        holder.cardView.setTag(holder);
-        holder.summaryLayout.setTag(holder);
-        holder.customer_name.setTag(holder);
-        holder.orderId.setTag(holder);
         holder.summaryLayout.setTag(holder);
 
         holder.summaryLayout.setOnClickListener(new View.OnClickListener() {
@@ -92,6 +114,14 @@ public class OrderSummaryAdapter extends RecyclerView.Adapter<OrderSummaryAdapte
 
             }
         });
+
+        Order order = orders.get(holder.getAdapterPosition());
+        if (order.getLat() == 0 || order.getLng() == 0) {
+            holder.navigateButton.setVisibility(View.INVISIBLE);
+            return;
+        } else {
+            holder.navigateButton.setVisibility(View.VISIBLE);
+        }
     }
 
     @Override
@@ -101,8 +131,44 @@ public class OrderSummaryAdapter extends RecyclerView.Adapter<OrderSummaryAdapte
         OrderViewHolder ovh = (OrderViewHolder)v.getTag();
         if (ovh == null) return;
 
+        Order order = orders.get(ovh.getAdapterPosition());
+
         if (viewId == R.id.call_button) {
             //call the customer
+            String uri = "tel:" + orders.get(ovh.getLayoutPosition()).getMobileNumber().trim() ;
+            Intent intent = new Intent(Intent.ACTION_CALL);
+            intent.setData(Uri.parse(uri));
+            if (Utils.mayRequestPermission(context, Manifest.permission.CALL_PHONE)) {
+                context.startActivity(intent);
+            }
+            return;
+        }
+
+        if (viewId == R.id.navigate_button) {
+            String uri = String.format(Locale.ENGLISH, "geo:%f,%f", order.getLat(), order.getLng());
+            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(uri));
+            context.startActivity(intent);
+            return;
+        }
+
+        String mode = "";
+        if (viewId == R.id.cash_payment_button) {
+           mode = "cash";
+        }
+
+        if (viewId == R.id.card_payment_button) {
+            mode = "card";
+        }
+
+        if (!mode.equalsIgnoreCase("")) {
+            if (!locationService.isGPSEnabled()) {
+                locationService.showSettingsAlert();
+                return;
+            }
+            double lat = locationService.getLatitude();
+            double lng = locationService.getLongitude();
+
+            ServerCalls.getInstanse().service.markDone(mode, order.getOrderId(), lat, lng);
         }
 
     }

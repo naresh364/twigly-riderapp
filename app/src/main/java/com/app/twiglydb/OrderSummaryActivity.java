@@ -4,14 +4,21 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.widget.Toast;
 
+import com.app.twiglydb.models.OrderResponse;
 import com.app.twiglydb.models.Order;
+import com.app.twiglydb.network.ServerCalls;
 
 import java.util.LinkedList;
 import java.util.List;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import timber.log.Timber;
 
 /**
  * Created by naresh on 10/01/16.
@@ -28,20 +35,27 @@ public class OrderSummaryActivity extends AppCompatActivity{
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         orders = new LinkedList<>();
-        Order o1 = new Order();
-        o1.setAddress("test\ntest2\ntest3\n");
-        o1.setName("Naresh");
-        o1.setMobile_number("8800880088");
-        o1.setOrderId(1010101);
-        o1.setTotal(200f);
-        orders.add(o1);
-        Order o2 = new Order();
-        o2.setAddress("teest\nteest2\nteest3\n");
-        o2.setName("Naresh 123");
-        o2.setMobile_number("0088008800");
-        o2.setOrderId(1010110);
-        o2.setTotal(500f);
-        orders.add(o2);
+
+        Call<OrderResponse> orderResponseCall = ServerCalls.getInstanse().service.getRecentOrders("-1", 0, 10);
+        orderResponseCall.enqueue(new Callback<OrderResponse>() {
+            @Override
+            public void onResponse(Response<OrderResponse> response) {
+                final OrderResponse orderResponse = response.body();
+                if (orderResponse == null) {
+                    Timber.d("");
+                    Toast.makeText(OrderSummaryActivity.this, response.message(), Toast.LENGTH_LONG);
+                    return;
+                }
+                orders.addAll(orderResponse.getOrders());
+                orderSummaryAdapter.notifyDataSetChanged();
+                Timber.d("Success");
+            }
+
+            @Override
+            public void onFailure(Throwable t) {
+                Timber.d("Failure");
+            }
+        });
 
         orderSummaryAdapter = new OrderSummaryAdapter(this, orders);
         setContentView(R.layout.order_summary_list);

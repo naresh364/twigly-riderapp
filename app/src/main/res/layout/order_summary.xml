@@ -26,7 +26,7 @@
         android:layout_alignParentRight="true"
         android:paddingRight="8dp"
         android:layout_alignBottom="@+id/customer_name"
-        android:onClick="callCustomer" />
+        />
 
 
     <View
@@ -110,8 +110,7 @@
         android:layout_alignBaseline="@id/address"
         android:text="Navigate"
         android:layout_alignParentRight="true"
-        android:paddingRight="8dp"
-        android:onClick="" />
+        android:paddingRight="8dp" />
 
     <RelativeLayout
         android:layout_width="match_parent"
@@ -119,23 +118,27 @@
         android:layout_below="@+id/address"
         android:layout_marginTop="16dp">
         <Button
-            android:id="@+id/card_payment"
-            android:layout_height="40dp"
-            android:layout_width="160dp"
+            android:id="@+id/card_payment_button"
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content"
             android:layout_marginLeft="8dp"
+            android:paddingLeft="8dp"
             android:text="Card Payment"
+            android:textColor="@color/white"
             android:paddingRight="8dp"
-            android:background="@color/style_color_primary_light"
-            android:onClick="cardPaymentClicked" />
+            android:background="@drawable/button_background"
+            />
         <Button
-            android:id="@+id/cash_payment"
-            android:layout_height="40dp"
-            android:layout_width="160dp"
+            android:id="@+id/cash_payment_button"
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content"
             android:layout_alignParentRight="true"
             android:layout_marginRight="8dp"
+            android:paddingLeft="8dp"
             android:text="Cash Paymnet"
             android:paddingRight="8dp"
-            android:background="@color/style_color_primary"
-            android:onClick="cashPaymentClicked" />
+            android:textColor="@color/white"
+            android:background="@drawable/button_background"
+        />
     </RelativeLayout>
 </RelativeLayout>
