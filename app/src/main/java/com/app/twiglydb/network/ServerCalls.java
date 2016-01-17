@@ -3,6 +3,9 @@ package com.app.twiglydb.network;
 import com.app.twiglydb.models.DeliveryBoy;
 import com.app.twiglydb.models.Order;
 import com.app.twiglydb.models.OrderResponse;
+import com.google.gson.annotations.Expose;
+import com.google.gson.annotations.SerializedName;
+
 import java.io.IOException;
 import java.util.List;
 
@@ -38,11 +41,12 @@ public class ServerCalls {
                                     @Override
                                     public Response intercept(Chain chain) throws IOException {
                                         Request request = chain.request();
-                                        String uuid = "uuid:75bc74bc-2f99-4017-ab52-5b3b1413fef6";//DeliveryBoy.getInstance().getDev_id();
+                                        //String uuid = "uuid:75bc74bc-2f99-4017-ab52-5b3b1413fef6";//DeliveryBoy.getInstance().getDev_id();
+                                        String uuid = DeliveryBoy.getInstance().getDev_id();
                                         if (uuid != null) {
                                             request = request
                                                     .newBuilder()
-                                                    .addHeader("UUID", uuid)
+                                                    .addHeader("EUID", uuid)
                                                     .build();
                                         }
                                         Response response = chain.proceed(request);
@@ -52,7 +56,7 @@ public class ServerCalls {
                 ).build();
 
         Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl("http://www.twigly.in/")
+                .baseUrl("http://192.168.1.12:9000/")
                 .client(okClient)
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
@@ -68,35 +72,44 @@ public class ServerCalls {
     }
 
     public interface TwiglyService {
-        @GET("/db/signup")
-        Call<String> signup(@Query("mob") String mob, @Query("deviceId") String devId);
+        @GET("/employees/signup")
+        Call<DeliveryBoy> signup(@Query("contact") String mob, @Query("deviceId") String devId);
 
-        @GET("/db/orders")
+        @GET("/employees/db/orders")
         Call<List<Order>> getOrders();
 
         @FormUrlEncoded
-        @POST("/db/markDone")
-        Call<List<Order>> markDone(@Field("mode") String mode,
+        @POST("/employees/db/markDone")
+        Call<ServerResponse> markDone(@Field("mode") String mode,
                                    @Field("orderId") String orderId,
                                    @Field("lat") double lat,
                                    @Field("lng") double lng);
 
         @FormUrlEncoded
-        @POST("/db/updateLocation")
-        Call<String> updateLocation(@Field("lat") double lat,
+        @POST("/employees/db/updLoc")
+        Call<ServerResponse> updateLocation(@Field("lat") double lat,
                                     @Field("lng") double lng);
 
-        @GET("/db/reached")
-        Call<String> reachedDestination(@Query("orderId") String orderId);
+        @GET("/employees/db/reached")
+        Call<ServerResponse> reachedDestination(@Query("orderId") String orderId);
 
         @GET("/db/updategcm")
-        Call<String> updateGCM(@Query("gcmid") String gcmId);
+        Call<ServerResponse> updateGCM(@Query("gcmid") String gcmId);
 
-        @GET("/order")
-        Call<OrderResponse> getRecentOrders(@Query("orderId") String orderId,
-                                            @Query("start") int start,
-                                            @Query("numOrders") int numOrders);
+//        @GET("/order")
+//        Call<OrderResponse> getRecentOrders(@Query("orderId") String orderId,
+//                                            @Query("start") int start,
+//                                            @Query("numOrders") int numOrders);
 
 
+    }
+
+    public class ServerResponse{
+        @SerializedName("serverResponse")
+        @Expose
+        public String code;
+        @SerializedName("message")
+        @Expose
+        public String message;
     }
 }

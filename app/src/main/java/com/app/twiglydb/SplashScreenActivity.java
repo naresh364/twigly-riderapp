@@ -1,5 +1,6 @@
 package com.app.twiglydb;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -7,6 +8,8 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.Toast;
 
 import com.app.twiglydb.models.DeliveryBoy;
@@ -22,7 +25,7 @@ import retrofit2.Response;
 /**
  * Created by naresh on 10/01/16.
  */
-public class SplashScreenActivity extends AppCompatActivity{
+public class SplashScreenActivity extends Activity{
 
     public static SharedPreferences sharedPreferences;
     Intent loginIntent;
@@ -30,6 +33,12 @@ public class SplashScreenActivity extends AppCompatActivity{
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        //Remove title bar
+        this.requestWindowFeature(Window.FEATURE_NO_TITLE);
+
+        //Remove notification bar
+        this.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.splash_screen);
         loginIntent = new Intent(this, LoginActivity.class);
@@ -55,7 +64,7 @@ public class SplashScreenActivity extends AppCompatActivity{
                 }
                 List<Order> orders = response.body();
                 if (orders == null) {
-                    Toast.makeText(SplashScreenActivity.this, "Not able to retrieve the details", Toast.LENGTH_LONG);
+                    Toast.makeText(SplashScreenActivity.this, "Not able to retrieve the details", Toast.LENGTH_LONG).show();
                     return;
                 }
                 DeliveryBoy.getInstance().setAssignedOrders(orders);

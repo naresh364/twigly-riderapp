@@ -16,17 +16,24 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import com.app.twiglydb.models.DeliveryBoy;
 import com.app.twiglydb.models.Order;
 import com.app.twiglydb.network.ServerCalls;
+import com.app.twiglydb.network.ServerResponseCode;
 
 import java.util.List;
 import java.util.Locale;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 import timber.log.Timber;
 
 /**
@@ -58,10 +65,31 @@ public class OrderSummaryAdapter extends RecyclerView.Adapter<OrderSummaryAdapte
         public Button cardPaymentButton;
         @InjectView(R.id.cash_payment_button)
         public Button cashPaymentButton;
+        @InjectView(R.id.checkin_button)
+        public Button checkinButton;
+        @InjectView(R.id.checkin_layout)
+        public RelativeLayout checkinLayout;
+        @InjectView(R.id.done_layout)
+        public RelativeLayout doneLayout;
+        @InjectView(R.id.call_progress)
+        public ProgressBar callProgress;
 
         public OrderViewHolder(View v) {
             super(v);
             ButterKnife.inject(this,v);
+        }
+
+        public void showProgress(boolean show) {
+            if (show) {
+                callProgress.setVisibility(View.VISIBLE);
+            } else {
+                callProgress.setVisibility(View.INVISIBLE);
+            }
+        }
+
+        public void checkInDone(){
+            checkinLayout.setVisibility(View.GONE);
+            doneLayout.setVisibility(View.VISIBLE);
         }
     }
 
@@ -82,6 +110,7 @@ public class OrderSummaryAdapter extends RecyclerView.Adapter<OrderSummaryAdapte
         orderViewHolder.navigateButton.setOnClickListener(this);
         orderViewHolder.cashPaymentButton.setOnClickListener(this);
         orderViewHolder.cardPaymentButton.setOnClickListener(this);
+        orderViewHolder.checkinButton.setOnClickListener(this);
         return orderViewHolder;
     }
 
@@ -103,6 +132,7 @@ public class OrderSummaryAdapter extends RecyclerView.Adapter<OrderSummaryAdapte
         holder.cashPaymentButton.setTag(holder);
         holder.callButton.setTag(holder);
         holder.summaryLayout.setTag(holder);
+        holder.checkinButton.setTag(holder);
 
         holder.summaryLayout.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -121,6 +151,11 @@ public class OrderSummaryAdapter extends RecyclerView.Adapter<OrderSummaryAdapte
             return;
         } else {
             holder.navigateButton.setVisibility(View.VISIBLE);
+        }
+
+        if (!order.getPaymentOption().equalsIgnoreCase("COD")) {
+            holder.cardPaymentButton.setVisibility(View.INVISIBLE);
+            holder.cashPaymentButton.setText("DONE");
         }
     }
 
@@ -151,25 +186,100 @@ public class OrderSummaryAdapter extends RecyclerView.Adapter<OrderSummaryAdapte
             return;
         }
 
-        String mode = "";
         if (viewId == R.id.cash_payment_button) {
-           mode = "cash";
+            markOrderDone(ovh, order, "COD");
         }
 
         if (viewId == R.id.card_payment_button) {
-            mode = "card";
+            markOrderDone(ovh, order, "CardOD");
         }
 
-        if (!mode.equalsIgnoreCase("")) {
-            if (!locationService.isGPSEnabled()) {
-                locationService.showSettingsAlert();
-                return;
-            }
-            double lat = locationService.getLatitude();
-            double lng = locationService.getLongitude();
-
-            ServerCalls.getInstanse().service.markDone(mode, order.getOrderId(), lat, lng);
+        if (viewId == R.id.checkin_button) {
+            checkIn(ovh, order);
         }
+
 
     }
+
+    private void checkIn(final OrderViewHolder ovh, final Order order) {
+
+        Call<ServerCalls.ServerResponse> response = ServerCalls.getInstanse().service.reachedDestination(order.getOrderId());
+        response.enqueue(new Callback<ServerCalls.ServerResponse>() {
+            @Override
+            public void onResponse(Response<ServerCalls.ServerResponse> response) {
+                if (response == null) {
+                    Toast.makeText(context, "Unable to complete the request", Toast.LENGTH_LONG).show();
+                    ovh.showProgress(false);
+                    return;
+                }
+                ServerCalls.ServerResponse serverResponse = response.body();
+                if (serverResponse == null) {
+                    Toast.makeText(context, "Server response null", Toast.LENGTH_LONG).show();
+                    ovh.showProgress(false);
+                    return;
+                }
+                ServerResponseCode code = ServerResponseCode.valueOf(serverResponse.code);
+                if (code == ServerResponseCode.OK){
+                    ovh.showProgress(false);
+                    ovh.checkInDone();
+                    return;
+                }
+                Toast.makeText(context, serverResponse.message, Toast.LENGTH_LONG).show();
+                ovh.showProgress(false);
+            }
+
+            @Override
+            public void onFailure(Throwable t) {
+                t.printStackTrace();
+                Toast.makeText(context, "Unable to complete the request", Toast.LENGTH_LONG).show();
+                ovh.showProgress(false);
+            }
+        });
+    }
+
+    private void markOrderDone(final OrderViewHolder ovh, final Order order, String mode){
+        if (!mode.equalsIgnoreCase("") && !order.getPaymentOption().equalsIgnoreCase("COD")) {
+            //check if it is already paid
+            mode = "OnLine";
+        }
+
+        if (!locationService.isGPSEnabled()) {
+            locationService.showSettingsAlert();
+            return;
+        }
+        double lat = locationService.getLatitude();
+        double lng = locationService.getLongitude();
+
+        ServerCalls.getInstanse().service.markDone(mode, order.getOrderId(), lat, lng);
+        Call<ServerCalls.ServerResponse> response = ServerCalls.getInstanse().service.markDone(
+                                mode, order.getOrderId(), lat, lng);
+        response.enqueue(new Callback<ServerCalls.ServerResponse>() {
+            @Override
+            public void onResponse(Response<ServerCalls.ServerResponse> response) {
+                if (response == null) {
+                    Toast.makeText(context, "Unable to complete the request", Toast.LENGTH_LONG).show();
+                    ovh.showProgress(false);
+                    return;
+                }
+                ServerCalls.ServerResponse serverResponse = response.body();
+                ServerResponseCode code = ServerResponseCode.valueOf(serverResponse.code);
+                if (code == ServerResponseCode.OK){
+                    ovh.showProgress(false);
+                    DeliveryBoy.getInstance().getAssignedOrders().remove(order);
+                    notifyDataSetChanged();
+                    return;
+                }
+                Toast.makeText(context, serverResponse.message, Toast.LENGTH_LONG).show();
+                ovh.showProgress(false);
+            }
+
+            @Override
+            public void onFailure(Throwable t) {
+                t.printStackTrace();
+                Toast.makeText(context, "Unable to complete the request", Toast.LENGTH_LONG).show();
+                ovh.showProgress(false);
+            }
+        });
+    }
+
 }

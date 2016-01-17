@@ -6,6 +6,7 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.widget.Toast;
 
+import com.app.twiglydb.models.DeliveryBoy;
 import com.app.twiglydb.models.OrderResponse;
 import com.app.twiglydb.models.Order;
 import com.app.twiglydb.network.ServerCalls;
@@ -34,28 +35,28 @@ public class OrderSummaryActivity extends AppCompatActivity{
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        orders = new LinkedList<>();
+        orders = DeliveryBoy.getInstance().getAssignedOrders();
 
-        Call<OrderResponse> orderResponseCall = ServerCalls.getInstanse().service.getRecentOrders("-1", 0, 10);
-        orderResponseCall.enqueue(new Callback<OrderResponse>() {
-            @Override
-            public void onResponse(Response<OrderResponse> response) {
-                final OrderResponse orderResponse = response.body();
-                if (orderResponse == null) {
-                    Timber.d("");
-                    Toast.makeText(OrderSummaryActivity.this, response.message(), Toast.LENGTH_LONG);
-                    return;
-                }
-                orders.addAll(orderResponse.getOrders());
-                orderSummaryAdapter.notifyDataSetChanged();
-                Timber.d("Success");
-            }
-
-            @Override
-            public void onFailure(Throwable t) {
-                Timber.d("Failure");
-            }
-        });
+//        Call<OrderResponse> orderResponseCall = ServerCalls.getInstanse().service.getRecentOrders("-1", 0, 10);
+//        orderResponseCall.enqueue(new Callback<OrderResponse>() {
+//            @Override
+//            public void onResponse(Response<OrderResponse> response) {
+//                final OrderResponse orderResponse = response.body();
+//                if (orderResponse == null) {
+//                    Timber.d("");
+//                    Toast.makeText(OrderSummaryActivity.this, response.message(), Toast.LENGTH_LONG);
+//                    return;
+//                }
+//                orders.addAll(orderResponse.getOrders());
+//                orderSummaryAdapter.notifyDataSetChanged();
+//                Timber.d("Success");
+//            }
+//
+//            @Override
+//            public void onFailure(Throwable t) {
+//                Timber.d("Failure");
+//            }
+//        });
 
         orderSummaryAdapter = new OrderSummaryAdapter(this, orders);
         setContentView(R.layout.order_summary_list);

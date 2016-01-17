@@ -3,18 +3,32 @@ package com.app.twiglydb.models;
 import android.content.Context;
 import android.content.SharedPreferences;
 
+import com.google.gson.annotations.Expose;
+import com.google.gson.annotations.SerializedName;
+
 import java.util.ArrayList;
 import java.util.List;
+
+import javax.annotation.Generated;
 
 /**
  * Created by naresh on 13/01/16.
  */
+@Generated("org.jsonschema2pojo")
 public class DeliveryBoy {
-    static DeliveryBoy boy = null;
+    transient static DeliveryBoy boy = null;
+    @SerializedName("deliveryBoyId")
+    @Expose
+    String deliveryBoyId = null;
+    @SerializedName("deliveryBoyContact")
+    @Expose
     String mob = null;
-    String dev_id = null;
+    @SerializedName("deliveryBoyName")
+    @Expose
     String name;
-    List<Order> assignedOrders = new ArrayList<>();
+    transient String dev_id = null;
+    transient List<Order> assignedOrders = new ArrayList<>();
+
 
     private DeliveryBoy(){
     }
@@ -55,5 +69,22 @@ public class DeliveryBoy {
 
     public void setAssignedOrders(List<Order> assignedOrders) {
         this.assignedOrders = assignedOrders;
+    }
+
+    public String getDeliveryBoyId() {
+        return deliveryBoyId;
+    }
+
+    public void setDeliveryBoyId(String id) {
+        this.deliveryBoyId = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+        TwiglyDBSharedPreference.getPreference().setName(name);
     }
 }

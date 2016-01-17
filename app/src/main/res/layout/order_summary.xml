@@ -113,10 +113,32 @@
         android:paddingRight="8dp" />
 
     <RelativeLayout
+        android:id="@+id/checkin_layout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@+id/address"
         android:layout_marginTop="16dp">
+        <Button
+            android:id="@+id/checkin_button"
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content"
+            android:layout_marginLeft="8dp"
+            android:layout_alignParentRight="true"
+            android:paddingLeft="8dp"
+            android:text="Check IN"
+            android:textColor="@color/white"
+            android:paddingRight="8dp"
+            android:background="@drawable/button_background"
+            />
+    </RelativeLayout>
+    <RelativeLayout
+        android:id="@+id/done_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/address"
+        android:layout_marginTop="16dp"
+        android:visibility="gone"
+        >
         <Button
             android:id="@+id/card_payment_button"
             android:layout_height="wrap_content"

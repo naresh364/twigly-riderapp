@@ -11,6 +11,7 @@ import com.app.twiglydb.MyApp;
  */
 public class TwiglyDBSharedPreference {
     public static final String MOB_NUM = "MOB";
+    public static final String NAME = "NAME";
     public static final String DEVID= "DEV_ID";
     public static final String PREF = "TWIGLY_DB_PREF";
 
@@ -37,6 +38,12 @@ public class TwiglyDBSharedPreference {
     public void setMobNum(String mob){
         SharedPreferences.Editor editor = sharedPreferences.edit();
         editor.putString(MOB_NUM, mob);
+        editor.apply();
+    }
+
+    public void setName(String name){
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putString(NAME, name);
         editor.apply();
     }
 

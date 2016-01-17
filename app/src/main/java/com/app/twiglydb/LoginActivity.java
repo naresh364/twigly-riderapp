@@ -4,6 +4,7 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
 import android.content.pm.PackageManager;
+import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
@@ -154,23 +155,29 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             // perform the user login attempt.
             showProgress(true);
             DeliveryBoy.getInstance().setMob(mobile);
-            String uuid = UUID.randomUUID().toString();
-            DeliveryBoy.getInstance().setDev_id(uuid);
-            Call<String> call = ServerCalls.getInstanse().service.signup(mobile, uuid);
-            call.enqueue(new Callback<String>() {
+            String android_id = Settings.Secure.getString(this.getContentResolver(),
+                    Settings.Secure.ANDROID_ID);
+            DeliveryBoy.getInstance().setDev_id(android_id);
+            Call<DeliveryBoy> call = ServerCalls.getInstanse().service.signup(mobile, android_id);
+            call.enqueue(new Callback<DeliveryBoy>() {
                 @Override
-                public void onResponse(Response<String> response) {
+                public void onResponse(Response<DeliveryBoy> response) {
                    if (response == null) {
-                       Toast.makeText(LoginActivity.this, "Not able to login, Network error:"+response.code(), Toast.LENGTH_LONG);
+                       Toast.makeText(LoginActivity.this, "Not able to login, Network error:"+response.code(), Toast.LENGTH_LONG).show();
+                       showProgress(false);
                        return;
                    }
-                    Toast.makeText(LoginActivity.this, "Contact your admin for approval and relaunch the app", Toast.LENGTH_LONG);
+                   Toast.makeText(LoginActivity.this, "Contact your admin for approval and relaunch the app", Toast.LENGTH_LONG).show();
+                    DeliveryBoy deliveryBoy = response.body();
+                   DeliveryBoy.getInstance().setName(deliveryBoy.getName());
+                    showProgress(false);
                 }
 
                 @Override
                 public void onFailure(Throwable t) {
                     Toast.makeText(LoginActivity.this, "Not able to login", Toast.LENGTH_LONG);
                     t.printStackTrace();
+                    showProgress(false);
                 }
             });
         }
