@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.app.twiglydb.gcm;
+package gcm.play.android;
 
 import android.app.IntentService;
 import android.content.Intent;
@@ -23,11 +23,9 @@ import android.preference.PreferenceManager;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
-import com.google.android.gms.gcm.GcmPubSub;
+import com.app.twiglydb.R;
 import com.google.android.gms.gcm.GoogleCloudMessaging;
 import com.google.android.gms.iid.InstanceID;
-
-import java.io.IOException;
 
 public class RegistrationIntentService extends IntentService {
 
@@ -48,8 +46,8 @@ public class RegistrationIntentService extends IntentService {
             // are local.
             // [START get_token]
             InstanceID instanceID = InstanceID.getInstance(this);
-            final String token = InstanceID.getInstance(this).getToken("twiglydb",null);
-            //instanceID.getToken(getString(R.string.gcm_defaultSenderId), GoogleCloudMessaging.INSTANCE_ID_SCOPE, null);
+            final String token = //InstanceID.getInstance(this).getToken("twiglydb",null);
+                instanceID.getToken(getString(R.string.gcm_defaultSenderId), GoogleCloudMessaging.INSTANCE_ID_SCOPE, null);
             // [END get_token]
             Log.i(TAG, "GCM Registration Token: " + token);
 

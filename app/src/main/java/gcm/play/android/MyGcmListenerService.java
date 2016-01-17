@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.app.twiglydb.gcm;
+package gcm.play.android;
 
 import android.app.Notification;
 import android.app.NotificationManager;
