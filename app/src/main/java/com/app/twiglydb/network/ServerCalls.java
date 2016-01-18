@@ -33,6 +33,8 @@ public class ServerCalls {
     private static ServerCalls instance = null;
 
     public TwiglyService service;
+    public static final String host = "http://dev2.twigly.in/";
+    //public static final String host = "http://www.twigly.in/";
 
     private ServerCalls() {
 
@@ -56,7 +58,7 @@ public class ServerCalls {
                 ).build();
 
         Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl("http://192.168.1.12:9000/")
+                .baseUrl(host)
                 .client(okClient)
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
@@ -95,12 +97,6 @@ public class ServerCalls {
 
         @GET("/db/updategcm")
         Call<ServerResponse> updateGCM(@Query("gcmid") String gcmId);
-
-//        @GET("/order")
-//        Call<OrderResponse> getRecentOrders(@Query("orderId") String orderId,
-//                                            @Query("start") int start,
-//                                            @Query("numOrders") int numOrders);
-
 
     }
 

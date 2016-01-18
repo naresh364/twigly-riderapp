@@ -36,27 +36,7 @@ public class OrderSummaryActivity extends AppCompatActivity{
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         orders = DeliveryBoy.getInstance().getAssignedOrders();
-
-//        Call<OrderResponse> orderResponseCall = ServerCalls.getInstanse().service.getRecentOrders("-1", 0, 10);
-//        orderResponseCall.enqueue(new Callback<OrderResponse>() {
-//            @Override
-//            public void onResponse(Response<OrderResponse> response) {
-//                final OrderResponse orderResponse = response.body();
-//                if (orderResponse == null) {
-//                    Timber.d("");
-//                    Toast.makeText(OrderSummaryActivity.this, response.message(), Toast.LENGTH_LONG);
-//                    return;
-//                }
-//                orders.addAll(orderResponse.getOrders());
-//                orderSummaryAdapter.notifyDataSetChanged();
-//                Timber.d("Success");
-//            }
-//
-//            @Override
-//            public void onFailure(Throwable t) {
-//                Timber.d("Failure");
-//            }
-//        });
+        setTitle("TwiglyDB: "+DeliveryBoy.getInstance().getName());
 
         orderSummaryAdapter = new OrderSummaryAdapter(this, orders);
         setContentView(R.layout.order_summary_list);

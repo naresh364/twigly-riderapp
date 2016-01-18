@@ -35,6 +35,10 @@ public class TwiglyDBSharedPreference {
         return sharedPreferences.getString(DEVID, null);
     }
 
+    public String getName() {
+        return sharedPreferences.getString(NAME, null);
+    }
+
     public void setMobNum(String mob){
         SharedPreferences.Editor editor = sharedPreferences.edit();
         editor.putString(MOB_NUM, mob);

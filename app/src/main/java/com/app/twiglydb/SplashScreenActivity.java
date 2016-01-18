@@ -48,6 +48,7 @@ public class SplashScreenActivity extends Activity{
         String dev_id = DeliveryBoy.getInstance().getDev_id();
         if (mob ==  null || dev_id == null) {
             startActivity(loginIntent);
+            finish();
             return;
         }
 
@@ -60,6 +61,7 @@ public class SplashScreenActivity extends Activity{
                 if (response.code() == 401) {
                     //user not authorized, ask for signin
                     startActivity(loginIntent);
+                    finish();
                     return;
                 }
                 List<Order> orders = response.body();
@@ -69,6 +71,7 @@ public class SplashScreenActivity extends Activity{
                 }
                 DeliveryBoy.getInstance().setAssignedOrders(orders);
                 startActivity(deliverySummaryIntent);
+                finish();
             }
 
             @Override

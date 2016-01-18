@@ -80,6 +80,7 @@ public class DeliveryBoy {
     }
 
     public String getName() {
+        name = TwiglyDBSharedPreference.getPreference().getName();
         return name;
     }
 
