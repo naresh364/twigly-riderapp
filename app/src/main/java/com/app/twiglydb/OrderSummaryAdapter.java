@@ -87,9 +87,14 @@ public class OrderSummaryAdapter extends RecyclerView.Adapter<OrderSummaryAdapte
             }
         }
 
-        public void checkInDone(){
-            checkinLayout.setVisibility(View.GONE);
-            doneLayout.setVisibility(View.VISIBLE);
+        public void checkInDone(boolean done){
+            if (done) {
+                checkinLayout.setVisibility(View.GONE);
+                doneLayout.setVisibility(View.VISIBLE);
+            } else {
+                checkinLayout.setVisibility(View.VISIBLE);
+                doneLayout.setVisibility(View.GONE);
+            }
         }
     }
 
@@ -146,17 +151,18 @@ public class OrderSummaryAdapter extends RecyclerView.Adapter<OrderSummaryAdapte
         });
 
         Order order = orders.get(holder.getAdapterPosition());
-        if (order.getLat() == 0 || order.getLng() == 0) {
-            holder.navigateButton.setVisibility(View.INVISIBLE);
-            return;
-        } else {
-            holder.navigateButton.setVisibility(View.VISIBLE);
-        }
-
         if (!order.getPaymentOption().equalsIgnoreCase("COD")) {
             holder.cardPaymentButton.setVisibility(View.INVISIBLE);
             holder.cashPaymentButton.setText("DONE");
         }
+
+        holder.checkInDone(order.isCheckedIn);
+        if (order.getLat() == 0 || order.getLng() == 0) {
+            holder.navigateButton.setVisibility(View.INVISIBLE);
+        } else {
+            holder.navigateButton.setVisibility(View.VISIBLE);
+        }
+
     }
 
     @Override
@@ -203,6 +209,8 @@ public class OrderSummaryAdapter extends RecyclerView.Adapter<OrderSummaryAdapte
 
     private void checkIn(final OrderViewHolder ovh, final Order order) {
 
+        ovh.showProgress(true);
+
         Call<ServerCalls.ServerResponse> response = ServerCalls.getInstanse().service.reachedDestination(order.getOrderId());
         response.enqueue(new Callback<ServerCalls.ServerResponse>() {
             @Override
@@ -221,7 +229,8 @@ public class OrderSummaryAdapter extends RecyclerView.Adapter<OrderSummaryAdapte
                 ServerResponseCode code = ServerResponseCode.valueOf(serverResponse.code);
                 if (code == ServerResponseCode.OK){
                     ovh.showProgress(false);
-                    ovh.checkInDone();
+                    ovh.checkInDone(true);
+                    order.isCheckedIn = true;
                     return;
                 }
                 Toast.makeText(context, serverResponse.message, Toast.LENGTH_LONG).show();
@@ -243,9 +252,12 @@ public class OrderSummaryAdapter extends RecyclerView.Adapter<OrderSummaryAdapte
             mode = "OnLine";
         }
 
+        ovh.showProgress(true);
         if (!locationService.isGPSEnabled()) {
             locationService.showSettingsAlert();
             return;
+        } else {
+            locationService.getLocation();
         }
         double lat = locationService.getLatitude();
         double lng = locationService.getLongitude();
@@ -281,5 +293,8 @@ public class OrderSummaryAdapter extends RecyclerView.Adapter<OrderSummaryAdapte
             }
         });
     }
+
+
+
 
 }

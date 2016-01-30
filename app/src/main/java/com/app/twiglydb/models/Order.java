@@ -107,6 +107,8 @@ public class Order {
     @Expose
     private double userPendingBalance;
 
+    transient public boolean isCheckedIn = false;
+
     /**
      * 
      * @return

@@ -33,6 +33,7 @@ public class ServerCalls {
     private static ServerCalls instance = null;
 
     public TwiglyService service;
+    //public static final String host = "http://192.168.1.13:9000/";
     public static final String host = "http://dev2.twigly.in/";
     //public static final String host = "http://www.twigly.in/";
 
@@ -77,23 +78,23 @@ public class ServerCalls {
         @GET("/employees/signup")
         Call<DeliveryBoy> signup(@Query("contact") String mob, @Query("deviceId") String devId);
 
-        @GET("/employees/db/orders")
+        @GET("/db/orders")
         Call<List<Order>> getOrders();
 
         @FormUrlEncoded
-        @POST("/employees/db/markDone")
+        @POST("/db/markdone")
         Call<ServerResponse> markDone(@Field("mode") String mode,
-                                   @Field("orderId") String orderId,
+                                   @Field("displayId") String orderId,
                                    @Field("lat") double lat,
                                    @Field("lng") double lng);
 
         @FormUrlEncoded
-        @POST("/employees/db/updLoc")
+        @POST("/db/updatelocation")
         Call<ServerResponse> updateLocation(@Field("lat") double lat,
                                     @Field("lng") double lng);
 
-        @GET("/employees/db/reached")
-        Call<ServerResponse> reachedDestination(@Query("orderId") String orderId);
+        @GET("/db/reached")
+        Call<ServerResponse> reachedDestination(@Query("displayId") String orderId);
 
         @GET("/db/updategcm")
         Call<ServerResponse> updateGCM(@Query("gcmid") String gcmId);

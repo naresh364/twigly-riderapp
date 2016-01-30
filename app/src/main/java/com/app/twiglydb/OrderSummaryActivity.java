@@ -36,7 +36,7 @@ public class OrderSummaryActivity extends AppCompatActivity{
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         orders = DeliveryBoy.getInstance().getAssignedOrders();
-        setTitle("TwiglyDB: "+DeliveryBoy.getInstance().getName());
+        setTitle("TwiglyDB: " + DeliveryBoy.getInstance().getName());
 
         orderSummaryAdapter = new OrderSummaryAdapter(this, orders);
         setContentView(R.layout.order_summary_list);
@@ -46,5 +46,12 @@ public class OrderSummaryActivity extends AppCompatActivity{
         mRecyclerView.setLayoutManager(llm);
         mRecyclerView.setAdapter(orderSummaryAdapter);
         mRecyclerView.setHasFixedSize(true);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        DeliveryBoy.getInstance().updateOrders();
+        orderSummaryAdapter.notifyDataSetChanged();
     }
 }

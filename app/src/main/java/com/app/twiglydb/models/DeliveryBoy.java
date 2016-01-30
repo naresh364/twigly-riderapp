@@ -2,7 +2,9 @@ package com.app.twiglydb.models;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.widget.Toast;
 
+import com.app.twiglydb.network.ServerCalls;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
@@ -10,6 +12,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.annotation.Generated;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 /**
  * Created by naresh on 13/01/16.
@@ -63,12 +69,34 @@ public class DeliveryBoy {
         TwiglyDBSharedPreference.getPreference().setDevid(dev_id);
     }
 
+    public void updateOrders() {
+        final Call<List<Order>> ordersCall =  ServerCalls.getInstanse().service.getOrders();
+        ordersCall.enqueue(new Callback<List<Order>>() {
+            @Override
+            public void onResponse(Response<List<Order>> response) {
+                if (response.code() == 401) {
+                    return;
+                }
+                List<Order> orders = response.body();
+                if (orders == null) {
+                    return;
+                }
+                DeliveryBoy.getInstance().setAssignedOrders(orders);
+            }
+
+            @Override
+            public void onFailure(Throwable t) {
+            }
+        });
+    }
+
     public List<Order> getAssignedOrders() {
         return assignedOrders;
     }
 
     public void setAssignedOrders(List<Order> assignedOrders) {
-        this.assignedOrders = assignedOrders;
+        this.assignedOrders.clear();
+        this.assignedOrders.addAll(assignedOrders);
     }
 
     public String getDeliveryBoyId() {
@@ -80,7 +108,9 @@ public class DeliveryBoy {
     }
 
     public String getName() {
-        name = TwiglyDBSharedPreference.getPreference().getName();
+        if (name == null) {
+            name = TwiglyDBSharedPreference.getPreference().getName();
+        }
         return name;
     }
 

@@ -175,7 +175,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
 
                 @Override
                 public void onFailure(Throwable t) {
-                    Toast.makeText(LoginActivity.this, "Not able to login", Toast.LENGTH_LONG);
+                    Toast.makeText(LoginActivity.this, "Not able to login", Toast.LENGTH_LONG).show();
                     t.printStackTrace();
                     showProgress(false);
                 }
