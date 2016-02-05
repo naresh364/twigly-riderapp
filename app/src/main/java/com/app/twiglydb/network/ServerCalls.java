@@ -33,8 +33,8 @@ public class ServerCalls {
     private static ServerCalls instance = null;
 
     public TwiglyService service;
-    //public static final String host = "http://192.168.1.13:9000/";
-    public static final String host = "http://dev2.twigly.in/";
+    public static final String host = "http://192.168.1.7:9000/";
+    //public static final String host = "http://dev2.twigly.in/";
     //public static final String host = "http://www.twigly.in/";
 
     private ServerCalls() {
@@ -108,5 +108,9 @@ public class ServerCalls {
         @SerializedName("message")
         @Expose
         public String message;
+    }
+
+    public interface ServerCallEndCallback {
+        public void callback();
     }
 }

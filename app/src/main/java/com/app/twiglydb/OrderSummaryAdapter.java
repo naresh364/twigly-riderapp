@@ -82,12 +82,15 @@ public class OrderSummaryAdapter extends RecyclerView.Adapter<OrderSummaryAdapte
         public void showProgress(boolean show) {
             if (show) {
                 callProgress.setVisibility(View.VISIBLE);
+                checkinLayout.setVisibility(View.INVISIBLE);
+                doneLayout.setVisibility(View.INVISIBLE);
             } else {
                 callProgress.setVisibility(View.INVISIBLE);
             }
         }
 
         public void checkInDone(boolean done){
+            showProgress(false);
             if (done) {
                 checkinLayout.setVisibility(View.GONE);
                 doneLayout.setVisibility(View.VISIBLE);
@@ -95,6 +98,21 @@ public class OrderSummaryAdapter extends RecyclerView.Adapter<OrderSummaryAdapte
                 checkinLayout.setVisibility(View.VISIBLE);
                 doneLayout.setVisibility(View.GONE);
             }
+        }
+
+        public void checkInFailed() {
+            showProgress(false);
+            checkinLayout.setVisibility(View.VISIBLE);
+        }
+
+        public void markOrderDone() {
+            showProgress(false);
+            doneLayout.setVisibility(View.VISIBLE);
+        }
+
+        public void markDoneFailed() {
+            showProgress(false);
+            doneLayout.setVisibility(View.VISIBLE);
         }
     }
 
@@ -153,7 +171,10 @@ public class OrderSummaryAdapter extends RecyclerView.Adapter<OrderSummaryAdapte
         Order order = orders.get(holder.getAdapterPosition());
         if (!order.getPaymentOption().equalsIgnoreCase("COD")) {
             holder.cardPaymentButton.setVisibility(View.INVISIBLE);
-            holder.cashPaymentButton.setText("DONE");
+            holder.cashPaymentButton.setText("Online");
+        } else {
+            holder.cardPaymentButton.setVisibility(View.VISIBLE);
+            holder.cashPaymentButton.setText("Cash");
         }
 
         holder.checkInDone(order.isCheckedIn);
@@ -217,31 +238,30 @@ public class OrderSummaryAdapter extends RecyclerView.Adapter<OrderSummaryAdapte
             public void onResponse(Response<ServerCalls.ServerResponse> response) {
                 if (response == null) {
                     Toast.makeText(context, "Unable to complete the request", Toast.LENGTH_LONG).show();
-                    ovh.showProgress(false);
+                    ovh.checkInFailed();
                     return;
                 }
                 ServerCalls.ServerResponse serverResponse = response.body();
                 if (serverResponse == null) {
                     Toast.makeText(context, "Server response null", Toast.LENGTH_LONG).show();
-                    ovh.showProgress(false);
+                    ovh.checkInFailed();
                     return;
                 }
                 ServerResponseCode code = ServerResponseCode.valueOf(serverResponse.code);
                 if (code == ServerResponseCode.OK){
-                    ovh.showProgress(false);
                     ovh.checkInDone(true);
                     order.isCheckedIn = true;
                     return;
                 }
+                ovh.checkInFailed();
                 Toast.makeText(context, serverResponse.message, Toast.LENGTH_LONG).show();
-                ovh.showProgress(false);
             }
 
             @Override
             public void onFailure(Throwable t) {
                 t.printStackTrace();
                 Toast.makeText(context, "Unable to complete the request", Toast.LENGTH_LONG).show();
-                ovh.showProgress(false);
+                ovh.checkInFailed();
             }
         });
     }
@@ -270,26 +290,26 @@ public class OrderSummaryAdapter extends RecyclerView.Adapter<OrderSummaryAdapte
             public void onResponse(Response<ServerCalls.ServerResponse> response) {
                 if (response == null) {
                     Toast.makeText(context, "Unable to complete the request", Toast.LENGTH_LONG).show();
-                    ovh.showProgress(false);
+                    ovh.markDoneFailed();
                     return;
                 }
                 ServerCalls.ServerResponse serverResponse = response.body();
                 ServerResponseCode code = ServerResponseCode.valueOf(serverResponse.code);
                 if (code == ServerResponseCode.OK){
-                    ovh.showProgress(false);
+                    ovh.markOrderDone();
                     DeliveryBoy.getInstance().getAssignedOrders().remove(order);
                     notifyDataSetChanged();
                     return;
                 }
                 Toast.makeText(context, serverResponse.message, Toast.LENGTH_LONG).show();
-                ovh.showProgress(false);
+                ovh.markDoneFailed();
             }
 
             @Override
             public void onFailure(Throwable t) {
                 t.printStackTrace();
                 Toast.makeText(context, "Unable to complete the request", Toast.LENGTH_LONG).show();
-                ovh.showProgress(false);
+                ovh.markDoneFailed();
             }
         });
     }

@@ -23,9 +23,6 @@ import com.google.android.gms.iid.InstanceIDListenerService;
 public class MyInstanceIDListenerService extends InstanceIDListenerService {
 
     private static final String TAG = "MyInstanceIDLS";
-    public static final String GCM_ID = "registrationTokenGCMID";
-    public static final String SENT_TOKEN_TO_SERVER = "sentTokenToServer";
-    public static final String REGISTRATION_COMPLETE = "registrationComplete";
 
     /**
      * Called if InstanceID token is updated. This may occur if the security of

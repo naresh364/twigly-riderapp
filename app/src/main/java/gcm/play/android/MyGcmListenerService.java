@@ -16,44 +16,83 @@
 
 package gcm.play.android;
 
-import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
-import android.app.TaskStackBuilder;
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
+import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.NotificationCompat;
-import android.util.Log;
 
+import com.app.twiglydb.OrderSummaryActivity;
+import com.app.twiglydb.R;
+import com.app.twiglydb.bus.EventType;
 import com.google.android.gms.gcm.GcmListenerService;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URL;
+import com.google.gson.Gson;
 
 import timber.log.Timber;
 
 public class MyGcmListenerService extends GcmListenerService {
 
-    private static final String TAG = "MyGcmListenerService";
+    public static final String TAG = "MyGcmListenerService";
 
-    /**
-     * Called when message is received.
-     *
-     * @param from SenderID of the sender.
-     * @param data Data bundle containing message data as key/value pairs.
-     *             For Set of keys use data.keySet().
-     */
+
     @Override
     public void onMessageReceived(String from, Bundle data) {
-        String cmd = data.getString("cmd");
-        String ops = data.getString("ops");
-        String notificaionId = data.getString("notificaion_id");
-        //handle the message
-    }
+        String message = data.getString("msg");
+        String type = data.getString("title");
+        if (type == null) type = "";
 
+        if (type.equals("order")) {
+            Intent intent = new Intent(EventType.NEW_ORDER_EVENT);
+            intent.putExtra("data", message);
+            sendBroadcast(intent);
+            sendNotification("New order received");
+        } else if (type.equals("location")){
+        } else {
+            sendNotification(message);
+        }
+
+        // [START_EXCLUDE]
+        /**
+         * Production applications would usually process the message here.
+         * Eg: - Syncing with server.
+         *     - Store message in local database.
+         *     - Update UI.
+         */
+
+        /**
+         * In some cases it may be useful to show a notification indicating to the user
+         * that a message was received.
+         */
+        // [END_EXCLUDE]
+    }
+    // [END receive_message]
+
+    /**
+     * Create and show a simple notification containing the received GCM message.
+     *
+     * @param message GCM message received.
+     */
+    private void sendNotification(String message) {
+        Intent intent = new Intent(this, OrderSummaryActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0 /* Request code */, intent,
+                PendingIntent.FLAG_ONE_SHOT);
+
+        Uri defaultSoundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+        NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this)
+                .setSmallIcon(R.drawable.common_ic_googleplayservices)
+                .setContentTitle("New Message")
+                .setContentText(message)
+                .setAutoCancel(true)
+                .setSound(defaultSoundUri)
+                .setContentIntent(pendingIntent);
+
+        NotificationManager notificationManager =
+                (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+
+        notificationManager.notify(0 /* ID of notification */, notificationBuilder.build());
+    }
 }

@@ -3,10 +3,10 @@
     android:id="@+id/order_summary_layout"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:paddingRight="8dp"
-    android:paddingLeft="8dp"
-    android:paddingTop="8dp"
-    android:paddingBottom="8dp"
+    android:layout_marginRight="8dp"
+    android:layout_marginLeft="8dp"
+    android:layout_marginTop="8dp"
+    android:layout_marginBottom="8dp"
     android:background="@drawable/card_background">
     <TextView
         android:id="@+id/customer_name"
@@ -14,8 +14,8 @@
         android:layout_height="wrap_content"
         android:text="Naresh Kumar"
         android:textSize="@dimen/customer_name_size"
-        android:gravity="center"
-        android:paddingLeft="8dp"
+        android:layout_marginLeft="8dp"
+        android:layout_marginBottom="8dp"
         />
     <Button
         android:id="@+id/call_button"
@@ -24,7 +24,7 @@
         android:layout_alignBaseline="@+id/customer_name"
         android:text="Call"
         android:layout_alignParentRight="true"
-        android:paddingRight="8dp"
+        android:layout_marginRight="8dp"
         android:layout_alignBottom="@+id/customer_name"
         />
 
@@ -44,9 +44,8 @@
         android:layout_height="wrap_content"
         android:text="#1010101"
         android:textSize="@dimen/summary_size"
-        android:gravity="center"
-        android:paddingTop="8dp"
-        android:paddingLeft="8dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginLeft="8dp"
         />
     <TextView
         android:id="@+id/cart_price"
@@ -58,44 +57,41 @@
         android:textStyle="bold"
         android:textColor="@color/style_color_primary"
         android:textSize="@dimen/summary_size"
-        android:gravity="center"
-        android:paddingTop="8dp"
-        android:paddingRight="8dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginRight="8dp"
         />
     <TextView
+        android:id="@+id/delivery_time_text"
         android:layout_below="@+id/order_id"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Time for delivery"
         android:textSize="@dimen/summary_size"
-        android:gravity="center"
-        android:paddingTop="8dp"
-        android:paddingLeft="8dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginLeft="8dp"
         />
     <TextView
         android:id="@+id/delivery_time"
-        android:layout_below="@+id/cart_price"
+        android:layout_below="@+id/order_id"
         android:layout_alignParentRight="true"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="25 Minutes"
         android:textColor="@color/style_color_primary"
         android:textSize="@dimen/summary_size"
-        android:gravity="center"
-        android:paddingTop="8dp"
-        android:paddingRight="8dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginRight="8dp"
         />
     <TextView
         android:id="@+id/address_heading"
-        android:layout_below="@+id/delivery_time"
+        android:layout_below="@+id/delivery_time_text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Address"
         android:textSize="@dimen/summary_size"
         android:textStyle="bold"
-        android:gravity="center"
-        android:paddingLeft="8dp"
-        android:paddingTop="8dp"
+        android:layout_marginLeft="8dp"
+        android:layout_marginTop="16dp"
         />
     <TextView
         android:id="@+id/address"
@@ -104,9 +100,8 @@
         android:layout_height="wrap_content"
         android:text="Address"
         android:textSize="@dimen/summary_size"
-        android:gravity="center"
-        android:paddingLeft="8dp"
-        android:paddingTop="8dp"
+        android:layout_marginLeft="8dp"
+        android:layout_marginTop="16dp"
         />
 
     <Button
@@ -116,26 +111,25 @@
         android:layout_alignBaseline="@id/address"
         android:text="Navigate"
         android:layout_alignParentRight="true"
-        android:paddingTop="8dp"
-        android:paddingRight="8dp" />
+        android:layout_marginTop="16dp"
+        android:layout_marginRight="8dp" />
 
     <RelativeLayout
         android:id="@+id/checkin_layout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@+id/address"
-        android:paddingTop="8dp"
+        android:paddingBottom="8dp"
         android:layout_marginTop="16dp">
         <Button
             android:id="@+id/checkin_button"
             android:layout_height="wrap_content"
             android:layout_width="wrap_content"
             android:layout_marginLeft="8dp"
-            android:paddingLeft="8dp"
             android:layout_centerHorizontal="true"
             android:text="Check IN"
             android:textColor="@color/white"
-            android:paddingRight="8dp"
+            android:layout_marginRight="8dp"
             android:background="@drawable/button_background"
             />
     </RelativeLayout>
@@ -145,6 +139,7 @@
         android:layout_height="wrap_content"
         android:layout_below="@+id/address"
         android:layout_marginTop="16dp"
+        android:paddingBottom="8dp"
         android:visibility="gone"
         >
         <Button
@@ -152,10 +147,9 @@
             android:layout_height="wrap_content"
             android:layout_width="wrap_content"
             android:layout_marginLeft="8dp"
-            android:paddingLeft="8dp"
-            android:text="Card Payment"
+            android:text="Card"
             android:textColor="@color/white"
-            android:paddingRight="8dp"
+            android:layout_marginRight="8dp"
             android:background="@drawable/button1_background"
             />
         <Button
@@ -164,9 +158,8 @@
             android:layout_width="wrap_content"
             android:layout_alignParentRight="true"
             android:layout_marginRight="8dp"
-            android:paddingLeft="8dp"
-            android:text="Cash Paymnet"
-            android:paddingRight="8dp"
+            android:layout_marginLeft="8dp"
+            android:text="Cash"
             android:textColor="@color/white"
             android:background="@drawable/button1_background"
         />

@@ -9,8 +9,8 @@ android {
         applicationId "com.app.twiglydb"
         minSdkVersion 18
         targetSdkVersion 23
-        versionCode 1
-        versionName "1.0"
+        versionCode 3
+        versionName "0.0.3"
     }
     buildTypes {
         release {

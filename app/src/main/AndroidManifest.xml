@@ -66,7 +66,7 @@
         </service>
         <service
             android:name="gcm.play.android.MyInstanceIDListenerService"
-            android:exported="false">
+            android:exported="true">
             <intent-filter>
                 <action android:name="com.google.android.gms.iid.InstanceID" />
             </intent-filter>

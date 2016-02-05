@@ -43,6 +43,12 @@ public class Order {
     @SerializedName("isForLater")
     @Expose
     private boolean isForLater;
+    @SerializedName("cashbackDone")
+    @Expose
+    private boolean cashbackDone;
+    @SerializedName("flag")
+    @Expose
+    private int flat;
     @SerializedName("expectedDeliveryTime")
     @Expose
     private String expectedDeliveryTime;

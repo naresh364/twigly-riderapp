@@ -70,28 +70,43 @@ public class DeliveryBoy {
     }
 
     public void updateOrders() {
+
+    }
+
+    public void updateOrders(final ServerCalls.ServerCallEndCallback serverCallEndCallback) {
         final Call<List<Order>> ordersCall =  ServerCalls.getInstanse().service.getOrders();
         ordersCall.enqueue(new Callback<List<Order>>() {
             @Override
             public void onResponse(Response<List<Order>> response) {
                 if (response.code() == 401) {
+                    serverCallEndCallback.callback();
                     return;
                 }
                 List<Order> orders = response.body();
                 if (orders == null) {
+                    serverCallEndCallback.callback();
                     return;
                 }
                 DeliveryBoy.getInstance().setAssignedOrders(orders);
+                serverCallEndCallback.callback();
             }
 
             @Override
             public void onFailure(Throwable t) {
+                serverCallEndCallback.callback();
             }
         });
     }
 
     public List<Order> getAssignedOrders() {
         return assignedOrders;
+    }
+
+    public void addNewOrder(Order order){
+        for (Order temp : assignedOrders) {
+            if (temp.getOrderId().equals(order.getOrderId())) return;
+        }
+        assignedOrders.add(0, order);
     }
 
     public void setAssignedOrders(List<Order> assignedOrders) {
@@ -118,4 +133,9 @@ public class DeliveryBoy {
         this.name = name;
         TwiglyDBSharedPreference.getPreference().setName(name);
     }
+
+    public boolean hasOrders() {
+        return this.assignedOrders.size()>0;
+    }
+
 }
