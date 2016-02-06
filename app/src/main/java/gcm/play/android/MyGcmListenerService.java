@@ -50,6 +50,9 @@ public class MyGcmListenerService extends GcmListenerService {
             sendBroadcast(intent);
             sendNotification("New order received");
         } else if (type.equals("location")){
+            Intent intent = new Intent(EventType.LOCATION_UPDATE_EVENT);
+            intent.putExtra("data", "-1");
+            sendBroadcast(intent);
         } else {
             sendNotification(message);
         }

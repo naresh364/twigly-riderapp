@@ -75,6 +75,10 @@
             android:name="gcm.play.android.RegistrationIntentService"
             android:exported="false">
         </service>
+        <service
+            android:name=".DBLocationService"
+            android:exported="false">
+        </service>
     </application>
 
 </manifest>

@@ -89,6 +89,8 @@ public class SplashScreenActivity extends Activity{
             @Override
             public void onFailure(Throwable t) {
                 AlertDialog.Builder builder = new AlertDialog.Builder(SplashScreenActivity.this)
+                        .setTitle("Network error")
+                        .setMessage("Check your internet connection or call your manager to update the states")
                         .setPositiveButton("Exit", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
@@ -96,6 +98,7 @@ public class SplashScreenActivity extends Activity{
                             }
                         });
                 builder.show();
+                t.printStackTrace();
             }
         });
 

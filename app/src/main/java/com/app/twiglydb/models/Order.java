@@ -113,7 +113,9 @@ public class Order {
     @Expose
     private double userPendingBalance;
 
-    transient public boolean isCheckedIn = false;
+    @SerializedName("isCheckedIn")
+    @Expose
+    public boolean isCheckedIn = false;
 
     /**
      * 

@@ -6,6 +6,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.location.Location;
 import android.net.Uri;
 import android.os.Build;
 import android.support.design.widget.Snackbar;
@@ -122,7 +123,7 @@ public class OrderSummaryAdapter extends RecyclerView.Adapter<OrderSummaryAdapte
     public OrderSummaryAdapter(Context context, List<Order> orders) {
         this.context = context;
         this.orders = orders;
-        locationService = new DBLocationService(context);
+        //locationService = new DBLocationService(context);
     }
 
     @Override
@@ -273,14 +274,16 @@ public class OrderSummaryAdapter extends RecyclerView.Adapter<OrderSummaryAdapte
         }
 
         ovh.showProgress(true);
-        if (!locationService.isGPSEnabled()) {
-            locationService.showSettingsAlert();
-            return;
-        } else {
-            locationService.getLocation();
-        }
-        double lat = locationService.getLatitude();
-        double lng = locationService.getLongitude();
+        //if (!locationService.isGPSEnabled()) {
+        //    locationService.showSettingsAlert();
+        //    return;
+        //} else {
+        //    locationService.getLocation();
+        //}
+        Location location = ((OrderSummaryActivity)context).getCurrentLocation();
+        if (location == null) return;
+        double lat = location.getLatitude();
+        double lng = location.getLongitude();
 
         ServerCalls.getInstanse().service.markDone(mode, order.getOrderId(), lat, lng);
         Call<ServerCalls.ServerResponse> response = ServerCalls.getInstanse().service.markDone(
@@ -313,8 +316,4 @@ public class OrderSummaryAdapter extends RecyclerView.Adapter<OrderSummaryAdapte
             }
         });
     }
-
-
-
-
 }
