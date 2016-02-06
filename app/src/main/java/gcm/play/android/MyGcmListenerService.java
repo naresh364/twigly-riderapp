@@ -18,9 +18,11 @@ package gcm.play.android;
 
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.location.Location;
 import android.media.RingtoneManager;
@@ -48,6 +50,8 @@ public class MyGcmListenerService extends GcmListenerService {
     private DBLocationService serviceReference = null;
     private boolean serviceConnected = false;
     private Location mLocation;
+    private boolean batteryLevelUpdated = false;
+    private double batteryLevel = 0;
 
     @Override
     public void onCreate() {
@@ -55,6 +59,7 @@ public class MyGcmListenerService extends GcmListenerService {
         Intent intent = new Intent(this, DBLocationService.class);
         startService(intent);
         bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE);
+        getBatteryLevel();
     }
 
     @Override
@@ -75,11 +80,20 @@ public class MyGcmListenerService extends GcmListenerService {
             sendBroadcast(intent);
             sendNotification("New order received");
         } else if (type.equals("location")){
-            while (!serviceConnected);//wait till the service connection is made
+            while (!serviceConnected || !batteryLevelUpdated){
+                try {
+                    Thread.sleep(2000l);
+                } catch (Exception ex) {
+
+                }
+            }//wait till the service connection is made
             if (mLocation != null) {
                 Timber.e("current location :" + mLocation.getLatitude() + ", " + mLocation.getLatitude());
                 Call<ServerCalls.ServerResponse> responseCall =
-                        ServerCalls.getInstanse().service.updateLocation(mLocation.getLatitude(), mLocation.getLongitude());
+                        ServerCalls.getInstanse().service.updateDeviceInfo(mLocation.getLatitude(),
+                                mLocation.getLongitude(),
+                                mLocation.getAccuracy(),
+                                batteryLevel);
                 responseCall.enqueue(new Callback<ServerCalls.ServerResponse>() {
                     @Override
                     public void onResponse(Response<ServerCalls.ServerResponse> response) {
@@ -163,4 +177,22 @@ public class MyGcmListenerService extends GcmListenerService {
             return serviceReference.getLocation();
         }
     }
+
+    private void getBatteryLevel(){
+        BroadcastReceiver batteryLevelReceiver = new BroadcastReceiver() {
+            public void onReceive(Context context, Intent intent) {
+                context.unregisterReceiver(this);
+                int rawlevel = intent.getIntExtra("level", -1);
+                int scale = intent.getIntExtra("scale", -1);
+                batteryLevel = -1;
+                if (rawlevel >= 0 && scale > 0) {
+                    batteryLevel = (rawlevel * 100) / scale;
+                }
+                batteryLevelUpdated = true;
+            }
+        };
+        IntentFilter batteryLevelFilter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
+        registerReceiver(batteryLevelReceiver, batteryLevelFilter);
+    }
+
 }

@@ -84,14 +84,17 @@ public class ServerCalls {
         @FormUrlEncoded
         @POST("/db/markdone")
         Call<ServerResponse> markDone(@Field("mode") String mode,
-                                   @Field("displayId") String orderId,
-                                   @Field("lat") double lat,
-                                   @Field("lng") double lng);
+                                      @Field("displayId") String orderId,
+                                      @Field("lat") double lat,
+                                      @Field("lng") double lng,
+                                      @Field("acc") double acc);
 
         @FormUrlEncoded
-        @POST("/db/updatelocation")
-        Call<ServerResponse> updateLocation(@Field("lat") double lat,
-                                    @Field("lng") double lng);
+        @POST("/db/updatedeviceinfo")
+        Call<ServerResponse> updateDeviceInfo(@Field("lat") double lat,
+                                               @Field("lng") double lng,
+                                               @Field("acc") double accuracy,
+                                               @Field("battery") double battery);
 
         @GET("/db/reached")
         Call<ServerResponse> reachedDestination(@Query("displayId") String orderId);

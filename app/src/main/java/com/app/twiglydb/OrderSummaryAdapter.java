@@ -284,10 +284,10 @@ public class OrderSummaryAdapter extends RecyclerView.Adapter<OrderSummaryAdapte
         if (location == null) return;
         double lat = location.getLatitude();
         double lng = location.getLongitude();
+        double acc = location.getAccuracy();
 
-        ServerCalls.getInstanse().service.markDone(mode, order.getOrderId(), lat, lng);
         Call<ServerCalls.ServerResponse> response = ServerCalls.getInstanse().service.markDone(
-                                mode, order.getOrderId(), lat, lng);
+                                mode, order.getOrderId(), lat, lng, acc);
         response.enqueue(new Callback<ServerCalls.ServerResponse>() {
             @Override
             public void onResponse(Response<ServerCalls.ServerResponse> response) {
