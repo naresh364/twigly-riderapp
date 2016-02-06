@@ -109,9 +109,13 @@ public class OrderSummaryActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        DeliveryBoy.getInstance().updateOrders();
-        orderSummaryAdapter.notifyDataSetChanged();
-        updateNoOrderView();
+        DeliveryBoy.getInstance().updateOrders(new ServerCalls.ServerCallEndCallback() {
+            @Override
+            public void callback() {
+                orderSummaryAdapter.notifyDataSetChanged();
+                updateNoOrderView();
+            }
+        });
         if (eventReceiver== null){
             eventReceiver = new EventReceiver(new EventCallback() {
                 @Override

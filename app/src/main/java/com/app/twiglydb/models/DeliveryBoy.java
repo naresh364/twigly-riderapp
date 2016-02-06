@@ -70,6 +70,12 @@ public class DeliveryBoy {
     }
 
     public void updateOrders() {
+        updateOrders(new ServerCalls.ServerCallEndCallback() {
+            @Override
+            public void callback() {
+
+            }
+        });
 
     }
 
