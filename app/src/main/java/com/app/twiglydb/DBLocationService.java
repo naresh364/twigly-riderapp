@@ -51,7 +51,7 @@ public class DBLocationService extends Service implements LocationListener {
     private IBinder mBinder = new DBLocationBinder();
 
     public DBLocationService() {
-        getLocation();
+        super();
     }
 
     @Override
@@ -227,7 +227,7 @@ public class DBLocationService extends Service implements LocationListener {
     }
 
     public class DBLocationBinder extends Binder {
-        DBLocationService getService() {
+        public DBLocationService getService() {
             return DBLocationService.this;
         }
     }

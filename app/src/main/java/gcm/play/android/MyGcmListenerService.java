@@ -18,25 +18,50 @@ package gcm.play.android;
 
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
+import android.location.Location;
 import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.support.v4.app.NotificationCompat;
 
+import com.app.twiglydb.DBLocationService;
 import com.app.twiglydb.OrderSummaryActivity;
 import com.app.twiglydb.R;
 import com.app.twiglydb.bus.EventType;
+import com.app.twiglydb.network.ServerCalls;
 import com.google.android.gms.gcm.GcmListenerService;
 import com.google.gson.Gson;
 
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 import timber.log.Timber;
 
 public class MyGcmListenerService extends GcmListenerService {
 
     public static final String TAG = "MyGcmListenerService";
+    private DBLocationService serviceReference = null;
+    private boolean serviceConnected = false;
+    private Location mLocation;
 
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        Intent intent = new Intent(this, DBLocationService.class);
+        startService(intent);
+        bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE);
+    }
+
+    @Override
+    public void onDestroy() {
+        unbindService(serviceConnection);
+        super.onDestroy();
+    }
 
     @Override
     public void onMessageReceived(String from, Bundle data) {
@@ -50,9 +75,25 @@ public class MyGcmListenerService extends GcmListenerService {
             sendBroadcast(intent);
             sendNotification("New order received");
         } else if (type.equals("location")){
-            Intent intent = new Intent(EventType.LOCATION_UPDATE_EVENT);
-            intent.putExtra("data", "-1");
-            sendBroadcast(intent);
+            while (!serviceConnected);//wait till the service connection is made
+            if (mLocation != null) {
+                Timber.e("current location :" + mLocation.getLatitude() + ", " + mLocation.getLatitude());
+                Call<ServerCalls.ServerResponse> responseCall =
+                        ServerCalls.getInstanse().service.updateLocation(mLocation.getLatitude(), mLocation.getLongitude());
+                responseCall.enqueue(new Callback<ServerCalls.ServerResponse>() {
+                    @Override
+                    public void onResponse(Response<ServerCalls.ServerResponse> response) {
+                        Timber.e("server response");
+                    }
+
+                    @Override
+                    public void onFailure(Throwable t) {
+                        Timber.e("server failure");
+                    }
+                });
+            } else {
+                sendNotification("Not able to update the location");
+            }
         } else {
             sendNotification(message);
         }
@@ -97,5 +138,29 @@ public class MyGcmListenerService extends GcmListenerService {
                 (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 
         notificationManager.notify(0 /* ID of notification */, notificationBuilder.build());
+    }
+
+    private ServiceConnection serviceConnection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            serviceReference = ((DBLocationService.DBLocationBinder) service).getService();
+            mLocation = getCurrentLocation();
+            serviceConnected = true;
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            serviceReference = null;
+            serviceConnected = false;
+        }
+    };
+
+    public Location getCurrentLocation(){
+        if (serviceReference == null) return null;
+        if (!serviceReference.isGPSEnabled()) {
+            return null;
+        } else {
+            return serviceReference.getLocation();
+        }
     }
 }
