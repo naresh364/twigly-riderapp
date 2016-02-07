@@ -109,7 +109,7 @@ public class DBLocationService extends Service implements LocationListener {
                 } else {
                     permission = Manifest.permission.ACCESS_COARSE_LOCATION;
                 }
-                if (Utils.mayRequestPermission(MyApp.getContext(), permission)) {
+                if (Utils.mayRequestPermission(this, permission)) {
                     if (isNetworkEnabled) {
                         locationManager.requestLocationUpdates(
                                 LocationManager.NETWORK_PROVIDER,

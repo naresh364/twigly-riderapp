@@ -20,18 +20,22 @@ public class Utils {
         if (mContext.checkSelfPermission(permission) == PackageManager.PERMISSION_GRANTED) {
             return true;
         }
+        if (!(mContext instanceof Activity)) {
+            return false;
+        }
+
         if (ActivityCompat.shouldShowRequestPermissionRationale((Activity) mContext, permission)) {
-            Snackbar.make(((Activity) mContext).getCurrentFocus(),
-                    R.string.permission_rationale, Snackbar.LENGTH_INDEFINITE)
-                    .setAction(android.R.string.ok, new View.OnClickListener() {
-                        @Override
-                        @TargetApi(Build.VERSION_CODES.M)
-                        public void onClick(View v) {
-                            ActivityCompat.requestPermissions((Activity) mContext,
-                                    new String[]{permission},
-                                    0);
-                        }
-                    });
+                Snackbar.make(((Activity) mContext).getCurrentFocus(),
+                        R.string.permission_rationale, Snackbar.LENGTH_INDEFINITE)
+                        .setAction(android.R.string.ok, new View.OnClickListener() {
+                            @Override
+                            @TargetApi(Build.VERSION_CODES.M)
+                            public void onClick(View v) {
+                                ActivityCompat.requestPermissions((Activity) mContext,
+                                        new String[]{permission},
+                                        0);
+                            }
+                        });
         } else {
             ActivityCompat.requestPermissions((Activity) mContext,
                     new String[]{permission},
