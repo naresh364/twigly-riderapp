@@ -89,24 +89,11 @@ public class MyGcmListenerService extends GcmListenerService {
             }//wait till the service connection is made
             if (mLocation != null) {
                 Timber.e("current location :" + mLocation.getLatitude() + ", " + mLocation.getLatitude());
-                Call<ServerCalls.ServerResponse> responseCall =
-                        ServerCalls.getInstanse().service.updateDeviceInfo(mLocation.getLatitude(),
-                                mLocation.getLongitude(),
-                                mLocation.getAccuracy(),
-                                batteryLevel);
-                responseCall.enqueue(new Callback<ServerCalls.ServerResponse>() {
-                    @Override
-                    public void onResponse(Response<ServerCalls.ServerResponse> response) {
-                        Timber.e("server response");
-                    }
-
-                    @Override
-                    public void onFailure(Throwable t) {
-                        Timber.e("server failure");
-                    }
-                });
+                updateDeviceInfo(mLocation.getLatitude(), mLocation.getLongitude(), mLocation.getAccuracy());
             } else {
-                sendNotification("Not able to update the location");
+                //tell server that we are not able to get the location
+                updateDeviceInfo(0f, 0f, 0f);
+                //sendNotification("Not able to update the location");
             }
         } else {
             sendNotification(message);
@@ -195,4 +182,20 @@ public class MyGcmListenerService extends GcmListenerService {
         registerReceiver(batteryLevelReceiver, batteryLevelFilter);
     }
 
+    private void updateDeviceInfo(double lat, double lng, double acc) {
+        Call<ServerCalls.ServerResponse> responseCall =
+                ServerCalls.getInstanse().service.updateDeviceInfo(lat, lng, acc, batteryLevel);
+
+        responseCall.enqueue(new Callback<ServerCalls.ServerResponse>() {
+            @Override
+            public void onResponse(Response<ServerCalls.ServerResponse> response) {
+                Timber.e("server response");
+            }
+
+            @Override
+            public void onFailure(Throwable t) {
+                Timber.e("server failure");
+            }
+        });
+    }
 }
