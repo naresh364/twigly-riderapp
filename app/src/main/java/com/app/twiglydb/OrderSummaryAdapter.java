@@ -208,9 +208,10 @@ public class OrderSummaryAdapter extends RecyclerView.Adapter<OrderSummaryAdapte
         }
 
         if (viewId == R.id.navigate_button) {
-            String uri = String.format(Locale.ENGLISH, "geo:%f,%f", order.getLat(), order.getLng());
-            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(uri));
-            context.startActivity(intent);
+            Uri gmmIntentUri = Uri.parse("google.navigation:q=" + order.getLat() + ","+order.getLng());
+            Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
+            mapIntent.setPackage("com.google.android.apps.maps");
+            context.startActivity(mapIntent);
             return;
         }
 
@@ -280,11 +281,14 @@ public class OrderSummaryAdapter extends RecyclerView.Adapter<OrderSummaryAdapte
         //} else {
         //    locationService.getLocation();
         //}
+        double lat =0 , lng=0, acc=0;
+        if (!((OrderSummaryActivity)context).checkLocationEnabled()) return;
         Location location = ((OrderSummaryActivity)context).getCurrentLocation();
-        if (location == null) return;
-        double lat = location.getLatitude();
-        double lng = location.getLongitude();
-        double acc = location.getAccuracy();
+        if (location != null) {
+            lat = location.getLatitude();
+            lng = location.getLongitude();
+            acc = location.getAccuracy();
+        }
 
         Call<ServerCalls.ServerResponse> response = ServerCalls.getInstanse().service.markDone(
                                 mode, order.getOrderId(), lat, lng, acc);

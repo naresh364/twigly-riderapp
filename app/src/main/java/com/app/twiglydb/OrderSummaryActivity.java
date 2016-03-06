@@ -171,6 +171,14 @@ public class OrderSummaryActivity extends AppCompatActivity {
         }
     }
 
+    public boolean checkLocationEnabled() {
+        if (!serviceReference.isGPSEnabled()) {
+            showSettingsAlert();
+            return false;
+        }
+        return true;
+    }
+
     private ServiceConnection serviceConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
