@@ -39,11 +39,6 @@ public class SplashScreenActivity extends Activity{
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        //Remove title bar
-        this.requestWindowFeature(Window.FEATURE_NO_TITLE);
-
-        //Remove notification bar
-        this.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
         if (checkPlayServices()) {
             // Start IntentService to register this application with GCM.
