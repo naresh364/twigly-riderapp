@@ -14,7 +14,6 @@ import android.content.CursorLoader;
 import android.content.Loader;
 import android.database.Cursor;
 import android.net.Uri;
-import android.os.AsyncTask;
 
 import android.os.Build;
 import android.os.Bundle;
@@ -32,7 +31,6 @@ import com.app.twiglydb.network.ServerCalls;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -157,7 +155,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             String android_id = Settings.Secure.getString(this.getContentResolver(),
                     Settings.Secure.ANDROID_ID);
             DeliveryBoy.getInstance().setDev_id(android_id);
-            Call<DeliveryBoy> call = ServerCalls.getInstanse().service.signup(mobile, android_id);
+            Call<DeliveryBoy> call = ServerCalls.getInstance().service.signup(mobile, android_id);
             call.enqueue(new Callback<DeliveryBoy>() {
                 @Override
                 public void onResponse(Response<DeliveryBoy> response) {

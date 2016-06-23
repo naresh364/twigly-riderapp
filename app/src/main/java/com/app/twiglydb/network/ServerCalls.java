@@ -2,7 +2,6 @@ package com.app.twiglydb.network;
 
 import com.app.twiglydb.models.DeliveryBoy;
 import com.app.twiglydb.models.Order;
-import com.app.twiglydb.models.OrderResponse;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
@@ -67,7 +66,7 @@ public class ServerCalls {
         service = retrofit.create(TwiglyService.class);
     }
 
-    public static ServerCalls getInstanse(){
+    public static ServerCalls getInstance(){
         if (instance == null) {
             instance = new ServerCalls();
         }

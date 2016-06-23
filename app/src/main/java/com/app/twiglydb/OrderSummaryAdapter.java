@@ -1,22 +1,19 @@
 package com.app.twiglydb;
 
 import android.Manifest;
-import android.annotation.TargetApi;
-import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.location.Location;
 import android.net.Uri;
-import android.os.Build;
-import android.support.design.widget.Snackbar;
-import android.support.v4.app.ActivityCompat;
+import android.os.Bundle;
+import android.os.Parcelable;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -24,11 +21,12 @@ import android.widget.Toast;
 
 import com.app.twiglydb.models.DeliveryBoy;
 import com.app.twiglydb.models.Order;
+import com.app.twiglydb.models.OrderDetail;
 import com.app.twiglydb.network.ServerCalls;
 import com.app.twiglydb.network.ServerResponseCode;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
@@ -47,7 +45,7 @@ public class OrderSummaryAdapter extends RecyclerView.Adapter<OrderSummaryAdapte
         @InjectView(R.id.order_summary_card)
         public CardView cardView;
         @InjectView(R.id.order_summary_layout)
-        public RelativeLayout summaryLayout;
+        public LinearLayout summaryLayout;
         @InjectView(R.id.customer_name)
         public TextView customer_name;
         @InjectView(R.id.order_id)
@@ -95,6 +93,7 @@ public class OrderSummaryAdapter extends RecyclerView.Adapter<OrderSummaryAdapte
             if (done) {
                 checkinLayout.setVisibility(View.GONE);
                 doneLayout.setVisibility(View.VISIBLE);
+
             } else {
                 checkinLayout.setVisibility(View.VISIBLE);
                 doneLayout.setVisibility(View.GONE);
@@ -144,7 +143,7 @@ public class OrderSummaryAdapter extends RecyclerView.Adapter<OrderSummaryAdapte
     }
 
     @Override
-    public void onBindViewHolder(OrderViewHolder holder, int position) {
+    public void onBindViewHolder(OrderViewHolder holder, final int position) {
         holder.customer_name.setText(orders.get(position).getName());
         holder.cartPrice.setText(String.format("%.2f",orders.get(position).getTotal()));
         holder.address.setText(orders.get(position).getAddress());
@@ -168,6 +167,19 @@ public class OrderSummaryAdapter extends RecyclerView.Adapter<OrderSummaryAdapte
 
             }
         });
+
+        holder.orderId.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent i = new Intent(context, OrderDetailActivity.class);
+                List<OrderDetail> itemDetails = orders.get(position).getOrderDetails();
+                Bundle b = new Bundle();
+                b.putParcelableArrayList("item_details", new ArrayList(itemDetails));
+                i.putExtras(b);
+                context.startActivity(i);
+            }
+        });
+
 
         Order order = orders.get(holder.getAdapterPosition());
         if (!order.getPaymentOption().equalsIgnoreCase("COD")) {
@@ -234,7 +246,7 @@ public class OrderSummaryAdapter extends RecyclerView.Adapter<OrderSummaryAdapte
 
         ovh.showProgress(true);
 
-        Call<ServerCalls.ServerResponse> response = ServerCalls.getInstanse().service.reachedDestination(order.getOrderId());
+        Call<ServerCalls.ServerResponse> response = ServerCalls.getInstance().service.reachedDestination(order.getOrderId());
         response.enqueue(new Callback<ServerCalls.ServerResponse>() {
             @Override
             public void onResponse(Response<ServerCalls.ServerResponse> response) {
@@ -290,7 +302,7 @@ public class OrderSummaryAdapter extends RecyclerView.Adapter<OrderSummaryAdapte
             acc = location.getAccuracy();
         }
 
-        Call<ServerCalls.ServerResponse> response = ServerCalls.getInstanse().service.markDone(
+        Call<ServerCalls.ServerResponse> response = ServerCalls.getInstance().service.markDone(
                                 mode, order.getOrderId(), lat, lng, acc);
         response.enqueue(new Callback<ServerCalls.ServerResponse>() {
             @Override

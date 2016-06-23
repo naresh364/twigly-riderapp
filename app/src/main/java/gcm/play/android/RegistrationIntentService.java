@@ -27,14 +27,12 @@ import android.widget.Toast;
 import com.app.twiglydb.MyApp;
 import com.app.twiglydb.R;
 import com.app.twiglydb.models.DeliveryBoy;
-import com.app.twiglydb.models.Order;
 import com.app.twiglydb.network.ServerCalls;
 import com.google.android.gms.gcm.GcmPubSub;
 import com.google.android.gms.gcm.GoogleCloudMessaging;
 import com.google.android.gms.iid.InstanceID;
 
 import java.io.IOException;
-import java.util.List;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -103,7 +101,7 @@ public class RegistrationIntentService extends IntentService {
      */
     private void sendRegistrationToServer(String token) {
         // Add custom implementation, as needed.
-        Call<ServerCalls.ServerResponse> responseCall = ServerCalls.getInstanse().service.updateGCM(token);
+        Call<ServerCalls.ServerResponse> responseCall = ServerCalls.getInstance().service.updateGCM(token);
         responseCall.enqueue(new Callback<ServerCalls.ServerResponse>() {
             @Override
             public void onResponse(Response<ServerCalls.ServerResponse> response) {

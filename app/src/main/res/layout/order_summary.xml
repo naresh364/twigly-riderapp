@@ -1,32 +1,41 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/order_summary_layout"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:layout_marginRight="8dp"
-    android:layout_marginLeft="8dp"
-    android:layout_marginTop="8dp"
-    android:layout_marginBottom="8dp"
-    android:background="@drawable/card_background">
-    <TextView
-        android:id="@+id/customer_name"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:id="@+id/order_summary_layout"
+              android:layout_width="match_parent"
+              android:layout_height="wrap_content"
+              android:layout_marginRight="8dp"
+              android:layout_marginLeft="8dp"
+              android:layout_marginTop="8dp"
+              android:layout_marginBottom="8dp"
+              android:orientation="vertical"
+              android:background="@drawable/card_background"
+              android:weightSum="1">
+   <RelativeLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Naresh Kumar"
-        android:textSize="@dimen/customer_name_size"
-        android:layout_marginLeft="8dp"
-        android:layout_marginBottom="8dp"
-        />
-    <Button
-        android:id="@+id/call_button"
-        android:layout_height="40dp"
-        android:layout_width="wrap_content"
-        android:layout_alignBaseline="@+id/customer_name"
-        android:text="Call"
-        android:layout_alignParentRight="true"
-        android:layout_marginRight="8dp"
-        android:layout_alignBottom="@+id/customer_name"
-        />
+        android:paddingLeft="8dp"
+        android:paddingTop="8dp"
+        android:paddingRight="8dp">
+        <TextView
+            android:id="@+id/customer_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Naresh Kumar"
+            android:textSize="@dimen/customer_name_size"
+            android:layout_marginLeft="8dp"
+            android:layout_marginBottom="8dp"
+            />
+        <Button
+            android:id="@+id/call_button"
+            android:layout_height="40dp"
+            android:layout_width="wrap_content"
+            android:layout_alignBaseline="@+id/customer_name"
+            android:text="Call"
+            android:layout_alignParentRight="true"
+            android:layout_marginRight="8dp"
+            android:layout_alignBottom="@+id/customer_name"
+            />
+   </RelativeLayout>
 
 
     <View
@@ -35,7 +44,8 @@
         android:layout_below="@+id/customer_name"
         android:layout_height="1dp"
         android:layout_marginTop="8dp"
-        android:background="@android:color/darker_gray"/>
+        android:background="@android:color/darker_gray"
+        android:layout_weight="0.14"/>
 
     <TextView
         android:id="@+id/order_id"
@@ -46,6 +56,7 @@
         android:textSize="@dimen/summary_size"
         android:layout_marginTop="16dp"
         android:layout_marginLeft="8dp"
+        android:clickable="true"
         />
     <TextView
         android:id="@+id/cart_price"
@@ -164,4 +175,4 @@
             android:background="@drawable/button1_background"
         />
     </RelativeLayout>
-</RelativeLayout>
+</LinearLayout>

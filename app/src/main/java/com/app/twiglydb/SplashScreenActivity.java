@@ -2,15 +2,10 @@ package com.app.twiglydb;
 
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
-import android.view.Window;
-import android.view.WindowManager;
 import android.widget.Toast;
 
 import com.app.twiglydb.models.DeliveryBoy;
@@ -48,20 +43,21 @@ public class SplashScreenActivity extends Activity{
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.splash_screen);
+
         loginIntent = new Intent(this, LoginActivity.class);
         deliverySummaryIntent = new Intent(this, OrderSummaryActivity.class);
 
         String mob = DeliveryBoy.getInstance().getMob();
-        String dev_id = DeliveryBoy.getInstance().getDev_id();
-        if (mob ==  null || dev_id == null) {
+        String device_id = DeliveryBoy.getInstance().getDev_id();
+        if (mob ==  null || device_id == null) {
             startActivity(loginIntent);
             finish();
             return;
         }
 
-        DeliveryBoy.getInstance().initDeliveryBoy(mob, dev_id);
+        DeliveryBoy.getInstance().initDeliveryBoy(mob, device_id); // why initdelivery
 
-        final Call<List<Order>> ordersCall =  ServerCalls.getInstanse().service.getOrders();
+        final Call<List<Order>> ordersCall =  ServerCalls.getInstance().service.getOrders();
         ordersCall.enqueue(new Callback<List<Order>>() {
             @Override
             public void onResponse(Response<List<Order>> response) {

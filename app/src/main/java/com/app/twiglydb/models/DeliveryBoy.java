@@ -1,9 +1,5 @@
 package com.app.twiglydb.models;
 
-import android.content.Context;
-import android.content.SharedPreferences;
-import android.widget.Toast;
-
 import com.app.twiglydb.network.ServerCalls;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
@@ -80,7 +76,7 @@ public class DeliveryBoy {
     }
 
     public void updateOrders(final ServerCalls.ServerCallEndCallback serverCallEndCallback) {
-        final Call<List<Order>> ordersCall =  ServerCalls.getInstanse().service.getOrders();
+        final Call<List<Order>> ordersCall =  ServerCalls.getInstance().service.getOrders();
         ordersCall.enqueue(new Callback<List<Order>>() {
             @Override
             public void onResponse(Response<List<Order>> response) {
