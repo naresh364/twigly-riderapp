@@ -17,7 +17,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.widget.TextView;
-import android.widget.Toast;
 import android.widget.ViewSwitcher;
 
 import com.app.twiglydb.bus.EventCallback;
@@ -78,8 +77,29 @@ public class OrderSummaryActivity extends AppCompatActivity {
         mRecyclerView.setLayoutManager(llm);
         mRecyclerView.setAdapter(orderSummaryAdapter);
         mRecyclerView.setHasFixedSize(true);
-
         updateNoOrderView();
+
+        // SwipeRefresh is enabled iff view is at top of first item of recycler view
+        mRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
+                super.onScrollStateChanged(recyclerView, newState);
+            }
+
+            @Override
+            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+                super.onScrolled(recyclerView, dx, dy);
+
+                boolean enable = false;
+                if(recyclerView != null && (recyclerView.getChildCount() > 0)){
+                    boolean isFirstView = ((LinearLayoutManager) recyclerView.getLayoutManager()).findFirstVisibleItemPosition() == 0;
+                    boolean isTopOfFirstView = recyclerView.getChildAt(0).getTop() == 0;
+                    enable = isFirstView && isTopOfFirstView;
+                }
+                mSwipeRefreshLayout.setEnabled(enable);
+
+            }
+        });
 
         mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override

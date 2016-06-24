@@ -66,6 +66,8 @@ public class OrderSummaryAdapter extends RecyclerView.Adapter<OrderSummaryAdapte
         public Button cashPaymentButton;
         @InjectView(R.id.checkin_button)
         public Button checkinButton;
+        @InjectView(R.id.undo_checkin_button)
+        public Button undoCheckinButton;
         @InjectView(R.id.checkin_layout)
         public RelativeLayout checkinLayout;
         @InjectView(R.id.done_layout)
@@ -134,6 +136,7 @@ public class OrderSummaryAdapter extends RecyclerView.Adapter<OrderSummaryAdapte
         orderViewHolder.cashPaymentButton.setOnClickListener(this);
         orderViewHolder.cardPaymentButton.setOnClickListener(this);
         orderViewHolder.checkinButton.setOnClickListener(this);
+        orderViewHolder.undoCheckinButton.setOnClickListener(this);
         return orderViewHolder;
     }
 
@@ -156,6 +159,7 @@ public class OrderSummaryAdapter extends RecyclerView.Adapter<OrderSummaryAdapte
         holder.callButton.setTag(holder);
         holder.summaryLayout.setTag(holder);
         holder.checkinButton.setTag(holder);
+        holder.undoCheckinButton.setTag(holder);
 
         holder.summaryLayout.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -168,18 +172,19 @@ public class OrderSummaryAdapter extends RecyclerView.Adapter<OrderSummaryAdapte
             }
         });
 
-        holder.orderId.setOnClickListener(new View.OnClickListener() {
+        holder.customer_name.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v) {
-                Intent i = new Intent(context, OrderDetailActivity.class);
-                List<OrderDetail> itemDetails = orders.get(position).getOrderDetails();
-                Bundle b = new Bundle();
-                b.putParcelableArrayList("item_details", new ArrayList(itemDetails));
-                i.putExtras(b);
-                context.startActivity(i);
+            public void onClick(View view) {
+                GoToDetails(orders.get(position));
             }
         });
 
+        holder.orderId.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                GoToDetails(orders.get(position));
+            }
+        });
 
         Order order = orders.get(holder.getAdapterPosition());
         if (!order.getPaymentOption().equalsIgnoreCase("COD")) {
@@ -239,7 +244,19 @@ public class OrderSummaryAdapter extends RecyclerView.Adapter<OrderSummaryAdapte
             checkIn(ovh, order);
         }
 
+        if (viewId == R.id.undo_checkin_button) {
+            ovh.checkInDone(false);
+        }
 
+    }
+
+    private void GoToDetails(final Order order) {
+        Intent i = new Intent(context, OrderDetailActivity.class);
+        List<OrderDetail> itemDetails = order.getOrderDetails();
+        Bundle b = new Bundle();
+        b.putParcelableArrayList("item_details", new ArrayList(itemDetails));
+        i.putExtras(b);
+        context.startActivity(i);
     }
 
     private void checkIn(final OrderViewHolder ovh, final Order order) {
@@ -265,6 +282,7 @@ public class OrderSummaryAdapter extends RecyclerView.Adapter<OrderSummaryAdapte
                 if (code == ServerResponseCode.OK){
                     ovh.checkInDone(true);
                     order.isCheckedIn = true;
+                    GoToDetails(order);
                     return;
                 }
                 ovh.checkInFailed();

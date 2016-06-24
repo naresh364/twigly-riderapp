@@ -10,7 +10,8 @@
               android:orientation="vertical"
               android:background="@drawable/card_background"
               android:weightSum="1">
-   <RelativeLayout
+
+    <RelativeLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:paddingLeft="8dp"
@@ -29,12 +30,10 @@
             android:id="@+id/call_button"
             android:layout_height="40dp"
             android:layout_width="wrap_content"
-            android:layout_alignBaseline="@+id/customer_name"
             android:text="Call"
-            android:layout_alignParentRight="true"
             android:layout_marginRight="8dp"
-            android:layout_alignBottom="@+id/customer_name"
-            />
+            android:layout_centerVertical="true"
+            android:layout_alignParentEnd="true"/>
    </RelativeLayout>
 
 
@@ -115,64 +114,82 @@
         android:layout_marginTop="16dp"
         />
 
+
     <Button
         android:id="@+id/navigate_button"
         android:layout_height="40dp"
         android:layout_width="wrap_content"
-        android:layout_alignBaseline="@id/address"
         android:text="Navigate"
-        android:layout_alignParentRight="true"
         android:layout_marginTop="16dp"
         android:layout_marginRight="8dp" />
 
     <RelativeLayout
-        android:id="@+id/checkin_layout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@+id/address"
-        android:paddingBottom="8dp"
-        android:layout_marginTop="16dp">
-        <Button
-            android:id="@+id/checkin_button"
-            android:layout_height="wrap_content"
-            android:layout_width="wrap_content"
-            android:layout_marginLeft="8dp"
-            android:layout_centerHorizontal="true"
-            android:text="Check IN"
-            android:textColor="@color/white"
-            android:layout_marginRight="8dp"
-            android:background="@drawable/button_background"
-            />
-    </RelativeLayout>
-    <RelativeLayout
-        android:id="@+id/done_layout"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/address"
-        android:layout_marginTop="16dp"
-        android:paddingBottom="8dp"
-        android:visibility="gone"
         >
-        <Button
-            android:id="@+id/card_payment_button"
+
+        <RelativeLayout
+            android:id="@+id/checkin_layout"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_width="wrap_content"
-            android:layout_marginLeft="8dp"
-            android:text="Card"
-            android:textColor="@color/white"
-            android:layout_marginRight="8dp"
-            android:background="@drawable/button1_background"
-            />
-        <Button
-            android:id="@+id/cash_payment_button"
+            android:paddingBottom="8dp"
+            android:layout_marginTop="16dp">
+            <Button
+                android:id="@+id/checkin_button"
+                android:layout_height="wrap_content"
+                android:layout_width="wrap_content"
+                android:layout_marginLeft="8dp"
+                android:layout_centerHorizontal="true"
+                android:text="Check In"
+                android:textColor="@color/white"
+                android:layout_marginRight="8dp"
+                android:background="@drawable/button_background"
+                />
+        </RelativeLayout>
+        <RelativeLayout
+            android:id="@+id/done_layout"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_width="wrap_content"
-            android:layout_alignParentRight="true"
-            android:layout_marginRight="8dp"
-            android:layout_marginLeft="8dp"
-            android:text="Cash"
-            android:textColor="@color/white"
-            android:background="@drawable/button1_background"
-        />
+            android:layout_marginTop="16dp"
+            android:paddingBottom="8dp"
+            android:visibility="gone"
+            >
+            <Button
+                android:id="@+id/card_payment_button"
+                android:layout_height="wrap_content"
+                android:layout_width="wrap_content"
+                android:layout_marginLeft="8dp"
+                android:text="Card"
+                android:textColor="@color/white"
+                android:layout_marginRight="8dp"
+                android:background="@drawable/button1_background"
+                />
+
+            <Button
+                android:id="@+id/undo_checkin_button"
+                android:layout_height="wrap_content"
+                android:layout_width="wrap_content"
+                android:layout_marginLeft="8dp"
+                android:layout_centerHorizontal="true"
+                android:text="Undo"
+                android:textColor="@color/white"
+                android:layout_marginRight="8dp"
+                android:background="@drawable/button_background"
+                />
+
+            <Button
+                android:id="@+id/cash_payment_button"
+                android:layout_height="wrap_content"
+                android:layout_width="wrap_content"
+                android:layout_alignParentRight="true"
+                android:layout_marginRight="8dp"
+                android:layout_marginLeft="8dp"
+                android:text="Cash"
+                android:textColor="@color/white"
+                android:background="@drawable/button1_background"
+                />
+        </RelativeLayout>
     </RelativeLayout>
+
 </LinearLayout>
