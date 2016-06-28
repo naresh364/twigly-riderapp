@@ -6,13 +6,18 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.Toast;
 
 import com.app.twiglydb.models.DeliveryBoy;
 import com.app.twiglydb.models.Order;
 import com.app.twiglydb.network.ServerCalls;
+import com.eze.api.EzeAPI;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.List;
 
@@ -21,7 +26,8 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 import timber.log.Timber;
-
+import com.crashlytics.android.Crashlytics;
+import io.fabric.sdk.android.Fabric;
 /**
  * Created by naresh on 10/01/16.
  */
@@ -31,6 +37,7 @@ public class SplashScreenActivity extends Activity{
     Intent loginIntent;
     Intent deliverySummaryIntent;
     private static final int PLAY_SERVICES_RESOLUTION_REQUEST = 9000;
+    private static final String EZTAP_DEMO_APP_KEY = "ca467cbd-9d5e-4981-906a-7932467d6e07";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,6 +49,7 @@ public class SplashScreenActivity extends Activity{
         }
 
         super.onCreate(savedInstanceState);
+        //Fabric.with(this, new Crashlytics());
         setContentView(R.layout.splash_screen);
 
         loginIntent = new Intent(this, LoginActivity.class);
@@ -55,7 +63,8 @@ public class SplashScreenActivity extends Activity{
             return;
         }
 
-        DeliveryBoy.getInstance().initDeliveryBoy(mob, device_id); // why initdelivery
+        DeliveryBoy.getInstance().initDeliveryBoy(mob, device_id);
+
 
         final Call<List<Order>> ordersCall =  ServerCalls.getInstance().service.getOrders();
         ordersCall.enqueue(new Callback<List<Order>>() {
@@ -72,6 +81,7 @@ public class SplashScreenActivity extends Activity{
                     Toast.makeText(SplashScreenActivity.this, "Not able to retrieve the details", Toast.LENGTH_LONG).show();
                     return;
                 }
+                InitializeEzTap();
                 DeliveryBoy.getInstance().setAssignedOrders(orders);
                 startActivity(deliverySummaryIntent);
                 finish();
@@ -93,7 +103,14 @@ public class SplashScreenActivity extends Activity{
             }
         });
 
+    }
 
+    private void logUser() {
+        // TODO: Use the current user's information
+        // You can call any combination of these three methods
+        Crashlytics.setUserIdentifier("12345");
+        Crashlytics.setUserEmail("mabhi256@gmail.com");
+        Crashlytics.setUserName("mabhi");
     }
 
     /**
@@ -116,6 +133,35 @@ public class SplashScreenActivity extends Activity{
         return true;
     }
 
+    // initialize eztap as the app starts, prepare the device only on clicking card payment
+    private void InitializeEzTap(){
+        final int REQUESTCODE_INIT = 10001;
+        JSONObject jsonRequest = new JSONObject();
+        try {
+            jsonRequest.put("demoAppKey", EZTAP_DEMO_APP_KEY);
+            jsonRequest.put("prodAppKey", "Enter your prod app key");
+            jsonRequest.put("merchantName", "9686444640");
+            jsonRequest.put("userName", "9686444640");
+            jsonRequest.put("currencyCode", "INR");
+            jsonRequest.put("appMode", "DEMO");
+            jsonRequest.put("captureSignature", "false");
+            jsonRequest.put("prepareDevice", "false");
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        EzeAPI.initialize(this, REQUESTCODE_INIT, jsonRequest);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode,
+                                    Intent intent) {
+        super.onActivityResult(requestCode, resultCode, intent);
+        if (intent != null && intent.hasExtra("response")) {
+            Toast.makeText(this, intent.getStringExtra("response"),
+                    Toast.LENGTH_SHORT).show();
+            Log.i("SampleAppLogs", intent.getStringExtra("response"));
+        }
+    }
 
     @Override
     protected void onPause() {

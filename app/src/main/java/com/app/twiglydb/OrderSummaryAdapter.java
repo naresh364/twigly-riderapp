@@ -1,6 +1,7 @@
 package com.app.twiglydb;
 
 import android.Manifest;
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.location.Location;
@@ -28,8 +29,8 @@ import com.app.twiglydb.network.ServerResponseCode;
 import java.util.ArrayList;
 import java.util.List;
 
+import butterknife.BindView;
 import butterknife.ButterKnife;
-import butterknife.InjectView;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -42,49 +43,31 @@ public class OrderSummaryAdapter extends RecyclerView.Adapter<OrderSummaryAdapte
 
     public static class OrderViewHolder extends RecyclerView.ViewHolder {
         // each data item is just a string in this case
-        @InjectView(R.id.order_summary_card)
-        public CardView cardView;
-        @InjectView(R.id.order_summary_layout)
-        public LinearLayout summaryLayout;
-        @InjectView(R.id.customer_name)
-        public TextView customer_name;
-        @InjectView(R.id.order_id)
-        public TextView orderId;
-        @InjectView(R.id.cart_price)
-        public TextView cartPrice;
-        @InjectView(R.id.address)
-        public TextView address;
-        @InjectView(R.id.delivery_time)
-        public TextView deliveryTime;
-        @InjectView(R.id.call_button)
-        public Button callButton;
-        @InjectView(R.id.navigate_button)
-        public Button navigateButton;
-        @InjectView(R.id.card_payment_button)
-        public Button cardPaymentButton;
-        @InjectView(R.id.cash_payment_button)
-        public Button cashPaymentButton;
-        @InjectView(R.id.checkin_button)
-        public Button checkinButton;
-        @InjectView(R.id.undo_checkin_button)
-        public Button undoCheckinButton;
-        @InjectView(R.id.checkin_layout)
-        public RelativeLayout checkinLayout;
-        @InjectView(R.id.done_layout)
-        public RelativeLayout doneLayout;
-        @InjectView(R.id.call_progress)
-        public ProgressBar callProgress;
+        @BindView(R.id.order_summary_card) CardView cardView;
+        @BindView(R.id.order_summary_layout) public LinearLayout summaryLayout;
+        @BindView(R.id.customer_name) public TextView customer_name;
+        @BindView(R.id.order_id) public TextView orderId;
+        @BindView(R.id.cart_price) public TextView cartPrice;
+        @BindView(R.id.address) public TextView address;
+        @BindView(R.id.delivery_time) public TextView deliveryTime;
+        @BindView(R.id.call_button) public Button callButton;
+        @BindView(R.id.navigate_button) public Button navigateButton;
+        @BindView(R.id.checkin_button) public Button checkinButton;
+        @BindView(R.id.undo_checkin_button) public Button undoCheckinButton;
+        @BindView(R.id.checkin_layout) public RelativeLayout checkinLayout;
+        @BindView(R.id.done_layout) public RelativeLayout doneLayout;
+        @BindView(R.id.call_progress) public ProgressBar callProgress;
 
         public OrderViewHolder(View v) {
             super(v);
-            ButterKnife.inject(this,v);
+            ButterKnife.bind(this,v);
         }
 
         public void showProgress(boolean show) {
             if (show) {
                 callProgress.setVisibility(View.VISIBLE);
                 checkinLayout.setVisibility(View.INVISIBLE);
-                doneLayout.setVisibility(View.INVISIBLE);
+                //doneLayout.setVisibility(View.INVISIBLE);
             } else {
                 callProgress.setVisibility(View.INVISIBLE);
             }
@@ -95,7 +78,6 @@ public class OrderSummaryAdapter extends RecyclerView.Adapter<OrderSummaryAdapte
             if (done) {
                 checkinLayout.setVisibility(View.GONE);
                 doneLayout.setVisibility(View.VISIBLE);
-
             } else {
                 checkinLayout.setVisibility(View.VISIBLE);
                 doneLayout.setVisibility(View.GONE);
@@ -107,23 +89,16 @@ public class OrderSummaryAdapter extends RecyclerView.Adapter<OrderSummaryAdapte
             checkinLayout.setVisibility(View.VISIBLE);
         }
 
-        public void markOrderDone() {
-            showProgress(false);
-            doneLayout.setVisibility(View.VISIBLE);
-        }
-
-        public void markDoneFailed() {
-            showProgress(false);
-            doneLayout.setVisibility(View.VISIBLE);
-        }
     }
 
     List<Order> orders;
     Context context;
     DBLocationService locationService;
+    //private XYZinterface xyzListener;
     public OrderSummaryAdapter(Context context, List<Order> orders) {
         this.context = context;
         this.orders = orders;
+        //this.xyzListener = xyzListener;
         //locationService = new DBLocationService(context);
     }
 
@@ -133,8 +108,6 @@ public class OrderSummaryAdapter extends RecyclerView.Adapter<OrderSummaryAdapte
         final OrderViewHolder orderViewHolder = new OrderViewHolder(view);
         orderViewHolder.callButton.setOnClickListener(this);
         orderViewHolder.navigateButton.setOnClickListener(this);
-        orderViewHolder.cashPaymentButton.setOnClickListener(this);
-        orderViewHolder.cardPaymentButton.setOnClickListener(this);
         orderViewHolder.checkinButton.setOnClickListener(this);
         orderViewHolder.undoCheckinButton.setOnClickListener(this);
         return orderViewHolder;
@@ -153,9 +126,7 @@ public class OrderSummaryAdapter extends RecyclerView.Adapter<OrderSummaryAdapte
         holder.orderId.setText(orders.get(position).getOrderId() + "");
         holder.deliveryTime.setText(orders.get(position).getDeliveryTime());
 
-        holder.cardPaymentButton.setTag(holder);
         holder.navigateButton.setTag(holder);
-        holder.cashPaymentButton.setTag(holder);
         holder.callButton.setTag(holder);
         holder.summaryLayout.setTag(holder);
         holder.checkinButton.setTag(holder);
@@ -187,13 +158,6 @@ public class OrderSummaryAdapter extends RecyclerView.Adapter<OrderSummaryAdapte
         });
 
         Order order = orders.get(holder.getAdapterPosition());
-        if (!order.getPaymentOption().equalsIgnoreCase("COD")) {
-            holder.cardPaymentButton.setVisibility(View.INVISIBLE);
-            holder.cashPaymentButton.setText("Online");
-        } else {
-            holder.cardPaymentButton.setVisibility(View.VISIBLE);
-            holder.cashPaymentButton.setText("Cash");
-        }
 
         holder.checkInDone(order.isCheckedIn);
         if (order.getLat() == 0 || order.getLng() == 0) {
@@ -232,14 +196,6 @@ public class OrderSummaryAdapter extends RecyclerView.Adapter<OrderSummaryAdapte
             return;
         }
 
-        if (viewId == R.id.cash_payment_button) {
-            markOrderDone(ovh, order, "COD");
-        }
-
-        if (viewId == R.id.card_payment_button) {
-            markOrderDone(ovh, order, "CardOD");
-        }
-
         if (viewId == R.id.checkin_button) {
             checkIn(ovh, order);
         }
@@ -250,13 +206,31 @@ public class OrderSummaryAdapter extends RecyclerView.Adapter<OrderSummaryAdapte
 
     }
 
+    private final int REQUESTCODE_ORDERDONE = 0;
     private void GoToDetails(final Order order) {
-        Intent i = new Intent(context, OrderDetailActivity.class);
-        List<OrderDetail> itemDetails = order.getOrderDetails();
-        Bundle b = new Bundle();
-        b.putParcelableArrayList("item_details", new ArrayList(itemDetails));
-        i.putExtras(b);
-        context.startActivity(i);
+        Intent i = OrderDetailActivity.newIntent(context, order);
+        ((Activity)context).startActivityForResult(i, REQUESTCODE_ORDERDONE);
+
+    }
+
+    private boolean mOrderDone;
+    protected void onActivityResult(int requestCode, int resultCode, Intent data){
+        if (resultCode != Activity.RESULT_OK) return;
+
+        if (requestCode == REQUESTCODE_ORDERDONE) {
+            if (data == null) {
+                return;
+            }
+            mOrderDone = OrderDetailActivity.wasOrderDone(data);
+            /*if(mOrderDone) {
+                DeliveryBoy.getInstance().getAssignedOrders().remove(order);
+                notifyDataSetChanged();
+            }*/
+        }
+    }
+
+    public Boolean getOrderStatus(){
+        return mOrderDone;
     }
 
     private void checkIn(final OrderViewHolder ovh, final Order order) {
@@ -298,56 +272,4 @@ public class OrderSummaryAdapter extends RecyclerView.Adapter<OrderSummaryAdapte
         });
     }
 
-    private void markOrderDone(final OrderViewHolder ovh, final Order order, String mode){
-        if (!mode.equalsIgnoreCase("") && !order.getPaymentOption().equalsIgnoreCase("COD")) {
-            //check if it is already paid
-            mode = "OnLine";
-        }
-
-        ovh.showProgress(true);
-        //if (!locationService.isGPSEnabled()) {
-        //    locationService.showSettingsAlert();
-        //    return;
-        //} else {
-        //    locationService.getLocation();
-        //}
-        double lat =0 , lng=0, acc=0;
-        if (!((OrderSummaryActivity)context).checkLocationEnabled()) return;
-        Location location = ((OrderSummaryActivity)context).getCurrentLocation();
-        if (location != null) {
-            lat = location.getLatitude();
-            lng = location.getLongitude();
-            acc = location.getAccuracy();
-        }
-
-        Call<ServerCalls.ServerResponse> response = ServerCalls.getInstance().service.markDone(
-                                mode, order.getOrderId(), lat, lng, acc);
-        response.enqueue(new Callback<ServerCalls.ServerResponse>() {
-            @Override
-            public void onResponse(Response<ServerCalls.ServerResponse> response) {
-                if (response == null) {
-                    Toast.makeText(context, "Unable to complete the request", Toast.LENGTH_LONG).show();
-                    ovh.markDoneFailed();
-                    return;
-                }
-                ServerCalls.ServerResponse serverResponse = response.body();
-                ServerResponseCode code = ServerResponseCode.valueOf(serverResponse.code);
-                if (code == ServerResponseCode.OK){
-                    ovh.markOrderDone();
-                    DeliveryBoy.getInstance().getAssignedOrders().remove(order);
-                    notifyDataSetChanged();
-                    return;
-                }
-                Toast.makeText(context, serverResponse.message, Toast.LENGTH_LONG).show();
-                ovh.markDoneFailed();
-            }
-
-            @Override
-            public void onFailure(Throwable t) {
-                t.printStackTrace();
-                Toast.makeText(context, "Unable to complete the request", Toast.LENGTH_LONG).show();
-                ovh.markDoneFailed();
-            }
-        });
-    }
 }

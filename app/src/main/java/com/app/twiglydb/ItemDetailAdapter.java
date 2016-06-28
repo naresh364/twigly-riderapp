@@ -11,8 +11,8 @@ import com.app.twiglydb.models.OrderDetail;
 
 import java.util.List;
 
+import butterknife.BindView;
 import butterknife.ButterKnife;
-import butterknife.InjectView;
 
 /**
  * Created by abhishek on 22-06-2016.
@@ -21,14 +21,12 @@ public class ItemDetailAdapter extends RecyclerView.Adapter<ItemDetailAdapter.It
 
     public static class ItemViewHolder extends RecyclerView.ViewHolder{
 
-        @InjectView(R.id.item_quantity)
-        public TextView quantity;
-        @InjectView(R.id.item_name)
-        public TextView name;
+        @BindView(R.id.item_quantity) public TextView quantity;
+        @BindView(R.id.item_name) public TextView name;
 
         public ItemViewHolder(View v) {
             super(v);
-            ButterKnife.inject(this, v);
+            ButterKnife.bind(this, v);
         }
     }
 
