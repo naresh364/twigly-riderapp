@@ -1,15 +1,9 @@
 package com.app.twiglydb;
 
 import android.app.AlertDialog;
-import android.content.ComponentName;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.ServiceConnection;
 import android.location.Location;
-import android.os.IBinder;
-import android.provider.Settings;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -19,19 +13,17 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.app.twiglydb.models.DeliveryBoy;
 import com.app.twiglydb.models.Order;
-import com.app.twiglydb.network.ServerCalls;
+import com.app.twiglydb.network.NetworkRequest;
 import com.app.twiglydb.network.ServerResponseCode;
+import com.app.twiglydb.network.TwiglyRestAPI;
 
 import org.json.JSONObject;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
+import rx.subscriptions.CompositeSubscription;
 
 public class OrderDetailActivity extends BaseActivity {
     private Order order;
@@ -42,7 +34,7 @@ public class OrderDetailActivity extends BaseActivity {
     private static final String INTENTEXTRA_PARCEL_ORDERDETAILS = "com.app.twiglydb.extra.parcel.order_details";
     private static final String INTENTEXTRA_ORDERDONE = "com.app.twiglydb.order_done";
     private EzTapServices ez;
-    private Context mContext = this;
+    private CompositeSubscription subscriptions = new CompositeSubscription();
 
     @BindView(R.id.order_detail_layout) LinearLayout orderDetailLayout;
     @BindView(R.id.detail_recycler_view) RecyclerView mRecyclerView;
@@ -71,23 +63,26 @@ public class OrderDetailActivity extends BaseActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        //order = getIntent().getExtras().getParcelable("order");
         order = getIntent().getBundleExtra(INTENTEXTRA_ORDERDETAILS).getParcelable(INTENTEXTRA_PARCEL_ORDERDETAILS);
-        itemDetailAdapter = new ItemDetailAdapter(this, order.getOrderDetails());
-        setContentView(R.layout.order_detail);
-        ButterKnife.bind(this);
-        mRecyclerView.setAdapter(itemDetailAdapter);
-        LinearLayoutManager llm = new LinearLayoutManager(this);
-        llm.setAutoMeasureEnabled(true); // sets height for the recycler view
-        mRecyclerView.setLayoutManager(llm);
-        mRecyclerView.setFocusable(false);
+        //subscriptions = new CompositeSubscription();
+
+        //subscriptions.add( RxBus.getInstance().register(Order.class, o1 -> {
+        //    order = o1;
+            setContentView(R.layout.order_detail);
+            ButterKnife.bind(this);
+            itemDetailAdapter = new ItemDetailAdapter(this, order.getOrderDetails());
+            LinearLayoutManager llm = new LinearLayoutManager(this);
+            llm.setAutoMeasureEnabled(true); // sets height for the recycler view
+            mRecyclerView.setAdapter(itemDetailAdapter);
+            mRecyclerView.setLayoutManager(llm);
+            mRecyclerView.setFocusable(false);
+        //}));
     }
 
     public void eztapper(){
         ez = new EzTapServices(this, order);
         ez.initialize();
     }
-
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
@@ -121,7 +116,6 @@ public class OrderDetailActivity extends BaseActivity {
             default:
                 break;
         }
-
     }
 
     // saving location on markdone, not checkin
@@ -144,33 +138,20 @@ public class OrderDetailActivity extends BaseActivity {
             acc = location.getAccuracy();
         }
 
-        Call<ServerCalls.ServerResponse> response = ServerCalls.getInstance().service.markDone(
-                mode, order.getOrderId(), lat, lng, acc);
-        response.enqueue(new Callback<ServerCalls.ServerResponse>() {
-            @Override
-            public void onResponse(Response<ServerCalls.ServerResponse> response) {
-                if (response == null) {
-                    Toast.makeText(mContext, "Unable to complete the request", Toast.LENGTH_LONG).show();
-                    //ovh.markDoneFailed();
-                    return;
-                }
-                ServerCalls.ServerResponse serverResponse = response.body();
-                ServerResponseCode code = ServerResponseCode.valueOf(serverResponse.code);
-                if (code == ServerResponseCode.OK){
-                    setOrderDone(true);
-                    return;
-                }
-                Toast.makeText(mContext, serverResponse.message, Toast.LENGTH_LONG).show();
-                //ovh.markDoneFailed();
-            }
-
-            @Override
-            public void onFailure(Throwable t) {
-                t.printStackTrace();
-                Toast.makeText(mContext, "Unable to complete the request", Toast.LENGTH_LONG).show();
-                //ovh.markDoneFailed();
-            }
-        });
+        TwiglyRestAPI api = TwiglyApi();
+        // iff async-call (done to twigly server)successful, use lambda to call setOrderDone
+        subscriptions.add( NetworkRequest.performAsyncRequest(
+                api.markDone(mode, order.getOrderId(), lat, lng, acc),
+                (data) -> {
+                    if(ServerResponseCode.valueOf(data.code) == ServerResponseCode.OK) {
+                        setOrderDone(true);
+                    }
+                }, (error) -> {
+                    // Handle error
+                    //markDoneFailed(); --> keep showing progress bar
+                    //getPostSubscription = null;
+                    Toast.makeText(this, "Unable to complete the request" , Toast.LENGTH_LONG).show();
+                }));
     }
 
     // OrderSummaryAdapter calls this function to start OrderDetailActivity
@@ -179,6 +160,7 @@ public class OrderDetailActivity extends BaseActivity {
         Bundle b = new Bundle();
         b.putParcelable(INTENTEXTRA_PARCEL_ORDERDETAILS, order_det);
         i.putExtra(INTENTEXTRA_ORDERDETAILS, b);
+        // can also put serializeable
         return i;
     }
 
@@ -192,6 +174,9 @@ public class OrderDetailActivity extends BaseActivity {
         Intent data = new Intent();
         data.putExtra(INTENTEXTRA_ORDERDONE, isOrderDone);
         setResult(RESULT_OK, data);
+        //RxBus.getInstance().post(true);
+        //getPostSubscription.unsubscribe();
+        subscriptions.clear();
         finish(); // go back to previous activity after setting result
     }
 }

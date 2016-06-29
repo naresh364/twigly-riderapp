@@ -11,7 +11,10 @@ import android.widget.Toast;
 
 import com.app.twiglydb.models.DeliveryBoy;
 import com.app.twiglydb.models.Order;
+import com.app.twiglydb.network.NetworkRequest;
 import com.app.twiglydb.network.ServerCalls;
+import com.app.twiglydb.network.TwiglyRestAPI;
+import com.app.twiglydb.network.TwiglyRestAPIBuilder;
 import com.eze.api.EzeAPI;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
@@ -24,9 +27,13 @@ import java.util.List;
 import gcm.play.android.RegistrationIntentService;
 import retrofit2.Call;
 import retrofit2.Callback;
+import retrofit2.HttpException;
 import retrofit2.Response;
+import rx.Observable;
+import rx.Subscription;
 import timber.log.Timber;
 import com.crashlytics.android.Crashlytics;
+
 import io.fabric.sdk.android.Fabric;
 /**
  * Created by naresh on 10/01/16.
@@ -37,7 +44,7 @@ public class SplashScreenActivity extends Activity{
     Intent loginIntent;
     Intent deliverySummaryIntent;
     private static final int PLAY_SERVICES_RESOLUTION_REQUEST = 9000;
-    private static final String EZTAP_DEMO_APP_KEY = "ca467cbd-9d5e-4981-906a-7932467d6e07";
+    private Subscription getPostSubscription;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -65,7 +72,35 @@ public class SplashScreenActivity extends Activity{
 
         DeliveryBoy.getInstance().initDeliveryBoy(mob, device_id);
 
-
+        TwiglyRestAPI api = TwiglyRestAPIBuilder.buildRetroService();
+        getPostSubscription =  NetworkRequest.performAsyncRequest(
+                api.getOrders(),
+                (orders) -> {
+                    DeliveryBoy.getInstance().setAssignedOrders(orders);
+                    startActivity(deliverySummaryIntent);
+                    finish();
+                }, (error) -> {
+                    // Handle all errors at one place
+                    getPostSubscription = null;
+                    if(((HttpException) error).code() == 401){
+                        //user not authorized, ask for signin
+                        startActivity(loginIntent);
+                        finish();
+                        return;
+                    }
+                    AlertDialog.Builder builder = new AlertDialog.Builder(SplashScreenActivity.this)
+                            .setTitle("Network error")
+                            .setMessage("Check your internet connection or call your manager to update the states")
+                            .setPositiveButton("Exit", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    finish();
+                                }
+                            });
+                    builder.show();
+                    error.printStackTrace();
+                });
+/*
         final Call<List<Order>> ordersCall =  ServerCalls.getInstance().service.getOrders();
         ordersCall.enqueue(new Callback<List<Order>>() {
             @Override
@@ -81,7 +116,6 @@ public class SplashScreenActivity extends Activity{
                     Toast.makeText(SplashScreenActivity.this, "Not able to retrieve the details", Toast.LENGTH_LONG).show();
                     return;
                 }
-                InitializeEzTap();
                 DeliveryBoy.getInstance().setAssignedOrders(orders);
                 startActivity(deliverySummaryIntent);
                 finish();
@@ -101,8 +135,14 @@ public class SplashScreenActivity extends Activity{
                 builder.show();
                 t.printStackTrace();
             }
-        });
+        });*/
 
+    }
+
+    @Override
+    protected void onDestroy(){
+        if(getPostSubscription != null) getPostSubscription.unsubscribe();
+        super.onDestroy();
     }
 
     private void logUser() {
@@ -131,36 +171,6 @@ public class SplashScreenActivity extends Activity{
             return false;
         }
         return true;
-    }
-
-    // initialize eztap as the app starts, prepare the device only on clicking card payment
-    private void InitializeEzTap(){
-        final int REQUESTCODE_INIT = 10001;
-        JSONObject jsonRequest = new JSONObject();
-        try {
-            jsonRequest.put("demoAppKey", EZTAP_DEMO_APP_KEY);
-            jsonRequest.put("prodAppKey", "Enter your prod app key");
-            jsonRequest.put("merchantName", "9686444640");
-            jsonRequest.put("userName", "9686444640");
-            jsonRequest.put("currencyCode", "INR");
-            jsonRequest.put("appMode", "DEMO");
-            jsonRequest.put("captureSignature", "false");
-            jsonRequest.put("prepareDevice", "false");
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-        EzeAPI.initialize(this, REQUESTCODE_INIT, jsonRequest);
-    }
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode,
-                                    Intent intent) {
-        super.onActivityResult(requestCode, resultCode, intent);
-        if (intent != null && intent.hasExtra("response")) {
-            Toast.makeText(this, intent.getStringExtra("response"),
-                    Toast.LENGTH_SHORT).show();
-            Log.i("SampleAppLogs", intent.getStringExtra("response"));
-        }
     }
 
     @Override

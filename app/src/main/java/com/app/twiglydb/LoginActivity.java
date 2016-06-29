@@ -27,7 +27,10 @@ import android.widget.Button;
 import android.widget.Toast;
 
 import com.app.twiglydb.models.DeliveryBoy;
+import com.app.twiglydb.network.NetworkRequest;
 import com.app.twiglydb.network.ServerCalls;
+import com.app.twiglydb.network.TwiglyRestAPI;
+import com.app.twiglydb.network.TwiglyRestAPIBuilder;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,6 +38,7 @@ import java.util.List;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
+import rx.Subscription;
 
 import static android.Manifest.permission.READ_CONTACTS;
 
@@ -52,6 +56,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
     private AutoCompleteTextView mobileNum;
     private View mProgressView;
     private View mLoginFormView;
+    private Subscription getPostSubscription;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -115,6 +120,12 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         }
     }
 
+    @Override
+    public void onDestroy(){
+        if(getPostSubscription != null) getPostSubscription.unsubscribe();
+        super.onDestroy();
+    }
+
 
     /**
      * Attempts to sign in or register the account specified by the login form.
@@ -155,6 +166,20 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             String android_id = Settings.Secure.getString(this.getContentResolver(),
                     Settings.Secure.ANDROID_ID);
             DeliveryBoy.getInstance().setDev_id(android_id);
+
+            TwiglyRestAPI api = TwiglyRestAPIBuilder.buildRetroService();
+            getPostSubscription = NetworkRequest.performAsyncRequest(
+                    api.signup(mobile, android_id),
+                    (deliveryBoy) -> {
+                        DeliveryBoy.getInstance().setName(deliveryBoy.getName());
+                        showProgress(false);
+                    }, (error) -> {
+                        getPostSubscription = null;
+                        Toast.makeText(LoginActivity.this, "Not able to login, Network error:"+error.toString(), Toast.LENGTH_LONG).show();
+                        showProgress(false);
+                    }
+            );
+            /*
             Call<DeliveryBoy> call = ServerCalls.getInstance().service.signup(mobile, android_id);
             call.enqueue(new Callback<DeliveryBoy>() {
                 @Override
@@ -176,7 +201,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                     t.printStackTrace();
                     showProgress(false);
                 }
-            });
+            });*/
         }
     }
 
@@ -275,4 +300,3 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         int IS_PRIMARY = 1;
     }
 }
-

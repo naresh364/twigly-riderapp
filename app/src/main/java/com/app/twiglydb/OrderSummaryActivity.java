@@ -15,6 +15,7 @@ import com.app.twiglydb.bus.EventType;
 import com.app.twiglydb.models.DeliveryBoy;
 import com.app.twiglydb.models.Order;
 import com.app.twiglydb.network.ServerCalls;
+import com.app.twiglydb.network.TwiglyRestAPI;
 import com.google.gson.Gson;
 
 import java.util.List;
@@ -67,9 +68,9 @@ public class OrderSummaryActivity extends BaseActivity {/*implements XYZinterfac
 
                 boolean enable = false;
                 if(recyclerView != null && (recyclerView.getChildCount() > 0)){
-                    boolean isFirstView = ((LinearLayoutManager) recyclerView.getLayoutManager()).findFirstVisibleItemPosition() == 0;
-                    boolean isTopOfFirstView = recyclerView.getChildAt(0).getTop() == 0;
-                    enable = isFirstView && isTopOfFirstView;
+                    boolean isFirstCard = ((LinearLayoutManager) recyclerView.getLayoutManager()).findFirstVisibleItemPosition() == 0;
+                    boolean isTopOfFirstCard = recyclerView.getChildAt(0).getTop() == 0;
+                    enable = isFirstCard && isTopOfFirstCard;
                 }
                 mSwipeRefreshLayout.setEnabled(enable);
 
@@ -121,6 +122,13 @@ public class OrderSummaryActivity extends BaseActivity {/*implements XYZinterfac
         }
         IntentFilter intentFilter = new IntentFilter(EventType.NEW_ORDER_EVENT);
         registerReceiver(eventReceiver, intentFilter);
+    }
+
+    @Override
+    protected void onStop(){
+        super.onStop();
+        orderSummaryAdapter.onStop();
+
     }
 
     @Override

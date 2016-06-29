@@ -4,10 +4,7 @@ import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
-import android.location.Location;
 import android.net.Uri;
-import android.os.Bundle;
-import android.os.Parcelable;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -19,27 +16,41 @@ import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import com.app.twiglydb.models.DeliveryBoy;
 import com.app.twiglydb.models.Order;
-import com.app.twiglydb.models.OrderDetail;
-import com.app.twiglydb.network.ServerCalls;
+import com.app.twiglydb.network.NetworkRequest;
 import com.app.twiglydb.network.ServerResponseCode;
+import com.app.twiglydb.network.TwiglyRestAPI;
+import com.app.twiglydb.network.TwiglyRestAPIBuilder;
 
-import java.util.ArrayList;
+import org.greenrobot.eventbus.EventBus;
+
 import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
+import rx.Subscription;
+import rx.subscriptions.CompositeSubscription;
 import timber.log.Timber;
 
 /**
  * Created by naresh on 11/01/16.
  */
 public class OrderSummaryAdapter extends RecyclerView.Adapter<OrderSummaryAdapter.OrderViewHolder> implements View.OnClickListener{
+
+    List<Order> orders;
+    Context context;
+    DBLocationService locationService;
+    private Subscription getPostSubscription;
+    private CompositeSubscription subscriptions = new CompositeSubscription();
+
+    //private XYZinterface xyzListener;
+    public OrderSummaryAdapter(Context context, List<Order> orders) {
+        this.context = context;
+        this.orders = orders;
+
+        //this.xyzListener = xyzListener;
+        //locationService = new DBLocationService(context);
+    }
 
     public static class OrderViewHolder extends RecyclerView.ViewHolder {
         // each data item is just a string in this case
@@ -89,17 +100,6 @@ public class OrderSummaryAdapter extends RecyclerView.Adapter<OrderSummaryAdapte
             checkinLayout.setVisibility(View.VISIBLE);
         }
 
-    }
-
-    List<Order> orders;
-    Context context;
-    DBLocationService locationService;
-    //private XYZinterface xyzListener;
-    public OrderSummaryAdapter(Context context, List<Order> orders) {
-        this.context = context;
-        this.orders = orders;
-        //this.xyzListener = xyzListener;
-        //locationService = new DBLocationService(context);
     }
 
     @Override
@@ -208,8 +208,11 @@ public class OrderSummaryAdapter extends RecyclerView.Adapter<OrderSummaryAdapte
 
     private final int REQUESTCODE_ORDERDONE = 0;
     private void GoToDetails(final Order order) {
+        //RxBus.getInstance().post(order);
+        //EventBus.getDefault().postSticky(order);
         Intent i = OrderDetailActivity.newIntent(context, order);
         ((Activity)context).startActivityForResult(i, REQUESTCODE_ORDERDONE);
+        //((Activity)context).startActivityForResult(new Intent(context, OrderDetailActivity.class), REQUESTCODE_ORDERDONE);
 
     }
 
@@ -222,11 +225,12 @@ public class OrderSummaryAdapter extends RecyclerView.Adapter<OrderSummaryAdapte
                 return;
             }
             mOrderDone = OrderDetailActivity.wasOrderDone(data);
-            /*if(mOrderDone) {
-                DeliveryBoy.getInstance().getAssignedOrders().remove(order);
-                notifyDataSetChanged();
-            }*/
+            //subscriptions.add(RxBus.getInstance().register(boolean.class, b -> mOrderDone = b));
         }
+    }
+
+    public void onStop(){
+        if(getPostSubscription != null) getPostSubscription.unsubscribe();
     }
 
     public Boolean getOrderStatus(){
@@ -237,6 +241,25 @@ public class OrderSummaryAdapter extends RecyclerView.Adapter<OrderSummaryAdapte
 
         ovh.showProgress(true);
 
+        TwiglyRestAPI api = TwiglyRestAPIBuilder.buildRetroService();
+        // iff async-call (done to twigly server)successful, use lambda to call GoToDetails
+        getPostSubscription =  NetworkRequest.performAsyncRequest(
+                api.reachedDestination(order.getOrderId()),
+                (data) -> {
+                    if(ServerResponseCode.valueOf(data.code) == ServerResponseCode.OK) {
+                        ovh.checkInDone(true);
+                        order.isCheckedIn = true;
+                        getPostSubscription.unsubscribe();
+                        //subscriptions.clear();
+                        GoToDetails(order);
+                    }
+                }, (error) -> {
+                    // Handle error
+                    ovh.checkInFailed();
+                    getPostSubscription = null;
+                    Toast.makeText(context, "Unable to complete the request" , Toast.LENGTH_LONG).show();
+                });
+/*
         Call<ServerCalls.ServerResponse> response = ServerCalls.getInstance().service.reachedDestination(order.getOrderId());
         response.enqueue(new Callback<ServerCalls.ServerResponse>() {
             @Override
@@ -269,7 +292,7 @@ public class OrderSummaryAdapter extends RecyclerView.Adapter<OrderSummaryAdapte
                 Toast.makeText(context, "Unable to complete the request", Toast.LENGTH_LONG).show();
                 ovh.checkInFailed();
             }
-        });
+        });*/
     }
 
 }
