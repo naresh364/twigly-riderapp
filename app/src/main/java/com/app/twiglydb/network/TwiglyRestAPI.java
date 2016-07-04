@@ -19,7 +19,10 @@ import retrofit2.http.Query;
  * Created by abhishek on 28-06-2016.
  */
 public interface TwiglyRestAPI {
-     String TWIGLYAPI_ENDPOINT = "http://dev2.twigly.in/";
+
+    String TWIGLYAPI_ENDPOINT = "http://www.twigly.in/";
+    //String TWIGLYAPI_ENDPOINT = "http://dev2.twigly.in/";
+
 
     @GET("/employees/signup")
     Observable<DeliveryBoy> signup(@Query("contact") String mob, @Query("deviceId") String devId);

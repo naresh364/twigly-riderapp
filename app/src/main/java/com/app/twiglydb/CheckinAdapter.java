@@ -47,7 +47,7 @@ public class CheckinAdapter extends RecyclerView.Adapter<CheckinAdapter.ItemView
         // Get the data model based on position
 
         // Set item views based on the data model
-        holder.checkinText.setText(">> Swipe to Checkin >>");
+        holder.checkinText.setText(">> Swipe to Checkin");
     }
 
     @Override
