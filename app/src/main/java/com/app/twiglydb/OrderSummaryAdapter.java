@@ -6,6 +6,7 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Color;
 import android.net.Uri;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
@@ -103,6 +104,8 @@ public class OrderSummaryAdapter extends RecyclerView.Adapter<OrderSummaryAdapte
         Order order = orders.get(position);
 
         holder.customer_name.setText(order.getName());
+        holder.customer_name.setTextColor(Color.parseColor("#009688"));
+
         holder.orderId.setText("#"+order.getOrderId());
         holder.address.setText(order.getAddress());
         holder.cartPrice.setText("\u20B9 " + String.format("%.2f",order.getTotal()));

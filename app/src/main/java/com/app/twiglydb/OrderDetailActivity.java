@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
@@ -18,6 +19,7 @@ import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.app.twiglydb.models.DeliveryBoy;
 import com.app.twiglydb.models.Order;
@@ -34,6 +36,7 @@ import org.json.JSONObject;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import rx.subscriptions.CompositeSubscription;
+import timber.log.Timber;
 
 public class OrderDetailActivity extends BaseActivity {
     private Order order;
@@ -108,6 +111,8 @@ public class OrderDetailActivity extends BaseActivity {
 
         //TODO: repeated stuff-----------------------------------------------------------------------
         mCustomerName.setText(order.getName());
+        mCustomerName.setTextColor(Color.parseColor("#009688"));
+
         orderId.setText("#"+order.getOrderId());
         address.setText(order.getAddress());
         cartPrice.setText("\u20B9 " + String.format("%.2f",order.getTotal()));
@@ -208,7 +213,6 @@ public class OrderDetailActivity extends BaseActivity {
         cardButton.setOnClickListener(click -> {
             ez = new EzTapServices(this, order);
             ez.initialize();
-            if(ezTxnId != null) MarkOrderDone(order, "Card");
         });
     }
 
@@ -241,7 +245,10 @@ Eventbus specific---------------------------------------------------------
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
         super.onActivityResult(requestCode, resultCode, intent);
-
+        if (intent != null && intent.hasExtra("response")) {
+            //Toast.makeText(this, requestCode+" "+resultCode,Toast.LENGTH_SHORT).show();
+            Timber.i("SampleAppLogs",intent.getStringExtra("response"));
+        }
         switch (requestCode) {
             case REQUESTCODE_INIT:
                 // if ez device is successfully initialized and prepared, start the card payment process
@@ -262,6 +269,7 @@ Eventbus specific---------------------------------------------------------
                         response = response.getJSONObject("result");
                         response = response.getJSONObject("txn");
                         ezTxnId = response.getString("txnId");
+                        MarkOrderDone(order, "Card");
                     } catch (Exception e) {
                         e.printStackTrace();
                     }

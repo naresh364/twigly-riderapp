@@ -1,10 +1,12 @@
 package com.app.twiglydb;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.app.twiglydb.models.OrderDetail;
@@ -21,6 +23,7 @@ public class ItemDetailAdapter extends RecyclerView.Adapter<ItemDetailAdapter.It
 
     public static class ItemViewHolder extends RecyclerView.ViewHolder{
 
+        @BindView(R.id.item_detail) public LinearLayout itemDetailLayout;
         @BindView(R.id.item_quantity) public TextView quantity;
         @BindView(R.id.item_name) public TextView name;
 
@@ -52,7 +55,7 @@ public class ItemDetailAdapter extends RecyclerView.Adapter<ItemDetailAdapter.It
     @Override
     public void onBindViewHolder(ItemViewHolder holder, int position) {
         // Get the data model based on position
-        OrderDetail contact = mItems.get(position);
+        if((position%2) == 1) holder.itemDetailLayout.setBackgroundColor(Color.parseColor("#ECEFF1"));
 
         // Set item views based on the data model
         holder.quantity.setText(mItems.get(position).getQuantity() + "");
