@@ -2,7 +2,9 @@ package com.app.twiglydb;
 
 import android.Manifest;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
 import android.support.v7.widget.CardView;
@@ -11,18 +13,20 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.LinearLayout;
+import android.widget.ImageButton;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.app.twiglydb.models.DeliveryBoy;
 import com.app.twiglydb.models.Order;
 import com.app.twiglydb.network.NetworkRequest;
 import com.app.twiglydb.network.ServerResponseCode;
 import com.app.twiglydb.network.TwiglyRestAPI;
 import com.app.twiglydb.network.TwiglyRestAPIBuilder;
 
-import org.greenrobot.eventbus.EventBus;
+//import org.greenrobot.eventbus.EventBus;
 
 import java.util.List;
 
@@ -35,11 +39,10 @@ import timber.log.Timber;
 /**
  * Created by naresh on 11/01/16.
  */
-public class OrderSummaryAdapter extends RecyclerView.Adapter<OrderSummaryAdapter.OrderViewHolder> implements View.OnClickListener{
+public class OrderSummaryAdapter extends RecyclerView.Adapter<OrderSummaryAdapter.OrderViewHolder>{
 
     List<Order> orders;
     Context context;
-    DBLocationService locationService;
     private Subscription getPostSubscription;
     private CompositeSubscription subscriptions = new CompositeSubscription();
 
@@ -55,18 +58,14 @@ public class OrderSummaryAdapter extends RecyclerView.Adapter<OrderSummaryAdapte
     public static class OrderViewHolder extends RecyclerView.ViewHolder {
         // each data item is just a string in this case
         @BindView(R.id.order_summary_card) CardView cardView;
-        @BindView(R.id.order_summary_layout) public LinearLayout summaryLayout;
+        @BindView(R.id.order_summary_layout) public RelativeLayout summaryLayout;
         @BindView(R.id.customer_name) public TextView customer_name;
         @BindView(R.id.order_id) public TextView orderId;
         @BindView(R.id.cart_price) public TextView cartPrice;
         @BindView(R.id.address) public TextView address;
         @BindView(R.id.delivery_time) public TextView deliveryTime;
-        @BindView(R.id.call_button) public Button callButton;
+        @BindView(R.id.call_button) public ImageButton callButton;
         @BindView(R.id.navigate_button) public Button navigateButton;
-        @BindView(R.id.checkin_button) public Button checkinButton;
-        @BindView(R.id.undo_checkin_button) public Button undoCheckinButton;
-        @BindView(R.id.checkin_layout) public RelativeLayout checkinLayout;
-        @BindView(R.id.done_layout) public RelativeLayout doneLayout;
         @BindView(R.id.call_progress) public ProgressBar callProgress;
 
         public OrderViewHolder(View v) {
@@ -77,40 +76,16 @@ public class OrderSummaryAdapter extends RecyclerView.Adapter<OrderSummaryAdapte
         public void showProgress(boolean show) {
             if (show) {
                 callProgress.setVisibility(View.VISIBLE);
-                checkinLayout.setVisibility(View.INVISIBLE);
-                //doneLayout.setVisibility(View.INVISIBLE);
             } else {
                 callProgress.setVisibility(View.INVISIBLE);
             }
         }
-
-        public void checkInDone(boolean done){
-            showProgress(false);
-            if (done) {
-                checkinLayout.setVisibility(View.GONE);
-                doneLayout.setVisibility(View.VISIBLE);
-            } else {
-                checkinLayout.setVisibility(View.VISIBLE);
-                doneLayout.setVisibility(View.GONE);
-            }
-        }
-
-        public void checkInFailed() {
-            showProgress(false);
-            checkinLayout.setVisibility(View.VISIBLE);
-        }
-
     }
 
     @Override
     public OrderSummaryAdapter.OrderViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         final View view = LayoutInflater.from(context).inflate(R.layout.order_summary_card, parent, false);
-        final OrderViewHolder orderViewHolder = new OrderViewHolder(view);
-        orderViewHolder.callButton.setOnClickListener(this);
-        orderViewHolder.navigateButton.setOnClickListener(this);
-        orderViewHolder.checkinButton.setOnClickListener(this);
-        orderViewHolder.undoCheckinButton.setOnClickListener(this);
-        return orderViewHolder;
+        return new OrderViewHolder(view);
     }
 
     @Override
@@ -120,54 +95,47 @@ public class OrderSummaryAdapter extends RecyclerView.Adapter<OrderSummaryAdapte
 
     @Override
     public void onBindViewHolder(OrderViewHolder holder, final int position) {
-        holder.customer_name.setText(orders.get(position).getName());
-        holder.cartPrice.setText(String.format("%.2f",orders.get(position).getTotal()));
-        holder.address.setText(orders.get(position).getAddress());
-        holder.orderId.setText(orders.get(position).getOrderId() + "");
-        holder.deliveryTime.setText(orders.get(position).getDeliveryTime());
+        // RecyclerView will not call this method again if the position of the item changes in the data set
+        // So, only use the position parameter while acquiring the related data item inside this method and should not keep
+        // a copy of it.If you need the position of an item later on (e.g. in a click listener), use getAdapterPosition()
+        // which will have the updated adapter position
 
-        holder.navigateButton.setTag(holder);
-        holder.callButton.setTag(holder);
-        holder.summaryLayout.setTag(holder);
-        holder.checkinButton.setTag(holder);
-        holder.undoCheckinButton.setTag(holder);
+        Order order = orders.get(position);
 
-        holder.summaryLayout.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                OrderViewHolder ovh = (OrderViewHolder) v.getTag();
-                if (ovh == null) return;
+        holder.customer_name.setText(order.getName());
+        holder.orderId.setText("#"+order.getOrderId());
+        holder.address.setText(order.getAddress());
+        holder.cartPrice.setText("\u20B9 " + String.format("%.2f",order.getTotal()));
+        holder.deliveryTime.setText(order.getDeliveryTime());
 
-                Timber.d("click on position at:"+ovh.getLayoutPosition());
+        //holder.checkinButton.setTag(holder);
 
+        holder.callButton.setOnClickListener(view -> {
+            String uri = "tel:" + order.getMobileNumber().trim() ;
+            Intent intent = new Intent(Intent.ACTION_CALL);
+            intent.setData(Uri.parse(uri));
+            if (Utils.mayRequestPermission(context, Manifest.permission.CALL_PHONE)) {
+                context.startActivity(intent);
             }
         });
-
-        holder.customer_name.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                GoToDetails(orders.get(position));
-            }
+        holder.navigateButton.setOnClickListener(view -> {
+            Uri gmmIntentUri = Uri.parse("google.navigation:q=" + order.getLat() + ","+order.getLng());
+            Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
+            mapIntent.setPackage("com.google.android.apps.maps");
+            context.startActivity(mapIntent);
+            return;
         });
+        holder.customer_name.setOnClickListener(view -> GoToDetails(holder));
+        holder.orderId.setOnClickListener(view -> GoToDetails(holder));
+        holder.address.setOnClickListener(view -> GoToDetails(holder));
 
-        holder.orderId.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                GoToDetails(orders.get(position));
-            }
-        });
-
-        Order order = orders.get(holder.getAdapterPosition());
-
-        holder.checkInDone(order.isCheckedIn);
         if (order.getLat() == 0 || order.getLng() == 0) {
             holder.navigateButton.setVisibility(View.INVISIBLE);
         } else {
             holder.navigateButton.setVisibility(View.VISIBLE);
         }
-
     }
-
+/*
     @Override
     public void onClick(View v) {
         final int viewId = v.getId();
@@ -200,18 +168,28 @@ public class OrderSummaryAdapter extends RecyclerView.Adapter<OrderSummaryAdapte
             checkIn(ovh, order);
         }
 
-        if (viewId == R.id.undo_checkin_button) {
-            ovh.checkInDone(false);
-        }
-
-    }
+    }*/
 
     private final int REQUESTCODE_ORDERDONE = 0;
-    private void GoToDetails(final Order order) {
+    private void GoToDetails(OrderViewHolder ovh) {
+        //get the updated details of orders
+        ovh.showProgress(true);
+        TwiglyRestAPI api = TwiglyRestAPIBuilder.buildRetroService();
+        // iff async-call (done to twigly server)successful, use lambda to call GoToDetails
+        subscriptions.add(NetworkRequest.performAsyncRequest(
+                api.getOrders(),
+                (orders) -> {
+                    ovh.showProgress(false);
+                    Intent i = OrderDetailActivity.newIntent(context, orders.get(ovh.getAdapterPosition()));
+                    ((Activity)context).startActivityForResult(i, REQUESTCODE_ORDERDONE);
+                }, (error) -> {
+                    // Handle all errors at one place
+                    getPostSubscription = null;
+
+                }));
+
         //RxBus.getInstance().post(order);
         //EventBus.getDefault().postSticky(order);
-        Intent i = OrderDetailActivity.newIntent(context, order);
-        ((Activity)context).startActivityForResult(i, REQUESTCODE_ORDERDONE);
         //((Activity)context).startActivityForResult(new Intent(context, OrderDetailActivity.class), REQUESTCODE_ORDERDONE);
 
     }
@@ -219,13 +197,11 @@ public class OrderSummaryAdapter extends RecyclerView.Adapter<OrderSummaryAdapte
     private boolean mOrderDone;
     protected void onActivityResult(int requestCode, int resultCode, Intent data){
         if (resultCode != Activity.RESULT_OK) return;
-
         if (requestCode == REQUESTCODE_ORDERDONE) {
             if (data == null) {
                 return;
             }
             mOrderDone = OrderDetailActivity.wasOrderDone(data);
-            //subscriptions.add(RxBus.getInstance().register(boolean.class, b -> mOrderDone = b));
         }
     }
 
@@ -237,28 +213,7 @@ public class OrderSummaryAdapter extends RecyclerView.Adapter<OrderSummaryAdapte
         return mOrderDone;
     }
 
-    private void checkIn(final OrderViewHolder ovh, final Order order) {
 
-        ovh.showProgress(true);
-
-        TwiglyRestAPI api = TwiglyRestAPIBuilder.buildRetroService();
-        // iff async-call (done to twigly server)successful, use lambda to call GoToDetails
-        getPostSubscription =  NetworkRequest.performAsyncRequest(
-                api.reachedDestination(order.getOrderId()),
-                (data) -> {
-                    if(ServerResponseCode.valueOf(data.code) == ServerResponseCode.OK) {
-                        ovh.checkInDone(true);
-                        order.isCheckedIn = true;
-                        getPostSubscription.unsubscribe();
-                        //subscriptions.clear();
-                        GoToDetails(order);
-                    }
-                }, (error) -> {
-                    // Handle error
-                    ovh.checkInFailed();
-                    getPostSubscription = null;
-                    Toast.makeText(context, "Unable to complete the request" , Toast.LENGTH_LONG).show();
-                });
 /*
         Call<ServerCalls.ServerResponse> response = ServerCalls.getInstance().service.reachedDestination(order.getOrderId());
         response.enqueue(new Callback<ServerCalls.ServerResponse>() {
@@ -293,6 +248,6 @@ public class OrderSummaryAdapter extends RecyclerView.Adapter<OrderSummaryAdapte
                 ovh.checkInFailed();
             }
         });*/
-    }
+    //}
 
 }

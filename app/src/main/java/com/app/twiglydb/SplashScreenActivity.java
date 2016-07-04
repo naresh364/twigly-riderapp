@@ -12,7 +12,7 @@ import android.widget.Toast;
 import com.app.twiglydb.models.DeliveryBoy;
 import com.app.twiglydb.models.Order;
 import com.app.twiglydb.network.NetworkRequest;
-import com.app.twiglydb.network.ServerCalls;
+//import com.app.twiglydb.network.ServerCalls;
 import com.app.twiglydb.network.TwiglyRestAPI;
 import com.app.twiglydb.network.TwiglyRestAPIBuilder;
 import com.eze.api.EzeAPI;
@@ -29,6 +29,7 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.HttpException;
 import retrofit2.Response;
+import retrofit2.Retrofit;
 import rx.Observable;
 import rx.Subscription;
 import timber.log.Timber;
@@ -41,8 +42,6 @@ import io.fabric.sdk.android.Fabric;
 public class SplashScreenActivity extends Activity{
 
     public static SharedPreferences sharedPreferences;
-    Intent loginIntent;
-    Intent deliverySummaryIntent;
     private static final int PLAY_SERVICES_RESOLUTION_REQUEST = 9000;
     private Subscription getPostSubscription;
 
@@ -51,21 +50,17 @@ public class SplashScreenActivity extends Activity{
 
         if (checkPlayServices()) {
             // Start IntentService to register this application with GCM.
-            Intent intent = new Intent(this, RegistrationIntentService.class);
-            startService(intent);
+            startService(new Intent(this, RegistrationIntentService.class));
         }
-
         super.onCreate(savedInstanceState);
-        //Fabric.with(this, new Crashlytics());
-        setContentView(R.layout.splash_screen);
 
-        loginIntent = new Intent(this, LoginActivity.class);
-        deliverySummaryIntent = new Intent(this, OrderSummaryActivity.class);
+        Fabric.with(this, new Crashlytics());
+        setContentView(R.layout.splash_screen);
 
         String mob = DeliveryBoy.getInstance().getMob();
         String device_id = DeliveryBoy.getInstance().getDev_id();
         if (mob ==  null || device_id == null) {
-            startActivity(loginIntent);
+            startActivity(new Intent(this, LoginActivity.class));
             finish();
             return;
         }
@@ -77,28 +72,16 @@ public class SplashScreenActivity extends Activity{
                 api.getOrders(),
                 (orders) -> {
                     DeliveryBoy.getInstance().setAssignedOrders(orders);
-                    startActivity(deliverySummaryIntent);
+                    startActivity(new Intent(this, OrderSummaryActivity.class));
                     finish();
                 }, (error) -> {
                     // Handle all errors at one place
                     getPostSubscription = null;
-                    if(((HttpException) error).code() == 401){
-                        //user not authorized, ask for signin
-                        startActivity(loginIntent);
-                        finish();
-                        return;
-                    }
                     AlertDialog.Builder builder = new AlertDialog.Builder(SplashScreenActivity.this)
-                            .setTitle("Network error")
+                            .setTitle("Network error ")//+ error.toString()
                             .setMessage("Check your internet connection or call your manager to update the states")
-                            .setPositiveButton("Exit", new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    finish();
-                                }
-                            });
+                            .setPositiveButton("Exit", (DialogInterface d, int which)-> finish());
                     builder.show();
-                    error.printStackTrace();
                 });
 /*
         final Call<List<Order>> ordersCall =  ServerCalls.getInstance().service.getOrders();

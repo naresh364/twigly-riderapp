@@ -16,7 +16,6 @@ import org.json.JSONObject;
  * Created by abhishek on 25-06-2016.
  */
 public class EzTapServices {
-    String strTxnId = null;
     private Context mContext;
     private Order mOrder;
     public EzTapServices(Context context, Order order){
@@ -31,11 +30,11 @@ public class EzTapServices {
         JSONObject jsonInitRequest = new JSONObject();
         try {
             jsonInitRequest.put("demoAppKey", "ca467cbd-9d5e-4981-906a-7932467d6e07");
-            jsonInitRequest.put("prodAppKey", "ca467cbd-9d5e-4981-906a-7932467d6e07");
-            jsonInitRequest.put("merchantName", "9686444640");
-            jsonInitRequest.put("userName", "9686444640");
+            jsonInitRequest.put("prodAppKey", "44bcbfc0-54aa-4135-9361-2bb674402a40");
+            jsonInitRequest.put("merchantName", "9560304293");
+            jsonInitRequest.put("userName", "9560304293");
             jsonInitRequest.put("currencyCode", "INR");
-            jsonInitRequest.put("appMode", "DEMO");
+            jsonInitRequest.put("appMode", "PROD");
             jsonInitRequest.put("captureSignature", "false");
             jsonInitRequest.put("prepareDevice", "true");// Set it true if you want
         } catch (JSONException e) {
@@ -67,18 +66,4 @@ public class EzTapServices {
             e.printStackTrace();
         }
     }
-
-    /*
-
-*/
-
-    /*
-	private void closeEzetap() {
-		EzeAPI.close(this, REQUESTCODE_CLOSE);
-	}
-
-    private void displayToast(String message) {
-            Toast.makeText(this, message, Toast.LENGTH_LONG).show();
-    }
-    */
 }

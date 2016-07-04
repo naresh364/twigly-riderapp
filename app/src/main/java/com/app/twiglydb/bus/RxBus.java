@@ -2,6 +2,7 @@ package com.app.twiglydb.bus;
 
 import rx.Observable;
 import rx.Subscription;
+import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
 import rx.subjects.BehaviorSubject;
 import rx.subjects.PublishSubject;
@@ -21,19 +22,63 @@ public class RxBus {
         return INSTANCE;
     }
 
-    private final Subject<Object, Object> bus = new SerializedSubject<>(BehaviorSubject.create()); // for sticky events
-    //private final Subject<Object, Object> bus = new SerializedSubject<>(PublishSubject.create()); --> pub sub when subscriber exists
+    private final Subject<Object, Object> stickyBus = new SerializedSubject<>(BehaviorSubject.create());
+    private final Subject<Object, Object> bus = new SerializedSubject<>(PublishSubject.create());
+
     // Pass any event down to event listeners.
     public void post(Object o) {
         bus.onNext(o);
     }
+    public void stickyPost(Object o) {
+        stickyBus.onNext(o);
+    }
 
     // Subscribe to this event
-    public <T> Subscription register(final Class<T> eventClass, Action1<T> onNext) {
+    // https://github.com/ReactiveX/RxJava/wiki/Backpressure
+    public <T> Subscription register(final Class<T> eventClass, Action1<T> onNextHandler) {
         return bus
-                .filter(event -> event.getClass().equals(eventClass))
+                .asObservable()
+                .ofType(eventClass)
+                .onBackpressureBuffer()
+                .subscribe(onNextHandler);
+                /*.filter(event -> event.getClass().equals(eventClass))
                 .map(obj -> (T) obj)
-                .subscribe(onNext);
+                .subscribe(onNext);*/
+
+    }
+    public <T> Subscription stickyRegister(final Class<T> eventClass, Action1<T> onNextHandler) {
+        return stickyBus
+                .asObservable()
+                .ofType(eventClass)
+                .onBackpressureBuffer()
+                .subscribe(onNextHandler);
+                /*.filter(event -> event.getClass().equals(eventClass))
+                .map(obj -> (T) obj)
+                .subscribe(onNext);*/
+
+    }
+    public <T> Subscription registerOnMainThread(final Class<T> eventClass, Action1<T> onNextHandler) {
+        return bus
+                .asObservable()
+                .observeOn(AndroidSchedulers.mainThread())
+                .ofType(eventClass)
+                .onBackpressureBuffer()
+                .subscribe(onNextHandler);
+                /*.filter(event -> event.getClass().equals(eventClass))
+                .map(obj -> (T) obj)
+                .subscribe(onNext);*/
+
+    }
+    public <T> Subscription stickyRegisterOnMainThread(final Class<T> eventClass, Action1<T> onNextHandler) {
+        return stickyBus
+                .asObservable()
+                .observeOn(AndroidSchedulers.mainThread())
+                .ofType(eventClass)
+                .onBackpressureBuffer()
+                .subscribe(onNextHandler);
+                /*.filter(event -> event.getClass().equals(eventClass))
+                .map(obj -> (T) obj)
+                .subscribe(onNext);*/
 
     }
 

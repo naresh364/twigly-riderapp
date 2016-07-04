@@ -12,32 +12,18 @@ import android.provider.Settings;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 
-import com.app.twiglydb.bus.RxBus;
-import com.app.twiglydb.network.TwiglyRestAPI;
-import com.app.twiglydb.network.TwiglyRestAPIBuilder;
-
-import rx.Subscription;
-
 public abstract class BaseActivity extends AppCompatActivity {
     private DBLocationService serviceReference = null;
     private boolean isDBLocationBound = false;
-    private Subscription getPostSubscription;
-    private TwiglyRestAPI api = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        api = TwiglyRestAPIBuilder.buildRetroService();
         Intent intent = new Intent(this, DBLocationService.class);
         startService(intent);
         bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE);
     }
-
-    public TwiglyRestAPI TwiglyApi(){
-        return api;
-    }
-
 
     @Override
     protected void onDestroy() {
@@ -78,7 +64,7 @@ public abstract class BaseActivity extends AppCompatActivity {
     /**
      * Function to show settings alert dialog
      * */
-    public void showSettingsAlert(){
+    private void showSettingsAlert(){
         AlertDialog.Builder alertDialog = new AlertDialog.Builder(this);
 
         // Setting Dialog Title

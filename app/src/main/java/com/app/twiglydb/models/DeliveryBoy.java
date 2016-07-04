@@ -1,6 +1,13 @@
 package com.app.twiglydb.models;
 
+import android.widget.Toast;
+
+import com.app.twiglydb.network.NetworkRequest;
+//import com.app.twiglydb.network.ServerCalls;
 import com.app.twiglydb.network.ServerCalls;
+import com.app.twiglydb.network.ServerResponseCode;
+import com.app.twiglydb.network.TwiglyRestAPI;
+import com.app.twiglydb.network.TwiglyRestAPIBuilder;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
@@ -12,6 +19,7 @@ import javax.annotation.Generated;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
+import rx.Subscription;
 
 /**
  * Created by naresh on 13/01/16.
@@ -30,7 +38,6 @@ public class DeliveryBoy {
     String name;
     transient String dev_id = null;
     transient List<Order> assignedOrders = new ArrayList<>();
-
 
     private DeliveryBoy(){
     }
@@ -66,6 +73,7 @@ public class DeliveryBoy {
     }
 
     public void updateOrders() {
+
         updateOrders(new ServerCalls.ServerCallEndCallback() {
             @Override
             public void callback() {
@@ -111,6 +119,7 @@ public class DeliveryBoy {
         assignedOrders.add(0, order);
     }
 
+    //TODO: check for mvp or mvvp pattern
     public void setAssignedOrders(List<Order> assignedOrders) {
         this.assignedOrders.clear();
         this.assignedOrders.addAll(assignedOrders);

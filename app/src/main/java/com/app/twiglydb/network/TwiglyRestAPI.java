@@ -48,7 +48,7 @@ public interface TwiglyRestAPI {
     @GET("/db/updategcm")
     Observable<ServerResponse> updateGCM(@Query("gcmid") String gcmId);
 
-    public class ServerResponse{
+    class ServerResponse{
         @SerializedName("serverResponse")
         @Expose
         public String code;

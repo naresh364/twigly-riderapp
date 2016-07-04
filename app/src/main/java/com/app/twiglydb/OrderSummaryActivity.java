@@ -6,7 +6,9 @@ import android.os.Bundle;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.helper.ItemTouchHelper;
 import android.widget.TextView;
+import android.widget.Toast;
 import android.widget.ViewSwitcher;
 
 import com.app.twiglydb.bus.EventCallback;
@@ -50,6 +52,7 @@ public class OrderSummaryActivity extends BaseActivity {/*implements XYZinterfac
         ButterKnife.bind(this);
 
         LinearLayoutManager llm = new LinearLayoutManager(this);
+        llm.setAutoMeasureEnabled(true);
         mRecyclerView.setLayoutManager(llm);
         mRecyclerView.setAdapter(orderSummaryAdapter);
         mRecyclerView.setHasFixedSize(true);
@@ -77,20 +80,13 @@ public class OrderSummaryActivity extends BaseActivity {/*implements XYZinterfac
             }
         });
 
-        mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
-            @Override
-            public void onRefresh() {
-                DeliveryBoy.getInstance().updateOrders(new ServerCalls.ServerCallEndCallback() {
-                    @Override
-                    public void callback() {
+        mSwipeRefreshLayout.setOnRefreshListener(()->{
+                DeliveryBoy.getInstance().updateOrders(()->{
                         mSwipeRefreshLayout.setRefreshing(false);
                         orderSummaryAdapter.notifyDataSetChanged();
                         updateNoOrderView();
-                    }
                 });
-            }
         });
-
     }
 
     @Override
@@ -100,41 +96,19 @@ public class OrderSummaryActivity extends BaseActivity {/*implements XYZinterfac
 
     @Override
     protected void onResume() {
-        super.onResume();
-
+super.onResume();
         if(orderSummaryAdapter.getOrderStatus()){
-            DeliveryBoy.getInstance().updateOrders(new ServerCalls.ServerCallEndCallback() {
-                @Override
-                public void callback() {
+            DeliveryBoy.getInstance().updateOrders(()->{
                     orderSummaryAdapter.notifyDataSetChanged();
                     updateNoOrderView();
-                }
             });
         }
 
         if (eventReceiver== null){
-            eventReceiver = new EventReceiver(new EventCallback() {
-                @Override
-                public void callback(String data) {
-                    newOrderReceived(data);
-                }
-            });
+            eventReceiver = new EventReceiver(data -> newOrderReceived(data));
         }
         IntentFilter intentFilter = new IntentFilter(EventType.NEW_ORDER_EVENT);
         registerReceiver(eventReceiver, intentFilter);
-    }
-
-    @Override
-    protected void onStop(){
-        super.onStop();
-        orderSummaryAdapter.onStop();
-
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-        if (eventReceiver != null) unregisterReceiver(eventReceiver);
     }
 
     private void updateNoOrderView(){
@@ -164,4 +138,16 @@ public class OrderSummaryActivity extends BaseActivity {/*implements XYZinterfac
         Order order;
     }
 
+    @Override
+    protected void onStop(){
+        super.onStop();
+        orderSummaryAdapter.onStop();
+
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if (eventReceiver != null) unregisterReceiver(eventReceiver);
+    }
 }

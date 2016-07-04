@@ -17,12 +17,9 @@ import timber.log.Timber;
 public class NetworkRequest {
 
     // Default error handling
-    private static Action1<Throwable> mOnError = new Action1<Throwable>() {
-        @Override
-        public void call(Throwable throwable) {
+    private static Action1<Throwable> mOnError = throwable -> {
             Timber.e(throwable.getMessage());
             throwable.printStackTrace();
-        }
     };
 
     public static <T> Subscription performAsyncRequest(Observable<T> observable, Action1<? super T> onAction) {
@@ -38,5 +35,6 @@ public class NetworkRequest {
                 .observeOn(AndroidSchedulers.mainThread())
                 // Set callbacks actions
                 .subscribe(onAction, onError);
+
     }
 }
