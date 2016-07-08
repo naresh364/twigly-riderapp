@@ -1,21 +1,12 @@
 package com.app.twiglydb;
 
-import android.app.AlertDialog;
-import android.content.BroadcastReceiver;
-import android.content.ComponentName;
-import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.ServiceConnection;
-import android.location.Location;
 import android.os.Bundle;
-import android.os.IBinder;
-import android.provider.Settings;
 import android.support.v4.widget.SwipeRefreshLayout;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.helper.ItemTouchHelper;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ViewSwitcher;
@@ -26,43 +17,29 @@ import com.app.twiglydb.bus.EventType;
 import com.app.twiglydb.models.DeliveryBoy;
 import com.app.twiglydb.models.Order;
 import com.app.twiglydb.network.ServerCalls;
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.location.LocationServices;
+import com.app.twiglydb.network.TwiglyRestAPI;
 import com.google.gson.Gson;
-import com.squareup.otto.Subscribe;
 
 import java.util.List;
 
+import butterknife.BindView;
 import butterknife.ButterKnife;
-import butterknife.InjectView;
-import gcm.play.android.MyGcmListenerService;
 import timber.log.Timber;
 
 /**
  * Created by naresh on 10/01/16.
  */
-public class OrderSummaryActivity extends AppCompatActivity {
+public class OrderSummaryActivity extends BaseActivity {/*implements XYZinterface*/
     List<Order> orders;
 
-    @InjectView(R.id.order_recycler_view)
-    RecyclerView mRecyclerView;
-
-    @InjectView(R.id.activity_main_swipe_refresh_layout)
-    SwipeRefreshLayout mSwipeRefreshLayout;
-
-    @InjectView(R.id.order_list_noorders)
-    TextView noOrdersView;
-
-    @InjectView(R.id.ViewSwitcher)
-    ViewSwitcher viewSwitcher;
+    @BindView(R.id.order_recycler_view) RecyclerView mRecyclerView;
+    @BindView(R.id.activity_main_swipe_refresh_layout) SwipeRefreshLayout mSwipeRefreshLayout;
+    @BindView(R.id.order_list_noorders) TextView noOrdersView;
+    @BindView(R.id.ViewSwitcher) ViewSwitcher viewSwitcher;
 
     OrderSummaryAdapter orderSummaryAdapter;
 
     private EventReceiver eventReceiver;
-
-    private DBLocationService serviceReference = null;
-    private boolean isDBLocationBound = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -72,74 +49,73 @@ public class OrderSummaryActivity extends AppCompatActivity {
 
         orderSummaryAdapter = new OrderSummaryAdapter(this, orders);
         setContentView(R.layout.order_summary_list);
-        ButterKnife.inject(this);
+        ButterKnife.bind(this);
 
         LinearLayoutManager llm = new LinearLayoutManager(this);
+        llm.setAutoMeasureEnabled(true);
         mRecyclerView.setLayoutManager(llm);
         mRecyclerView.setAdapter(orderSummaryAdapter);
         mRecyclerView.setHasFixedSize(true);
-
         updateNoOrderView();
 
-        mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+        // SwipeRefresh is enabled iff view is at top of first item of recycler view
+        mRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
-            public void onRefresh() {
-                DeliveryBoy.getInstance().updateOrders(new ServerCalls.ServerCallEndCallback() {
-                    @Override
-                    public void callback() {
-                        mSwipeRefreshLayout.setRefreshing(false);
-                        orderSummaryAdapter.notifyDataSetChanged();
-                        updateNoOrderView();
-                    }
-                });
+            public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
+                super.onScrollStateChanged(recyclerView, newState);
+            }
+
+            @Override
+            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+                super.onScrolled(recyclerView, dx, dy);
+
+                boolean enable = false;
+                if(recyclerView != null && (recyclerView.getChildCount() > 0)){
+                    boolean isFirstCard = ((LinearLayoutManager) recyclerView.getLayoutManager()).findFirstVisibleItemPosition() == 0;
+                    boolean isTopOfFirstCard = recyclerView.getChildAt(0).getTop() == 0;
+                    enable = isFirstCard && isTopOfFirstCard;
+                }
+                mSwipeRefreshLayout.setEnabled(enable);
+
             }
         });
 
-        Intent intent = new Intent(this, DBLocationService.class);
-        startService(intent);
-        bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE);
+        mSwipeRefreshLayout.setOnRefreshListener(()->{
+                DeliveryBoy.getInstance().updateOrders(()->{
+                        mSwipeRefreshLayout.setRefreshing(false);
+                        orderSummaryAdapter.notifyDataSetChanged();
+                        updateNoOrderView();
+                });
+        });
     }
 
     @Override
-    protected void onDestroy() {
-        unbindService(serviceConnection);
-        super.onDestroy();
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        orderSummaryAdapter.onActivityResult(requestCode, resultCode, data);
     }
 
     @Override
     protected void onResume() {
-        super.onResume();
-        DeliveryBoy.getInstance().updateOrders(new ServerCalls.ServerCallEndCallback() {
-            @Override
-            public void callback() {
-                orderSummaryAdapter.notifyDataSetChanged();
-                updateNoOrderView();
-            }
-        });
-        if (eventReceiver== null){
-            eventReceiver = new EventReceiver(new EventCallback() {
-                @Override
-                public void callback(String data) {
-                    newOrderReceived(data);
-                }
+super.onResume();
+        if(orderSummaryAdapter.getOrderStatus()){
+            DeliveryBoy.getInstance().updateOrders(()->{
+                    orderSummaryAdapter.notifyDataSetChanged();
+                    updateNoOrderView();
             });
+        }
+
+        if (eventReceiver== null){
+            eventReceiver = new EventReceiver(data -> newOrderReceived(data));
         }
         IntentFilter intentFilter = new IntentFilter(EventType.NEW_ORDER_EVENT);
         registerReceiver(eventReceiver, intentFilter);
     }
 
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-        if (eventReceiver != null) unregisterReceiver(eventReceiver);
-    }
-
     private void updateNoOrderView(){
-        if (!DeliveryBoy.getInstance().hasOrders()) {
-            viewSwitcher.setDisplayedChild(1);
-        } else {
+        if (DeliveryBoy.getInstance().hasOrders()) {
             viewSwitcher.setDisplayedChild(0);
+        } else {
+            viewSwitcher.setDisplayedChild(1);
         }
     }
 
@@ -147,9 +123,9 @@ public class OrderSummaryActivity extends AppCompatActivity {
         Timber.e("mesage received");
         Gson gson = new Gson();
         try {
-            Temp temp = gson.fromJson(message, Temp.class);
-            if (temp != null && temp.order != null) {
-                DeliveryBoy.getInstance().addNewOrder(temp.order);
+            OrderWrapper wrapper = gson.fromJson(message, OrderWrapper.class);
+            if (wrapper != null && wrapper.order != null) {
+                DeliveryBoy.getInstance().addNewOrder(wrapper.order);
                 orderSummaryAdapter.notifyDataSetChanged();
                 updateNoOrderView();
             }
@@ -158,73 +134,20 @@ public class OrderSummaryActivity extends AppCompatActivity {
         }
     }
 
-    public class Temp {
+    public class OrderWrapper {
         Order order;
     }
 
-    public Location getCurrentLocation(){
-        if (!serviceReference.isGPSEnabled()) {
-            showSettingsAlert();
-            return null;
-        } else {
-            return serviceReference.getLocation();
-        }
+    @Override
+    protected void onStop(){
+        super.onStop();
+        orderSummaryAdapter.onStop();
+
     }
 
-    public boolean checkLocationEnabled() {
-        if (!serviceReference.isGPSEnabled()) {
-            showSettingsAlert();
-            return false;
-        }
-        return true;
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if (eventReceiver != null) unregisterReceiver(eventReceiver);
     }
-
-    private ServiceConnection serviceConnection = new ServiceConnection() {
-        @Override
-        public void onServiceConnected(ComponentName name, IBinder service) {
-            serviceReference = ((DBLocationService.DBLocationBinder) service).getService();
-            isDBLocationBound = true;
-        }
-
-        @Override
-        public void onServiceDisconnected(ComponentName name) {
-            serviceReference = null;
-            isDBLocationBound = false;
-        }
-    };
-
-    /**
-     * Function to show settings alert dialog
-     * */
-    public void showSettingsAlert(){
-        AlertDialog.Builder alertDialog = new AlertDialog.Builder(this);
-
-        // Setting Dialog Title
-        alertDialog.setTitle("GPS settings");
-
-        // Setting Dialog Message
-        alertDialog.setMessage("GPS is not enabled. Do you want to go to settings menu?");
-
-        // Setting Icon to Dialog
-        //alertDialog.setIcon(R.drawable.delete);
-
-        // On pressing Settings button
-        alertDialog.setPositiveButton("Settings", new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog,int which) {
-                Intent intent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
-                startActivity(intent);
-            }
-        });
-
-        // on pressing cancel button
-        alertDialog.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int which) {
-                dialog.cancel();
-            }
-        });
-
-        // Showing Alert Message
-        alertDialog.show();
-    }
-
 }

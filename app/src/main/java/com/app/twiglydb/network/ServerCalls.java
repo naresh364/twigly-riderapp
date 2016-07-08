@@ -2,7 +2,6 @@ package com.app.twiglydb.network;
 
 import com.app.twiglydb.models.DeliveryBoy;
 import com.app.twiglydb.models.Order;
-import com.app.twiglydb.models.OrderResponse;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
@@ -17,6 +16,7 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.GsonConverterFactory;
 import retrofit2.Retrofit;
+import retrofit2.RxJavaCallAdapterFactory;
 import retrofit2.http.Field;
 import retrofit2.http.FormUrlEncoded;
 import retrofit2.http.GET;
@@ -62,12 +62,13 @@ public class ServerCalls {
                 .baseUrl(host)
                 .client(okClient)
                 .addConverterFactory(GsonConverterFactory.create())
+                .addCallAdapterFactory(RxJavaCallAdapterFactory.create())
                 .build();
 
         service = retrofit.create(TwiglyService.class);
     }
 
-    public static ServerCalls getInstanse(){
+    public static ServerCalls getInstance(){
         if (instance == null) {
             instance = new ServerCalls();
         }

@@ -37,7 +37,6 @@ import com.app.twiglydb.R;
 import com.app.twiglydb.bus.EventType;
 import com.app.twiglydb.network.ServerCalls;
 import com.google.android.gms.gcm.GcmListenerService;
-import com.google.gson.Gson;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -184,7 +183,7 @@ public class MyGcmListenerService extends GcmListenerService {
 
     private void updateDeviceInfo(double lat, double lng, double acc) {
         Call<ServerCalls.ServerResponse> responseCall =
-                ServerCalls.getInstanse().service.updateDeviceInfo(lat, lng, acc, batteryLevel);
+                ServerCalls.getInstance().service.updateDeviceInfo(lat, lng, acc, batteryLevel);
 
         responseCall.enqueue(new Callback<ServerCalls.ServerResponse>() {
             @Override

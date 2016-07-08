@@ -1,14 +1,16 @@
-
 package com.app.twiglydb.models;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import android.os.Parcel;
+import android.os.Parcelable;
 import javax.annotation.Generated;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
 @Generated("org.jsonschema2pojo")
-public class Order {
+public class Order implements Parcelable {
 
     @SerializedName("address")
     @Expose
@@ -118,7 +120,7 @@ public class Order {
     public boolean isCheckedIn = false;
 
     /**
-     * 
+     *
      * @return
      *     The address
      */
@@ -127,7 +129,7 @@ public class Order {
     }
 
     /**
-     * 
+     *
      * @param address
      *     The address
      */
@@ -136,7 +138,7 @@ public class Order {
     }
 
     /**
-     * 
+     *
      * @return
      *     The walletTransaction
      */
@@ -145,7 +147,7 @@ public class Order {
     }
 
     /**
-     * 
+     *
      * @param walletTransaction
      *     The walletTransaction
      */
@@ -154,7 +156,7 @@ public class Order {
     }
 
     /**
-     * 
+     *
      * @return
      *     The mobileNumber
      */
@@ -163,7 +165,7 @@ public class Order {
     }
 
     /**
-     * 
+     *
      * @param mobileNumber
      *     The mobile_number
      */
@@ -172,7 +174,7 @@ public class Order {
     }
 
     /**
-     * 
+     *
      * @return
      *     The serviceTax
      */
@@ -181,7 +183,7 @@ public class Order {
     }
 
     /**
-     * 
+     *
      * @param serviceTax
      *     The serviceTax
      */
@@ -190,7 +192,7 @@ public class Order {
     }
 
     /**
-     * 
+     *
      * @return
      *     The vat
      */
@@ -199,7 +201,7 @@ public class Order {
     }
 
     /**
-     * 
+     *
      * @param vat
      *     The vat
      */
@@ -208,7 +210,7 @@ public class Order {
     }
 
     /**
-     * 
+     *
      * @return
      *     The subTotal
      */
@@ -217,7 +219,7 @@ public class Order {
     }
 
     /**
-     * 
+     *
      * @param subTotal
      *     The subTotal
      */
@@ -226,7 +228,7 @@ public class Order {
     }
 
     /**
-     * 
+     *
      * @return
      *     The deliveryCharges
      */
@@ -235,7 +237,7 @@ public class Order {
     }
 
     /**
-     * 
+     *
      * @param deliveryCharges
      *     The deliveryCharges
      */
@@ -244,7 +246,7 @@ public class Order {
     }
 
     /**
-     * 
+     *
      * @return
      *     The total
      */
@@ -253,7 +255,7 @@ public class Order {
     }
 
     /**
-     * 
+     *
      * @param total
      *     The total
      */
@@ -262,7 +264,7 @@ public class Order {
     }
 
     /**
-     * 
+     *
      * @return
      *     The isForLater
      */
@@ -271,7 +273,7 @@ public class Order {
     }
 
     /**
-     * 
+     *
      * @param isForLater
      *     The isForLater
      */
@@ -280,7 +282,7 @@ public class Order {
     }
 
     /**
-     * 
+     *
      * @return
      *     The expectedDeliveryTime
      */
@@ -289,7 +291,7 @@ public class Order {
     }
 
     /**
-     * 
+     *
      * @param expectedDeliveryTime
      *     The expectedDeliveryTime
      */
@@ -298,7 +300,7 @@ public class Order {
     }
 
     /**
-     * 
+     *
      * @return
      *     The orderStatus
      */
@@ -307,7 +309,7 @@ public class Order {
     }
 
     /**
-     * 
+     *
      * @param orderStatus
      *     The orderStatus
      */
@@ -316,7 +318,7 @@ public class Order {
     }
 
     /**
-     * 
+     *
      * @return
      *     The paymentOption
      */
@@ -325,7 +327,7 @@ public class Order {
     }
 
     /**
-     * 
+     *
      * @param paymentOption
      *     The paymentOption
      */
@@ -334,7 +336,7 @@ public class Order {
     }
 
     /**
-     * 
+     *
      * @return
      *     The orderDetails
      */
@@ -343,7 +345,7 @@ public class Order {
     }
 
     /**
-     * 
+     *
      * @param orderDetails
      *     The orderDetails
      */
@@ -352,7 +354,7 @@ public class Order {
     }
 
     /**
-     * 
+     *
      * @return
      *     The dateAdd
      */
@@ -361,7 +363,7 @@ public class Order {
     }
 
     /**
-     * 
+     *
      * @param dateAdd
      *     The date_add
      */
@@ -370,7 +372,7 @@ public class Order {
     }
 
     /**
-     * 
+     *
      * @return
      *     The numItems
      */
@@ -379,7 +381,7 @@ public class Order {
     }
 
     /**
-     * 
+     *
      * @param numItems
      *     The numItems
      */
@@ -388,7 +390,7 @@ public class Order {
     }
 
     /**
-     * 
+     *
      * @return
      *     The orderTime
      */
@@ -397,7 +399,7 @@ public class Order {
     }
 
     /**
-     * 
+     *
      * @param orderTime
      *     The orderTime
      */
@@ -406,7 +408,7 @@ public class Order {
     }
 
     /**
-     * 
+     *
      * @return
      *     The orderDate
      */
@@ -415,7 +417,7 @@ public class Order {
     }
 
     /**
-     * 
+     *
      * @param orderDate
      *     The orderDate
      */
@@ -424,7 +426,7 @@ public class Order {
     }
 
     /**
-     * 
+     *
      * @return
      *     The deliveryRating
      */
@@ -433,7 +435,7 @@ public class Order {
     }
 
     /**
-     * 
+     *
      * @param deliveryRating
      *     The deliveryRating
      */
@@ -442,7 +444,7 @@ public class Order {
     }
 
     /**
-     * 
+     *
      * @return
      *     The deliveryBoyNameId
      */
@@ -451,7 +453,7 @@ public class Order {
     }
 
     /**
-     * 
+     *
      * @param deliveryBoyNameId
      *     The deliveryBoyNameId
      */
@@ -460,7 +462,7 @@ public class Order {
     }
 
     /**
-     * 
+     *
      * @return
      *     The orderId
      */
@@ -469,7 +471,7 @@ public class Order {
     }
 
     /**
-     * 
+     *
      * @param orderId
      *     The orderId
      */
@@ -478,7 +480,7 @@ public class Order {
     }
 
     /**
-     * 
+     *
      * @return
      *     The couponDiscount
      */
@@ -487,7 +489,7 @@ public class Order {
     }
 
     /**
-     * 
+     *
      * @param couponDiscount
      *     The coupon_discount
      */
@@ -496,7 +498,7 @@ public class Order {
     }
 
     /**
-     * 
+     *
      * @return
      *     The paymentStatus
      */
@@ -505,7 +507,7 @@ public class Order {
     }
 
     /**
-     * 
+     *
      * @param paymentStatus
      *     The paymentStatus
      */
@@ -514,7 +516,7 @@ public class Order {
     }
 
     /**
-     * 
+     *
      * @return
      *     The source
      */
@@ -523,7 +525,7 @@ public class Order {
     }
 
     /**
-     * 
+     *
      * @param source
      *     The source
      */
@@ -532,7 +534,7 @@ public class Order {
     }
 
     /**
-     * 
+     *
      * @return
      *     The name
      */
@@ -541,7 +543,7 @@ public class Order {
     }
 
     /**
-     * 
+     *
      * @param name
      *     The name
      */
@@ -550,7 +552,7 @@ public class Order {
     }
 
     /**
-     * 
+     *
      * @return
      *     The couponCode
      */
@@ -559,7 +561,7 @@ public class Order {
     }
 
     /**
-     * 
+     *
      * @param couponCode
      *     The coupon_code
      */
@@ -568,7 +570,7 @@ public class Order {
     }
 
     /**
-     * 
+     *
      * @return
      *     The walletAmount
      */
@@ -577,7 +579,7 @@ public class Order {
     }
 
     /**
-     * 
+     *
      * @param walletAmount
      *     The wallet_amount
      */
@@ -586,7 +588,7 @@ public class Order {
     }
 
     /**
-     * 
+     *
      * @return
      *     The deliveryTime
      */
@@ -595,7 +597,7 @@ public class Order {
     }
 
     /**
-     * 
+     *
      * @param deliveryTime
      *     The deliveryTime
      */
@@ -604,7 +606,7 @@ public class Order {
     }
 
     /**
-     * 
+     *
      * @return
      *     The isFirstOrder
      */
@@ -613,7 +615,7 @@ public class Order {
     }
 
     /**
-     * 
+     *
      * @param isFirstOrder
      *     The is_first_order
      */
@@ -622,7 +624,7 @@ public class Order {
     }
 
     /**
-     * 
+     *
      * @return
      *     The addFreeItem
      */
@@ -631,7 +633,7 @@ public class Order {
     }
 
     /**
-     * 
+     *
      * @param addFreeItem
      *     The addFreeItem
      */
@@ -640,7 +642,7 @@ public class Order {
     }
 
     /**
-     * 
+     *
      * @return
      *     The userPendingBalance
      */
@@ -649,7 +651,7 @@ public class Order {
     }
 
     /**
-     * 
+     *
      * @param userPendingBalance
      *     The userPendingBalance
      */
@@ -672,4 +674,109 @@ public class Order {
     public void setLng(double lng) {
         this.lng = lng;
     }
+
+    protected Order(Parcel in) {
+        address = in.readString();
+        walletTransaction = (Object) in.readValue(Object.class.getClassLoader());
+        mobileNumber = in.readString();
+        lat = in.readDouble();
+        lng = in.readDouble();
+        serviceTax = in.readDouble();
+        vat = in.readDouble();
+        subTotal = in.readDouble();
+        deliveryCharges = in.readDouble();
+        total = in.readDouble();
+        isForLater = in.readByte() != 0x00;
+        cashbackDone = in.readByte() != 0x00;
+        flat = in.readInt();
+        expectedDeliveryTime = in.readString();
+        orderStatus = in.readString();
+        paymentOption = in.readString();
+        if (in.readByte() == 0x01) {
+            orderDetails = new ArrayList<OrderDetail>();
+            in.readList(orderDetails, OrderDetail.class.getClassLoader());
+        } else {
+            orderDetails = null;
+        }
+        dateAdd = in.readString();
+        numItems = in.readInt();
+        orderTime = in.readString();
+        orderDate = in.readString();
+        deliveryRating = in.readInt();
+        deliveryBoyNameId = in.readString();
+        orderId = in.readString();
+        couponDiscount = in.readDouble();
+        paymentStatus = in.readString();
+        source = in.readString();
+        name = in.readString();
+        couponCode = in.readString();
+        walletAmount = in.readDouble();
+        deliveryTime = in.readString();
+        isFirstOrder = in.readString();
+        addFreeItem = in.readByte() != 0x00;
+        userPendingBalance = in.readDouble();
+        isCheckedIn = in.readByte() != 0x00;
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(address);
+        dest.writeValue(walletTransaction);
+        dest.writeString(mobileNumber);
+        dest.writeDouble(lat);
+        dest.writeDouble(lng);
+        dest.writeDouble(serviceTax);
+        dest.writeDouble(vat);
+        dest.writeDouble(subTotal);
+        dest.writeDouble(deliveryCharges);
+        dest.writeDouble(total);
+        dest.writeByte((byte) (isForLater ? 0x01 : 0x00));
+        dest.writeByte((byte) (cashbackDone ? 0x01 : 0x00));
+        dest.writeInt(flat);
+        dest.writeString(expectedDeliveryTime);
+        dest.writeString(orderStatus);
+        dest.writeString(paymentOption);
+        if (orderDetails == null) {
+            dest.writeByte((byte) (0x00));
+        } else {
+            dest.writeByte((byte) (0x01));
+            dest.writeList(orderDetails);
+        }
+        dest.writeString(dateAdd);
+        dest.writeInt(numItems);
+        dest.writeString(orderTime);
+        dest.writeString(orderDate);
+        dest.writeInt(deliveryRating);
+        dest.writeString(deliveryBoyNameId);
+        dest.writeString(orderId);
+        dest.writeDouble(couponDiscount);
+        dest.writeString(paymentStatus);
+        dest.writeString(source);
+        dest.writeString(name);
+        dest.writeString(couponCode);
+        dest.writeDouble(walletAmount);
+        dest.writeString(deliveryTime);
+        dest.writeString(isFirstOrder);
+        dest.writeByte((byte) (addFreeItem ? 0x01 : 0x00));
+        dest.writeDouble(userPendingBalance);
+        dest.writeByte((byte) (isCheckedIn ? 0x01 : 0x00));
+    }
+
+    @SuppressWarnings("unused")
+    public static final Parcelable.Creator<Order> CREATOR = new Parcelable.Creator<Order>() {
+        @Override
+        public Order createFromParcel(Parcel in) {
+            return new Order(in);
+        }
+
+        @Override
+        public Order[] newArray(int size) {
+            return new Order[size];
+        }
+    };
 }

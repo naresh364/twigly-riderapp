@@ -19,10 +19,12 @@ public class TwiglyDBSharedPreference {
 
     static TwiglyDBSharedPreference preference = null;
     private TwiglyDBSharedPreference() {
+        // private constructor ensures class is not directly instantiated using 'new'
         this.sharedPreferences = MyApp.getContext().getSharedPreferences(PREF, Context.MODE_PRIVATE);
     }
 
     public static TwiglyDBSharedPreference getPreference() {
+        // ensures only one object is created at a time
         if (preference == null) preference = new TwiglyDBSharedPreference();
         return preference;
     }
