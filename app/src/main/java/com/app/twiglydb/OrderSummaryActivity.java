@@ -58,34 +58,11 @@ public class OrderSummaryActivity extends BaseActivity {/*implements XYZinterfac
         mRecyclerView.setHasFixedSize(true);
         updateNoOrderView();
 
-        // SwipeRefresh is enabled iff view is at top of first item of recycler view
-        mRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
-            @Override
-            public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
-                super.onScrollStateChanged(recyclerView, newState);
-            }
-
-            @Override
-            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
-                super.onScrolled(recyclerView, dx, dy);
-
-                boolean enable = false;
-                if(recyclerView != null && (recyclerView.getChildCount() > 0)){
-                    boolean isFirstCard = ((LinearLayoutManager) recyclerView.getLayoutManager()).findFirstVisibleItemPosition() == 0;
-                    boolean isTopOfFirstCard = recyclerView.getChildAt(0).getTop() == 0;
-                    enable = isFirstCard && isTopOfFirstCard;
-                }
-                mSwipeRefreshLayout.setEnabled(enable);
-
-            }
-        });
-
         mSwipeRefreshLayout.setOnRefreshListener(()->{
-                DeliveryBoy.getInstance().updateOrders(()->{
-                        mSwipeRefreshLayout.setRefreshing(false);
-                        orderSummaryAdapter.notifyDataSetChanged();
-                        updateNoOrderView();
-                });
+            DeliveryBoy.getInstance().updateOrders();
+            mSwipeRefreshLayout.setRefreshing(false);
+            orderSummaryAdapter.notifyDataSetChanged();
+            updateNoOrderView();
         });
     }
 

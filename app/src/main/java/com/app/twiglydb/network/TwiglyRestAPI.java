@@ -20,8 +20,8 @@ import retrofit2.http.Query;
  */
 public interface TwiglyRestAPI {
 
-    String TWIGLYAPI_ENDPOINT = "http://www.twigly.in/";
-    //String TWIGLYAPI_ENDPOINT = "http://dev2.twigly.in/";
+    //String TWIGLYAPI_ENDPOINT = "http://www.twigly.in/";
+    String TWIGLYAPI_ENDPOINT = "http://dev2.twigly.in/";
 
 
     @GET("/employees/signup")
