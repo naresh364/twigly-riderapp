@@ -208,7 +208,11 @@ public class OrderDetailActivity extends BaseActivity {
             b.setTitle("Cash Payment")
                     .setMessage("Are you sure you want to continue?")
                     .setNegativeButton("Cancel", (DialogInterface dialog, int id) -> {})
-                    .setPositiveButton("Accept", (DialogInterface dialog, int id) -> MarkOrderDone(order, "Cash"));
+                    .setPositiveButton("Accept", (DialogInterface dialog, int id) -> {
+                        cardCashLayout.setVisibility(View.GONE);
+                        checkProgress.setVisibility(View.VISIBLE);
+                        MarkOrderDone(order, "Cash");
+                    });
 
             AlertDialog d = b.create();
             d.show();
@@ -303,13 +307,16 @@ Eventbus specific---------------------------------------------------------
                 api.markDone(mode, order.getOrderId(), lat, lng, acc),
                 (data) -> {
                     if(ServerResponseCode.valueOf(data.code) == ServerResponseCode.OK) {
+                        checkProgress.setVisibility(View.GONE);
                         setOrderDone(true);
                     }
                 }, (error) -> {
                     // Handle error
-                    //markDoneFailed(); --> keep showing progress bar
                     //getPostSubscription = null;
                     //TODO: alert dialog and  option to call
+                    Toast.makeText(OrderDetailActivity.this, "Order Status Update Failed", Toast.LENGTH_LONG).show();
+                    checkProgress.setVisibility(View.GONE);
+                    cardCashLayout.setVisibility(View.VISIBLE);
                 }));
     }
 
