@@ -255,7 +255,11 @@ Eventbus specific---------------------------------------------------------
         super.onResume();
         if(checkProgress.getVisibility() == View.VISIBLE){
             checkProgress.setVisibility(View.GONE);
-            cardCashLayout.setVisibility(View.VISIBLE);
+            if(order.isCheckedIn){
+                cardCashLayout.setVisibility(View.VISIBLE);
+            } else {
+                checkinView.setVisibility(View.VISIBLE);
+            }
         }
     }
 
