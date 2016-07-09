@@ -251,6 +251,15 @@ Eventbus specific---------------------------------------------------------
     }*/
 
     @Override
+    protected void onResume(){
+        super.onResume();
+        if(checkProgress.getVisibility() == View.VISIBLE){
+            checkProgress.setVisibility(View.GONE);
+            cardCashLayout.setVisibility(View.VISIBLE);
+        }
+    }
+
+    @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
         super.onActivityResult(requestCode, resultCode, intent);
         if (intent != null && intent.hasExtra("response")) {
