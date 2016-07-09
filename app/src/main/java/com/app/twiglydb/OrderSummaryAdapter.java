@@ -198,7 +198,7 @@ public class OrderSummaryAdapter extends RecyclerView.Adapter<OrderSummaryAdapte
 
     }*/
     private void GoToDetails(Order order){
-        order.isCheckedIn = mOrderCheckedIn;
+        if(!order.isCheckedIn) order.isCheckedIn = mOrderCheckedIn;
         Intent i = OrderDetailActivity.newIntent(context, order);
         ((Activity)context).startActivityForResult(i, REQUESTCODE_ORDERDONE);
     }

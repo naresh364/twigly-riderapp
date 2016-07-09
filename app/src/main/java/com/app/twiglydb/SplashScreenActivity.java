@@ -153,20 +153,20 @@ public class SplashScreenActivity extends Activity{
 
         TwiglyRestAPI api = TwiglyRestAPIBuilder.buildRetroService();
         getPostSubscription =  NetworkRequest.performAsyncRequest(
-                api.getOrders(),
-                (orders) -> {
-                    DeliveryBoy.getInstance().setAssignedOrders(orders);
-                    startActivity(new Intent(this, OrderSummaryActivity.class));
-                    getPostSubscription.unsubscribe();
-                    finish();
-                }, (error) -> {
-                    // Handle all errors at one place
-                    getPostSubscription = null;
-                    AlertDialog.Builder builder = new AlertDialog.Builder(SplashScreenActivity.this)
-                            .setTitle("Network error "+ error.toString())
-                            .setMessage("Check your internet connection or call your manager to update the states")
-                            .setPositiveButton("Exit", (DialogInterface d, int which)-> finish());
-                    builder.show();
-                });
+            api.getOrders(),
+            (orders) -> {
+                DeliveryBoy.getInstance().setAssignedOrders(orders);
+                startActivity(new Intent(this, OrderSummaryActivity.class));
+                getPostSubscription.unsubscribe();
+                finish();
+            }, (error) -> {
+                // Handle all errors at one place
+                getPostSubscription = null;
+                AlertDialog.Builder builder = new AlertDialog.Builder(SplashScreenActivity.this)
+                    .setTitle("Network error "+ error.toString())
+                    .setMessage("Check your internet connection or call your manager to update the states")
+                    .setPositiveButton("Exit", (DialogInterface d, int which)-> finish());
+                builder.show();
+            });
     }
 }
