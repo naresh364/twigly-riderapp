@@ -17,6 +17,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -46,6 +47,8 @@ public class OrderDetailActivity extends BaseActivity {
     private static final String INTENTEXTRA_ORDERDETAILS = "com.app.twiglydb.extra.order_details";
     private static final String INTENTEXTRA_PARCEL_ORDERDETAILS = "com.app.twiglydb.extra.parcel.order_details";
     private static final String INTENTEXTRA_ORDERDONE = "com.app.twiglydb.order_done";
+    private static final String INTENTEXTRA_ORDER_CHECKEDIN = "com.app.twiglydb.order_checkedin";
+
     private EzTapServices ez;
     private CompositeSubscription subscriptions = new CompositeSubscription();
     private TwiglyRestAPI api = TwiglyRestAPIBuilder.buildRetroService();
@@ -57,6 +60,7 @@ public class OrderDetailActivity extends BaseActivity {
     @BindView(R.id.cash_payment_button) Button cashButton;
     @BindView(R.id.paid_button) Button paidButton;
     @BindView(R.id.checkin_view) RecyclerView checkinView;
+    @BindView(R.id.checkin_progress) ProgressBar checkProgress;
 
     //TODO: redundant data, avoid repetition
     @BindView(R.id.order_summary_layout) RelativeLayout orderSummaryLayout;
@@ -95,7 +99,6 @@ public class OrderDetailActivity extends BaseActivity {
         //Toast.makeText(OrderDetailActivity.this, ""+order.isCheckedIn, Toast.LENGTH_SHORT).show();
         //subscriptions.add( RxBus.getInstance().register(Order.class, o1 -> {
         //    order = o1;
-
         setTitle("TwiglyDB: " + DeliveryBoy.getInstance().getName());
 
         setContentView(R.layout.order_detail);
@@ -171,7 +174,8 @@ public class OrderDetailActivity extends BaseActivity {
                     @Override
                     public void onSwiped(RecyclerView.ViewHolder viewHolder, int swipeDir) {
                         //Remove swiped item from list and notify the RecyclerView
-                        checkinView.setVisibility(View.GONE);
+                        checkProgress.setVisibility(View.VISIBLE);
+                        checkinAdapter.notifyDataSetChanged();
                         checkIn(order);
                     }
 
@@ -323,12 +327,18 @@ Eventbus specific---------------------------------------------------------
     public static boolean wasOrderDone(Intent result) {
         return result.getBooleanExtra(INTENTEXTRA_ORDERDONE, false);
     }
+    public static boolean wasOrderCheckedIn(Intent result){
+        return result.getBooleanExtra(INTENTEXTRA_ORDER_CHECKEDIN, false);
+    }
 
     // wasOrderDone reads the value set by this function to check if order was done
     private void setOrderDone(boolean isOrderDone){
         setResult(RESULT_OK, new Intent().putExtra(INTENTEXTRA_ORDERDONE, isOrderDone));
         subscriptions.clear();
         finish(); // go back to previous activity after setting result
+    }
+    private void setOrderCheckedin(boolean isOrderCheckedin){
+        setResult(RESULT_OK, new Intent().putExtra(INTENTEXTRA_ORDER_CHECKEDIN, isOrderCheckedin));
     }
 
     private void checkIn(final Order order) {
@@ -337,8 +347,15 @@ Eventbus specific---------------------------------------------------------
         subscriptions.add(NetworkRequest.performAsyncRequest(
                 api.reachedDestination(order.getOrderId()),
                 (data) -> {
+                    setOrderCheckedin(true);
+                    checkProgress.setVisibility(View.GONE);
+                    checkinView.setVisibility(View.GONE);
+                    cardCashLayout.setVisibility(View.VISIBLE);
                     setCardCashListener();
                 }, (error) -> {
+                    checkProgress.setVisibility(View.GONE);
+                    Toast.makeText(OrderDetailActivity.this, "chekin fail", Toast.LENGTH_LONG).show();
+                    checkinAdapter.notifyItemChanged(0);
                     // Handle error
                     //TODO: alert dialog with option to call like in the main app
                 }));

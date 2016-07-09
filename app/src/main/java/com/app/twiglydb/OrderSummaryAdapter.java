@@ -128,9 +128,10 @@ public class OrderSummaryAdapter extends RecyclerView.Adapter<OrderSummaryAdapte
             context.startActivity(mapIntent);
             return;
         });
-        holder.customer_name.setOnClickListener(view -> GoToDetails(holder));
-        holder.orderId.setOnClickListener(view -> GoToDetails(holder));
-        holder.address.setOnClickListener(view -> GoToDetails(holder));
+
+        holder.customer_name.setOnClickListener(view -> GoToDetails(order));
+        holder.orderId.setOnClickListener(view -> GoToDetails(order));
+        holder.address.setOnClickListener(view -> GoToDetails(order));
 
         if (order.getLat() == 0 || order.getLng() == 0) {
             holder.navigateButton.setVisibility(View.INVISIBLE);
@@ -174,7 +175,7 @@ public class OrderSummaryAdapter extends RecyclerView.Adapter<OrderSummaryAdapte
     }*/
 
     private final int REQUESTCODE_ORDERDONE = 0;
-    private void GoToDetails(OrderViewHolder ovh) {
+    /*private void GoToDetails(OrderViewHolder ovh) {
         //get the updated details of orders
         ovh.showProgress(true);
         TwiglyRestAPI api = TwiglyRestAPIBuilder.buildRetroService();
@@ -195,15 +196,22 @@ public class OrderSummaryAdapter extends RecyclerView.Adapter<OrderSummaryAdapte
         //EventBus.getDefault().postSticky(order);
         //((Activity)context).startActivityForResult(new Intent(context, OrderDetailActivity.class), REQUESTCODE_ORDERDONE);
 
+    }*/
+    private void GoToDetails(Order order){
+        if(!order.isCheckedIn) order.isCheckedIn = mOrderCheckedIn;
+        Intent i = OrderDetailActivity.newIntent(context, order);
+        ((Activity)context).startActivityForResult(i, REQUESTCODE_ORDERDONE);
     }
 
     private boolean mOrderDone;
+    private boolean mOrderCheckedIn = false;
     protected void onActivityResult(int requestCode, int resultCode, Intent data){
         if (resultCode != Activity.RESULT_OK) return;
         if (requestCode == REQUESTCODE_ORDERDONE) {
             if (data == null) {
                 return;
             }
+            mOrderCheckedIn = OrderDetailActivity.wasOrderCheckedIn(data);
             mOrderDone = OrderDetailActivity.wasOrderDone(data);
         }
     }

@@ -117,7 +117,7 @@ public class Order implements Parcelable {
 
     @SerializedName("isCheckedIn")
     @Expose
-    public boolean isCheckedIn = false;
+    public boolean isCheckedIn;
 
     /**
      *
