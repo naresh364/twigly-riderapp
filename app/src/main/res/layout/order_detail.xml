@@ -96,7 +96,6 @@
                     android:layout_weight="1"
                     android:background="@drawable/button1_background"
                     android:visibility="gone"
-                    android:clickable="false"
                     />
             </LinearLayout>
         </RelativeLayout>

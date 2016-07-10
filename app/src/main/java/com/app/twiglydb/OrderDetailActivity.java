@@ -209,8 +209,6 @@ public class OrderDetailActivity extends BaseActivity {
                     .setMessage("Are you sure you want to continue?")
                     .setNegativeButton("Cancel", (DialogInterface dialog, int id) -> {})
                     .setPositiveButton("Accept", (DialogInterface dialog, int id) -> {
-                        cardCashLayout.setVisibility(View.GONE);
-                        checkProgress.setVisibility(View.VISIBLE);
                         MarkOrderDone(order, "Cash");
                     });
 
@@ -219,10 +217,13 @@ public class OrderDetailActivity extends BaseActivity {
         });
 
         cardButton.setOnClickListener(click -> {
+            cardCashLayout.setVisibility(View.GONE);
             checkProgress.setVisibility(View.VISIBLE);
             ez = new EzTapServices(this, order);
             ez.initialize();
         });
+
+        paidButton.setOnClickListener(click -> MarkOrderDone(order, "Online"));
     }
 
    /* @Override
@@ -307,6 +308,8 @@ Eventbus specific---------------------------------------------------------
 
     // saving location on markdone, not checkin
     private void MarkOrderDone(final Order order, String mode) {
+        cardCashLayout.setVisibility(View.GONE);
+        checkProgress.setVisibility(View.VISIBLE);
 
         double lat =0 , lng=0, acc=0;
         if (!checkLocationEnabled()) return;
