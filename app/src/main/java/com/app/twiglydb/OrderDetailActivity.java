@@ -219,6 +219,7 @@ public class OrderDetailActivity extends BaseActivity {
         });
 
         cardButton.setOnClickListener(click -> {
+            checkProgress.setVisibility(View.VISIBLE);
             ez = new EzTapServices(this, order);
             ez.initialize();
         });
@@ -294,6 +295,9 @@ Eventbus specific---------------------------------------------------------
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
+                } else {
+                    checkProgress.setVisibility(View.GONE);
+                    cardCashLayout.setVisibility(View.VISIBLE);
                 }
                 break;
             default:
@@ -303,8 +307,6 @@ Eventbus specific---------------------------------------------------------
 
     // saving location on markdone, not checkin
     private void MarkOrderDone(final Order order, String mode) {
-
-        //ovh.showProgress(true);
 
         double lat =0 , lng=0, acc=0;
         if (!checkLocationEnabled()) return;
