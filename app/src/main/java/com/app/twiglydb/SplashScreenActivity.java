@@ -45,6 +45,9 @@ public class SplashScreenActivity extends Activity{
     private static final int PLAY_SERVICES_RESOLUTION_REQUEST = 9000;
     private Subscription getPostSubscription;
 
+    private String mob = DeliveryBoy.getInstance().getMob();
+    private String device_id = DeliveryBoy.getInstance().getDev_id();
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
@@ -57,16 +60,11 @@ public class SplashScreenActivity extends Activity{
         Fabric.with(this, new Crashlytics());
         setContentView(R.layout.splash_screen);
 
-        String mob = DeliveryBoy.getInstance().getMob();
-        String device_id = DeliveryBoy.getInstance().getDev_id();
         if (mob ==  null || device_id == null) {
             startActivity(new Intent(this, LoginActivity.class));
-            finish();
-            return;
+        } else {
+            DeliveryBoy.getInstance().initDeliveryBoy(mob, device_id);
         }
-
-        DeliveryBoy.getInstance().initDeliveryBoy(mob, device_id);
-
 
 /*
         final Call<List<Order>> ordersCall =  ServerCalls.getInstance().service.getOrders();
@@ -151,22 +149,25 @@ public class SplashScreenActivity extends Activity{
     protected void onResume() {
         super.onResume();
 
-        TwiglyRestAPI api = TwiglyRestAPIBuilder.buildRetroService();
-        getPostSubscription =  NetworkRequest.performAsyncRequest(
-            api.getOrders(),
-            (orders) -> {
-                DeliveryBoy.getInstance().setAssignedOrders(orders);
-                startActivity(new Intent(this, OrderSummaryActivity.class));
-                getPostSubscription.unsubscribe();
-                finish();
-            }, (error) -> {
-                // Handle all errors at one place
-                getPostSubscription = null;
-                AlertDialog.Builder builder = new AlertDialog.Builder(SplashScreenActivity.this)
-                    .setTitle("Network error "+ error.toString())
-                    .setMessage("Check your internet connection or call your manager to update the states")
-                    .setPositiveButton("Exit", (DialogInterface d, int which)-> finish());
-                builder.show();
-            });
+        if(mob != null  || device_id != null){
+            TwiglyRestAPI api = TwiglyRestAPIBuilder.buildRetroService();
+            getPostSubscription =  NetworkRequest.performAsyncRequest(
+                api.getOrders(),
+                (orders) -> {
+                    DeliveryBoy.getInstance().setAssignedOrders(orders);
+                    startActivity(new Intent(this, OrderSummaryActivity.class));
+                    getPostSubscription.unsubscribe();
+                    finish();
+                }, (error) -> {
+                    // Handle all errors at one place
+                    getPostSubscription = null;
+                    AlertDialog.Builder builder = new AlertDialog.Builder(SplashScreenActivity.this)
+                        .setTitle("Network error "+ error.toString())
+                        .setMessage("Check your internet connection or call your manager to update the states")
+                        .setPositiveButton("Exit", (DialogInterface d, int which)-> finish());
+                    builder.show();
+                }
+            );
+        }
     }
 }

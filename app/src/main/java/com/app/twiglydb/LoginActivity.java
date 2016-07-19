@@ -94,13 +94,13 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         }
         if (shouldShowRequestPermissionRationale(READ_CONTACTS)) {
             Snackbar.make(mobileNum, R.string.permission_rationale, Snackbar.LENGTH_INDEFINITE)
-                    .setAction(android.R.string.ok, new View.OnClickListener() {
-                        @Override
-                        @TargetApi(Build.VERSION_CODES.M)
-                        public void onClick(View v) {
-                            requestPermissions(new String[]{READ_CONTACTS}, REQUEST_READ_CONTACTS);
-                        }
-                    });
+                .setAction(android.R.string.ok, new View.OnClickListener() {
+                @Override
+                @TargetApi(Build.VERSION_CODES.M)
+                public void onClick(View v) {
+                    requestPermissions(new String[]{READ_CONTACTS}, REQUEST_READ_CONTACTS);
+                }
+            });
         } else {
             requestPermissions(new String[]{READ_CONTACTS}, REQUEST_READ_CONTACTS);
         }
@@ -169,15 +169,15 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
 
             TwiglyRestAPI api = TwiglyRestAPIBuilder.buildRetroService();
             getPostSubscription = NetworkRequest.performAsyncRequest(
-                    api.signup(mobile, android_id),
-                    (deliveryBoy) -> {
-                        DeliveryBoy.getInstance().setName(deliveryBoy.getName());
-                        showProgress(false);
-                    }, (error) -> {
-                        getPostSubscription = null;
-                        Toast.makeText(LoginActivity.this, "Not able to login, Network error:"+error.toString(), Toast.LENGTH_LONG).show();
-                        showProgress(false);
-                    }
+                api.signup(mobile, android_id),
+                (deliveryBoy) -> {
+                    DeliveryBoy.getInstance().setName(deliveryBoy.getName());
+                    showProgress(false);
+                }, (error) -> {
+                    getPostSubscription = null;
+                    Toast.makeText(LoginActivity.this, "Not able to login, Network error:"+error.toString(), Toast.LENGTH_LONG).show();
+                    showProgress(false);
+                }
             );
             /*
             Call<DeliveryBoy> call = ServerCalls.getInstance().service.signup(mobile, android_id);

@@ -1,9 +1,18 @@
 package com.app.twiglydb;
 
+import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.IntentSender;
+import android.location.LocationManager;
 import android.os.Bundle;
+import android.provider.Settings;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.widget.SwipeRefreshLayout;
+import android.support.v7.app.AlertDialog;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
@@ -18,6 +27,16 @@ import com.app.twiglydb.models.DeliveryBoy;
 import com.app.twiglydb.models.Order;
 import com.app.twiglydb.network.ServerCalls;
 import com.app.twiglydb.network.TwiglyRestAPI;
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.PendingResult;
+import com.google.android.gms.common.api.ResultCallback;
+import com.google.android.gms.common.api.Status;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.LocationSettingsRequest;
+import com.google.android.gms.location.LocationSettingsResult;
+import com.google.android.gms.location.LocationSettingsStates;
+import com.google.android.gms.location.LocationSettingsStatusCodes;
 import com.google.gson.Gson;
 
 import java.util.List;
@@ -29,7 +48,7 @@ import timber.log.Timber;
 /**
  * Created by naresh on 10/01/16.
  */
-public class OrderSummaryActivity extends BaseActivity {/*implements XYZinterface*/
+public class OrderSummaryActivity extends AppCompatActivity {/*implements XYZinterface*/
     List<Order> orders;
 
     @BindView(R.id.order_recycler_view) RecyclerView mRecyclerView;
@@ -73,7 +92,8 @@ public class OrderSummaryActivity extends BaseActivity {/*implements XYZinterfac
 
     @Override
     protected void onResume() {
-super.onResume();
+        super.onResume();
+
         if(orderSummaryAdapter.getOrderStatus()){
             DeliveryBoy.getInstance().updateOrders(()->{
                     orderSummaryAdapter.notifyDataSetChanged();
