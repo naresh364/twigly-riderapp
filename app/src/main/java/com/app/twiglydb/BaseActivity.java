@@ -40,7 +40,7 @@ public abstract class BaseActivity extends AppCompatActivity implements
 
     protected Boolean mRequestingLocationUpdates = false;
 
-    int     REQUEST_CHECK_SETTINGS = 0x1;
+    protected final static int REQUEST_CHECK_SETTINGS = 0x1;
 
     protected final static String KEY_REQUESTING_LOCATION_UPDATES = "requesting-location-updates";
     protected final static String KEY_LOCATION = "location";
