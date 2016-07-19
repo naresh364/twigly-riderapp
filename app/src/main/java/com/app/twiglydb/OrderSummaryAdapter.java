@@ -198,6 +198,7 @@ public class OrderSummaryAdapter extends RecyclerView.Adapter<OrderSummaryAdapte
 
     }*/
     private void GoToDetails(Order order){
+        Timber.i("DB selected an order detail");
         if(!order.isCheckedIn) order.isCheckedIn = mOrderCheckedIn;
         Intent i = OrderDetailActivity.newIntent(context, order);
         ((Activity)context).startActivityForResult(i, REQUESTCODE_ORDERDONE);

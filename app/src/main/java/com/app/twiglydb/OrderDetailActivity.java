@@ -1,14 +1,17 @@
 package com.app.twiglydb;
 
-import android.*;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.location.Location;
+import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -28,6 +31,9 @@ import com.app.twiglydb.network.NetworkRequest;
 import com.app.twiglydb.network.ServerResponseCode;
 import com.app.twiglydb.network.TwiglyRestAPI;
 import com.app.twiglydb.network.TwiglyRestAPIBuilder;
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.LocationSettingsResult;
 
 //import org.greenrobot.eventbus.EventBus;
 //import org.greenrobot.eventbus.Subscribe;
@@ -203,13 +209,14 @@ public class OrderDetailActivity extends BaseActivity {
     }
 
     private void setCardCashListener(){
+        Timber.i("Setting up listeners for card/cash button");
         cashButton.setOnClickListener(click -> {
             AlertDialog.Builder b = new AlertDialog.Builder(OrderDetailActivity.this);
             b.setTitle("Cash Payment")
                     .setMessage("Are you sure you want to continue?")
                     .setNegativeButton("Cancel", (DialogInterface dialog, int id) -> {})
                     .setPositiveButton("Accept", (DialogInterface dialog, int id) -> {
-                        MarkOrderDone(order, "Cash");
+                        MarkOrderDone(order, "COD");
                     });
 
             AlertDialog d = b.create();
@@ -225,11 +232,6 @@ public class OrderDetailActivity extends BaseActivity {
 
         paidButton.setOnClickListener(click -> MarkOrderDone(order, "Online"));
     }
-
-   /* @Override
-    protected void onResume(){
-        super.onResume();
-    }*/
 /*
 Eventbus specific---------------------------------------------------------
     @Subscribe(sticky = true, threadMode = ThreadMode.MAIN)
@@ -255,6 +257,11 @@ Eventbus specific---------------------------------------------------------
     @Override
     protected void onResume(){
         super.onResume();
+
+        if (mGoogleApiClient.isConnected() && mRequestingLocationUpdates) {
+            startLocationUpdates();
+        }
+
         if(checkProgress.getVisibility() == View.VISIBLE){
             checkProgress.setVisibility(View.GONE);
             if(order.isCheckedIn){
@@ -270,7 +277,7 @@ Eventbus specific---------------------------------------------------------
         super.onActivityResult(requestCode, resultCode, intent);
         if (intent != null && intent.hasExtra("response")) {
             //Toast.makeText(this, requestCode+" "+resultCode,Toast.LENGTH_SHORT).show();
-            Timber.i("SampleAppLogs",intent.getStringExtra("response"));
+            Timber.i("EZtap log: ",intent.getStringExtra("response"));
         }
         switch (requestCode) {
             case REQUESTCODE_INIT:
@@ -292,7 +299,7 @@ Eventbus specific---------------------------------------------------------
                         response = response.getJSONObject("result");
                         response = response.getJSONObject("txn");
                         ezTxnId = response.getString("txnId");
-                        MarkOrderDone(order, "Card");
+                        MarkOrderDone(order, "CardOD");
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -308,12 +315,12 @@ Eventbus specific---------------------------------------------------------
 
     // saving location on markdone, not checkin
     private void MarkOrderDone(final Order order, String mode) {
+        Timber.i("DB delivered");
         cardCashLayout.setVisibility(View.GONE);
         checkProgress.setVisibility(View.VISIBLE);
 
         double lat =0 , lng=0, acc=0;
-        if (!checkLocationEnabled()) return;
-        Location location = getCurrentLocation();
+        Location location = mCurrentLocation;
         if (location != null) {
             lat = location.getLatitude();
             lng = location.getLongitude();
@@ -367,7 +374,7 @@ Eventbus specific---------------------------------------------------------
     }
 
     private void checkIn(final Order order) {
-
+        Timber.i("DB checking in");
         // iff async-call (done to twigly server)successful, use lambda to call GoToDetails
         subscriptions.add(NetworkRequest.performAsyncRequest(
                 api.reachedDestination(order.getOrderId()),
@@ -384,6 +391,31 @@ Eventbus specific---------------------------------------------------------
                     // Handle error
                     //TODO: alert dialog with option to call like in the main app
                 }));
+    }
+
+    @Override
+    public void onConnected(Bundle bundle){
+        checkLocationSettings();
+        int permissionCheck = ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION);
+        if(permissionCheck == PackageManager.PERMISSION_GRANTED && mCurrentLocation == null){
+            mCurrentLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+        }
+    }
+
+    // Invoked when SettingsApi#checkLocationSettings is called
+    @Override
+    public void onResult(LocationSettingsResult locationSettingsResult) {
+        getStatus(locationSettingsResult);
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) {
+
+    }
+
+    @Override
+    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+
     }
 
 }
