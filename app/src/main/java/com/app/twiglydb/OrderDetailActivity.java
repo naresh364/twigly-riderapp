@@ -181,8 +181,18 @@ public class OrderDetailActivity extends BaseActivity {
                     public void onSwiped(RecyclerView.ViewHolder viewHolder, int swipeDir) {
                         //Remove swiped item from list and notify the RecyclerView
                         checkProgress.setVisibility(View.VISIBLE);
-                        checkinAdapter.notifyDataSetChanged();
-                        checkIn(order);
+                        //checkinAdapter.notifyDataSetChanged();
+                        if(mGoogleApiClient.isConnected()){
+                            checkLocationSettings();
+                        }
+                        LocationManager manager = (LocationManager) getSystemService(Context.LOCATION_SERVICE );
+                        if(manager.isProviderEnabled(LocationManager.GPS_PROVIDER)){
+                            checkIn(order);
+                        } else {
+                            checkProgress.setVisibility(View.GONE);
+                            checkinAdapter.notifyItemChanged(0);
+                        }
+
                     }
 
                     @Override
@@ -208,29 +218,50 @@ public class OrderDetailActivity extends BaseActivity {
          */
     }
 
+    //TODO: setTag on buttons for common functions
     private void setCardCashListener(){
         Timber.i("Setting up listeners for card/cash button");
         cashButton.setOnClickListener(click -> {
-            AlertDialog.Builder b = new AlertDialog.Builder(OrderDetailActivity.this);
-            b.setTitle("Cash Payment")
-                    .setMessage("Are you sure you want to continue?")
-                    .setNegativeButton("Cancel", (DialogInterface dialog, int id) -> {})
-                    .setPositiveButton("Accept", (DialogInterface dialog, int id) -> {
-                        MarkOrderDone(order, "COD");
-                    });
+            if(mGoogleApiClient.isConnected()){
+                checkLocationSettings();
+            }
+            LocationManager manager = (LocationManager) getSystemService(Context.LOCATION_SERVICE );
+            if(manager.isProviderEnabled(LocationManager.GPS_PROVIDER)){
+                AlertDialog.Builder b = new AlertDialog.Builder(OrderDetailActivity.this);
+                b.setTitle("Cash Payment")
+                        .setMessage("Are you sure you want to continue?")
+                        .setNegativeButton("Cancel", (DialogInterface dialog, int id) -> {})
+                        .setPositiveButton("Accept", (DialogInterface dialog, int id) -> {
+                            MarkOrderDone(order, "COD");
+                        });
 
-            AlertDialog d = b.create();
-            d.show();
+                AlertDialog d = b.create();
+                d.show();
+            }
         });
 
         cardButton.setOnClickListener(click -> {
-            cardCashLayout.setVisibility(View.GONE);
-            checkProgress.setVisibility(View.VISIBLE);
-            ez = new EzTapServices(this, order);
-            ez.initialize();
+            if(mGoogleApiClient.isConnected()){
+                checkLocationSettings();
+            }
+            LocationManager manager = (LocationManager) getSystemService(Context.LOCATION_SERVICE );
+            if(manager.isProviderEnabled(LocationManager.GPS_PROVIDER)){
+                cardCashLayout.setVisibility(View.GONE);
+                checkProgress.setVisibility(View.VISIBLE);
+                ez = new EzTapServices(this, order);
+                ez.initialize();
+            }
         });
 
-        paidButton.setOnClickListener(click -> MarkOrderDone(order, "Online"));
+        paidButton.setOnClickListener(click -> {
+            if(mGoogleApiClient.isConnected()){
+                checkLocationSettings();
+            }
+            LocationManager manager = (LocationManager) getSystemService(Context.LOCATION_SERVICE );
+            if(manager.isProviderEnabled(LocationManager.GPS_PROVIDER)){
+                MarkOrderDone(order, "Online");
+            }
+        });
     }
 /*
 Eventbus specific---------------------------------------------------------
