@@ -102,7 +102,7 @@ public class RegistrationIntentService extends IntentService {
     private void sendRegistrationToServer(String token) {
         // Add custom implementation, as needed.
         Call<ServerCalls.ServerResponse> responseCall = ServerCalls.getInstance().service.updateGCM(token);
-        responseCall.enqueue(new Callback<ServerCalls.ServerResponse>() {
+        /*responseCall.enqueue(new Callback<ServerCalls.ServerResponse>() {
             @Override
             public void onResponse(Response<ServerCalls.ServerResponse> response) {
                 sharedPreferences.edit().putBoolean(QuickstartPreferences.SENT_TOKEN_TO_SERVER, true).apply();
@@ -114,7 +114,7 @@ public class RegistrationIntentService extends IntentService {
                 sharedPreferences.edit().putBoolean(QuickstartPreferences.SENT_TOKEN_TO_SERVER, false).apply();
                 Toast.makeText(MyApp.getContext(),"Unable to register GCM token", Toast.LENGTH_LONG).show();
             }
-        });
+        });*/
     }
 
     /**

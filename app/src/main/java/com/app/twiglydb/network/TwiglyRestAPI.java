@@ -2,6 +2,7 @@ package com.app.twiglydb.network;
 
 import com.app.twiglydb.models.DeliveryBoy;
 import com.app.twiglydb.models.Order;
+import com.app.twiglydb.models.Version;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
@@ -20,8 +21,8 @@ import retrofit2.http.Query;
  */
 public interface TwiglyRestAPI {
 
-    String TWIGLYAPI_ENDPOINT = "http://www.twigly.in/";
-    //String TWIGLYAPI_ENDPOINT = "http://dev2.twigly.in/";
+    //String TWIGLYAPI_ENDPOINT = "http://www.twigly.in/";
+    String TWIGLYAPI_ENDPOINT = "http://dev2.twigly.in/";
 
 
     @GET("/employees/signup")
@@ -59,5 +60,8 @@ public interface TwiglyRestAPI {
         @Expose
         public String message;
     }
+
+    @GET("/assets/static/dbapp/dbapp_data")
+    Observable<Version> getVersionInfo();
 
 }

@@ -115,7 +115,7 @@ public class OrderSummaryAdapter extends RecyclerView.Adapter<OrderSummaryAdapte
 
         holder.callButton.setOnClickListener(view -> {
             String uri = "tel:" + order.getMobileNumber().trim() ;
-            Intent intent = new Intent(Intent.ACTION_CALL);
+            Intent intent = new Intent(Intent.ACTION_DIAL);
             intent.setData(Uri.parse(uri));
             if (Utils.mayRequestPermission(context, Manifest.permission.CALL_PHONE)) {
                 context.startActivity(intent);

@@ -1,12 +1,17 @@
 package com.app.twiglydb;
 
+import android.app.DownloadManager;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.IntentSender;
+import android.graphics.PixelFormat;
 import android.location.LocationManager;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -16,6 +21,10 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
+import android.view.Gravity;
+import android.view.KeyEvent;
+import android.view.View;
+import android.view.WindowManager;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ViewSwitcher;
@@ -25,8 +34,10 @@ import com.app.twiglydb.bus.EventReceiver;
 import com.app.twiglydb.bus.EventType;
 import com.app.twiglydb.models.DeliveryBoy;
 import com.app.twiglydb.models.Order;
+import com.app.twiglydb.network.NetworkRequest;
 import com.app.twiglydb.network.ServerCalls;
 import com.app.twiglydb.network.TwiglyRestAPI;
+import com.app.twiglydb.network.TwiglyRestAPIBuilder;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.PendingResult;
@@ -39,10 +50,14 @@ import com.google.android.gms.location.LocationSettingsStates;
 import com.google.android.gms.location.LocationSettingsStatusCodes;
 import com.google.gson.Gson;
 
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import rx.subscriptions.CompositeSubscription;
 import timber.log.Timber;
 
 /**
@@ -59,6 +74,7 @@ public class OrderSummaryActivity extends AppCompatActivity {/*implements XYZint
     OrderSummaryAdapter orderSummaryAdapter;
 
     private EventReceiver eventReceiver;
+    private CompositeSubscription subscriptions = new CompositeSubscription();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,6 +83,10 @@ public class OrderSummaryActivity extends AppCompatActivity {/*implements XYZint
         setTitle("TwiglyDB: " + DeliveryBoy.getInstance().getName());
 
         orderSummaryAdapter = new OrderSummaryAdapter(this, orders);
+
+        // disable lock screen
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD);
+
         setContentView(R.layout.order_summary_list);
         ButterKnife.bind(this);
 
@@ -83,6 +103,29 @@ public class OrderSummaryActivity extends AppCompatActivity {/*implements XYZint
             orderSummaryAdapter.notifyDataSetChanged();
             updateNoOrderView();
         });
+
+        // Disable notification bar expansion
+        WindowManager manager = ((WindowManager) getApplicationContext()
+                .getSystemService(Context.WINDOW_SERVICE));
+
+        WindowManager.LayoutParams localLayoutParams = new WindowManager.LayoutParams();
+        localLayoutParams.type = WindowManager.LayoutParams.TYPE_SYSTEM_ERROR;
+        localLayoutParams.gravity = Gravity.TOP;
+        localLayoutParams.flags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE|
+
+        // this is to enable the notification to recieve touch events
+        WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL |
+
+        // Draws over status bar
+        WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN;
+
+        localLayoutParams.width = WindowManager.LayoutParams.MATCH_PARENT;
+        localLayoutParams.height = (int) (50 * getResources().getDisplayMetrics().scaledDensity);
+        localLayoutParams.format = PixelFormat.TRANSPARENT;
+
+        customViewGroup view = new customViewGroup(this);
+        manager.addView(view, localLayoutParams);
+        //-------------notification bar expansion disabler ends here------------------
     }
 
     @Override
@@ -94,11 +137,55 @@ public class OrderSummaryActivity extends AppCompatActivity {/*implements XYZint
     protected void onResume() {
         super.onResume();
 
+        TwiglyRestAPI api = TwiglyRestAPIBuilder.buildRetroService();
+        subscriptions.add(NetworkRequest.performAsyncRequest(
+                api.getVersionInfo(),
+                info -> {
+                    if(info.getVersion() > BuildConfig.VERSION_CODE){
+                        final Uri dlUri = Uri.parse(info.getUrl());
+                        String PATH = Environment.getExternalStoragePublicDirectory (Environment.DIRECTORY_DOWNLOADS) + "/" + dlUri.getLastPathSegment();
+                        final Uri uri = Uri.parse("file://" + PATH);
+
+                        //Delete update file if exists
+                        File file = new File(PATH);
+                        if(file.exists()) file.delete();
+
+                        //set download manager
+                        DownloadManager.Request request = new DownloadManager.Request(dlUri);
+
+                        //set destination
+                        request.setDestinationUri(uri);
+
+                        // get download service and enqueue file
+                        final DownloadManager manager = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
+                        final long downloadId = manager.enqueue(request);
+
+                        //set BroadcastReceiver to install app when .apk is downloaded
+                        BroadcastReceiver onComplete = new BroadcastReceiver() {
+                            public void onReceive(Context ctxt, Intent intent) {
+                                Intent install = new Intent(Intent.ACTION_VIEW);
+                                install.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                                install.setDataAndType(uri, "application/vnd.android.package-archive");
+                                //manager.getMimeTypeForDownloadedFile(downloadId));
+                                startActivity(install);
+                                unregisterReceiver(this);
+                                subscriptions.clear();
+                                finish();
+                            }
+                        };
+
+                        //register receiver for when .apk download is compete
+                        registerReceiver(onComplete, new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE));
+                    }
+
+                }, e -> {
+                }
+        ));
+
         if(orderSummaryAdapter.getOrderStatus()){
-            DeliveryBoy.getInstance().updateOrders(()->{
-                    orderSummaryAdapter.notifyDataSetChanged();
-                    updateNoOrderView();
-            });
+            DeliveryBoy.getInstance().updateOrders();
+            orderSummaryAdapter.notifyDataSetChanged();
+            updateNoOrderView();
         }
 
         if (eventReceiver== null){
@@ -146,5 +233,17 @@ public class OrderSummaryActivity extends AppCompatActivity {/*implements XYZint
     protected void onPause() {
         super.onPause();
         if (eventReceiver != null) unregisterReceiver(eventReceiver);
+    }
+
+    @Override
+    public void onBackPressed() {
+        // these are not the droids you are looking for
+    }
+
+    // Disable volume button
+    private final List blockedKeys = new ArrayList(Arrays.asList(KeyEvent.KEYCODE_VOLUME_DOWN, KeyEvent.KEYCODE_VOLUME_UP));
+    @Override
+    public boolean dispatchKeyEvent(KeyEvent event) {
+        return blockedKeys.contains(event.getKeyCode()) || super.dispatchKeyEvent(event);
     }
 }

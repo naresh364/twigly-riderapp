@@ -16,7 +16,9 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
+import android.view.KeyEvent;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
@@ -39,6 +41,10 @@ import com.google.android.gms.location.LocationSettingsResult;
 //import org.greenrobot.eventbus.Subscribe;
 //import org.greenrobot.eventbus.ThreadMode;
 import org.json.JSONObject;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -107,6 +113,9 @@ public class OrderDetailActivity extends BaseActivity {
         //    order = o1;
         setTitle("TwiglyDB: " + DeliveryBoy.getInstance().getName());
 
+        // disable lock screen
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD);
+
         setContentView(R.layout.order_detail);
         ButterKnife.bind(this);
 
@@ -128,7 +137,7 @@ public class OrderDetailActivity extends BaseActivity {
         deliveryTime.setText(order.getDeliveryTime());
         callButton.setOnClickListener(view -> {
             String uri = "tel:" + order.getMobileNumber().trim() ;
-            Intent intent = new Intent(Intent.ACTION_CALL);
+            Intent intent = new Intent(Intent.ACTION_DIAL);
             intent.setData(Uri.parse(uri));
             if (Utils.mayRequestPermission(OrderDetailActivity.this, android.Manifest.permission.CALL_PHONE)) {
                 startActivity(intent);
@@ -139,7 +148,7 @@ public class OrderDetailActivity extends BaseActivity {
             Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
             mapIntent.setPackage("com.google.android.apps.maps");
             startActivity(mapIntent);
-            return;
+            //return;
         });
         if (order.getLat() == 0 || order.getLng() == 0) {
             navigateButton.setVisibility(View.INVISIBLE);
@@ -182,16 +191,16 @@ public class OrderDetailActivity extends BaseActivity {
                         //Remove swiped item from list and notify the RecyclerView
                         checkProgress.setVisibility(View.VISIBLE);
                         //checkinAdapter.notifyDataSetChanged();
-                        if(mGoogleApiClient.isConnected()){
+                        /*if(mGoogleApiClient.isConnected()){
                             checkLocationSettings();
                         }
                         LocationManager manager = (LocationManager) getSystemService(Context.LOCATION_SERVICE );
-                        if(manager.isProviderEnabled(LocationManager.GPS_PROVIDER)){
+                        if(manager.isProviderEnabled(LocationManager.GPS_PROVIDER)){*/
                             checkIn(order);
-                        } else {
+                        /*} else {
                             checkProgress.setVisibility(View.GONE);
                             checkinAdapter.notifyItemChanged(0);
-                        }
+                        }*/
 
                     }
 
@@ -222,11 +231,11 @@ public class OrderDetailActivity extends BaseActivity {
     private void setCardCashListener(){
         Timber.i("Setting up listeners for card/cash button");
         cashButton.setOnClickListener(click -> {
-            if(mGoogleApiClient.isConnected()){
+            /*if(mGoogleApiClient.isConnected()){
                 checkLocationSettings();
             }
             LocationManager manager = (LocationManager) getSystemService(Context.LOCATION_SERVICE );
-            if(manager.isProviderEnabled(LocationManager.GPS_PROVIDER)){
+            if(manager.isProviderEnabled(LocationManager.GPS_PROVIDER)){*/
                 AlertDialog.Builder b = new AlertDialog.Builder(OrderDetailActivity.this);
                 b.setTitle("Cash Payment")
                         .setMessage("Are you sure you want to continue?")
@@ -237,30 +246,35 @@ public class OrderDetailActivity extends BaseActivity {
 
                 AlertDialog d = b.create();
                 d.show();
-            }
+            //}
         });
 
         cardButton.setOnClickListener(click -> {
-            if(mGoogleApiClient.isConnected()){
+            /*if(mGoogleApiClient.isConnected()){
                 checkLocationSettings();
             }
             LocationManager manager = (LocationManager) getSystemService(Context.LOCATION_SERVICE );
-            if(manager.isProviderEnabled(LocationManager.GPS_PROVIDER)){
+            if(manager.isProviderEnabled(LocationManager.GPS_PROVIDER)){*/
+            if(ezTxnId == null){
                 cardCashLayout.setVisibility(View.GONE);
                 checkProgress.setVisibility(View.VISIBLE);
                 ez = new EzTapServices(this, order);
                 ez.initialize();
+            } else {
+                MarkOrderDone(order, "CardOD");
             }
+
+            //}
         });
 
         paidButton.setOnClickListener(click -> {
-            if(mGoogleApiClient.isConnected()){
+            /*if(mGoogleApiClient.isConnected()){
                 checkLocationSettings();
             }
             LocationManager manager = (LocationManager) getSystemService(Context.LOCATION_SERVICE );
-            if(manager.isProviderEnabled(LocationManager.GPS_PROVIDER)){
+            if(manager.isProviderEnabled(LocationManager.GPS_PROVIDER)){*/
                 MarkOrderDone(order, "Online");
-            }
+            //}
         });
     }
 /*
@@ -447,6 +461,18 @@ Eventbus specific---------------------------------------------------------
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
 
+    }
+
+    // Disable volume button
+    private final List blockedKeys = new ArrayList(Arrays.asList(KeyEvent.KEYCODE_VOLUME_DOWN, KeyEvent.KEYCODE_VOLUME_UP));
+    @Override
+    public boolean dispatchKeyEvent(KeyEvent event) {
+        //return blockedKeys.contains(event.getKeyCode()) || super.dispatchKeyEvent(event);
+        if (blockedKeys.contains(event.getKeyCode())) {
+            return true;
+        } else {
+            return super.dispatchKeyEvent(event);
+        }
     }
 
 }
