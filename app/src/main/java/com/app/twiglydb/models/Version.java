@@ -9,6 +9,7 @@ import com.google.gson.annotations.SerializedName;
 
 
 
+
 @Generated("org.jsonschema2pojo")
 public class Version {
 
@@ -18,6 +19,9 @@ public class Version {
     @SerializedName("url")
     @Expose
     private String url;
+    @SerializedName("password")
+    @Expose
+    private Integer password;
 
     /**
      *
@@ -53,6 +57,24 @@ public class Version {
      */
     public void setUrl(String url) {
         this.url = url;
+    }
+
+    /**
+     *
+     * @return
+     * The password
+     */
+    public Integer getPassword() {
+        return password;
+    }
+
+    /**
+     *
+     * @param password
+     * The password
+     */
+    public void setPassword(Integer password) {
+        this.password = password;
     }
 
 }

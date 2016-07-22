@@ -12,11 +12,16 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.content.ContextCompat;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.Toolbar;
 import android.support.v7.widget.helper.ItemTouchHelper;
 import android.view.KeyEvent;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
@@ -83,6 +88,8 @@ public class OrderDetailActivity extends BaseActivity {
     @BindView(R.id.delivery_time) public TextView deliveryTime;
     @BindView(R.id.call_button) public ImageButton callButton;
     @BindView(R.id.navigate_button) public Button navigateButton;
+    @BindView(R.id.my_toolbar) Toolbar myToolbar;
+    @BindView(R.id.text_toolbar) TextView textToolbar;
 /*
     @OnClick(R.id.card_payment_button)
     public void cardPayment(){
@@ -111,13 +118,19 @@ public class OrderDetailActivity extends BaseActivity {
         //Toast.makeText(OrderDetailActivity.this, ""+order.isCheckedIn, Toast.LENGTH_SHORT).show();
         //subscriptions.add( RxBus.getInstance().register(Order.class, o1 -> {
         //    order = o1;
-        setTitle("TwiglyDB: " + DeliveryBoy.getInstance().getName());
+        //setTitle("TwiglyDB: " + DeliveryBoy.getInstance().getName());
 
         // disable lock screen
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD);
 
         setContentView(R.layout.order_detail);
         ButterKnife.bind(this);
+
+        setSupportActionBar(myToolbar);
+        textToolbar.setText("DB: " + DeliveryBoy.getInstance().getName());
+        ActionBar ab = getSupportActionBar();
+        ab.setDisplayHomeAsUpEnabled(true);
+
 
         itemDetailAdapter = new ItemDetailAdapter(this, order.getOrderDetails());
         LinearLayoutManager llm = new LinearLayoutManager(this);
