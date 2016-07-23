@@ -88,6 +88,7 @@ public class OrderDetailActivity extends BaseActivity {
     @BindView(R.id.delivery_time) public TextView deliveryTime;
     @BindView(R.id.call_button) public ImageButton callButton;
     @BindView(R.id.navigate_button) public Button navigateButton;
+
     @BindView(R.id.my_toolbar) Toolbar myToolbar;
     @BindView(R.id.text_toolbar) TextView textToolbar;
 /*
@@ -129,7 +130,7 @@ public class OrderDetailActivity extends BaseActivity {
         setSupportActionBar(myToolbar);
         textToolbar.setText("DB: " + DeliveryBoy.getInstance().getName());
         ActionBar ab = getSupportActionBar();
-        ab.setDisplayHomeAsUpEnabled(true);
+        //ab.setDisplayHomeAsUpEnabled(true);
 
 
         itemDetailAdapter = new ItemDetailAdapter(this, order.getOrderDetails());
@@ -485,6 +486,30 @@ Eventbus specific---------------------------------------------------------
             return true;
         } else {
             return super.dispatchKeyEvent(event);
+        }
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.orderdetail_actions, menu);
+
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.action_revert:
+                subscriptions.clear();
+                finish();
+                return true;
+
+            default:
+                // If we got here, the user's action was not recognized.
+                // Invoke the superclass to handle it.
+                return super.onOptionsItemSelected(item);
+
         }
     }
 

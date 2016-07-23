@@ -68,7 +68,7 @@
             android:name=".OrderDetailActivity"
             android:label="@string/app_name"
             android:screenOrientation="portrait"
-            android:parentActivityName="com.app.twiglydb.OrderSummaryActivity" >
+            >
         <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
             </intent-filter>
