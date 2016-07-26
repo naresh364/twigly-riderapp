@@ -67,6 +67,7 @@ public class OrderSummaryAdapter extends RecyclerView.Adapter<OrderSummaryAdapte
         @BindView(R.id.delivery_time) public TextView deliveryTime;
         @BindView(R.id.call_button) public ImageButton callButton;
         @BindView(R.id.navigate_button) public Button navigateButton;
+        @BindView(R.id.divider2) public View divider2;
         @BindView(R.id.call_progress) public ProgressBar callProgress;
 
         public OrderViewHolder(View v) {
@@ -107,7 +108,7 @@ public class OrderSummaryAdapter extends RecyclerView.Adapter<OrderSummaryAdapte
         holder.customer_name.setTextColor(Color.parseColor("#009688"));
 
         holder.orderId.setText("#"+order.getOrderId());
-        holder.address.setText(order.getAddress());
+        holder.address.setText(order.getAddress().trim());
         holder.cartPrice.setText("\u20B9 " + String.format("%.2f",order.getTotal()));
         holder.deliveryTime.setText(order.getDeliveryTime());
 
@@ -134,7 +135,8 @@ public class OrderSummaryAdapter extends RecyclerView.Adapter<OrderSummaryAdapte
         holder.address.setOnClickListener(view -> GoToDetails(order));
 
         if (order.getLat() == 0 || order.getLng() == 0) {
-            holder.navigateButton.setVisibility(View.INVISIBLE);
+            holder.navigateButton.setVisibility(View.GONE);
+            holder.divider2.setVisibility(View.GONE);
         } else {
             holder.navigateButton.setVisibility(View.VISIBLE);
         }

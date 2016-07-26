@@ -31,6 +31,9 @@ public interface TwiglyRestAPI {
     @GET("/db/orders")
     Observable<List<Order>> getOrders();
 
+    @GET("/db/dailyorders")
+    Observable<List<Order>> getDailyOrders();
+
     @FormUrlEncoded
     @POST("/db/markdone")
     Observable<ServerResponse> markDone(@Field("mode") String mode,

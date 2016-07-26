@@ -42,6 +42,7 @@ public class DeliveryBoy {
     String name;
     transient String dev_id = null;
     transient List<Order> assignedOrders = new ArrayList<>();
+    transient List<Order> dailyOrders = new ArrayList<>();
 
     private DeliveryBoy(){
     }
@@ -82,6 +83,17 @@ public class DeliveryBoy {
                 api.getOrders(),
                 (orders) -> {
                     DeliveryBoy.getInstance().setAssignedOrders(orders);
+                    //startActivity(new Intent(this, OrderSummaryActivity.class));
+                    //finish();
+                }, (error) -> {
+                    // Handle all errors at one place
+                    Timber.e(error.toString());
+                }
+        ));
+        subscriptions.add(NetworkRequest.performAsyncRequest(
+                api.getDailyOrders(),
+                (orders) -> {
+                    DeliveryBoy.getInstance().setDailyOrders(orders);
                     //startActivity(new Intent(this, OrderSummaryActivity.class));
                     subscriptions.clear();
                     //finish();
@@ -131,6 +143,9 @@ public class DeliveryBoy {
     public List<Order> getAssignedOrders() {
         return assignedOrders;
     }
+    public List<Order> getDailyOrders() {
+        return dailyOrders;
+    }
 
     public void addNewOrder(Order order){
         for (Order temp : assignedOrders) {
@@ -143,6 +158,10 @@ public class DeliveryBoy {
     public void setAssignedOrders(List<Order> assignedOrders) {
         this.assignedOrders.clear();
         this.assignedOrders.addAll(assignedOrders);
+    }
+    public void setDailyOrders(List<Order> dailyOrders) {
+        this.dailyOrders.clear();
+        this.dailyOrders.addAll(dailyOrders);
     }
 
     public String getDeliveryBoyId() {

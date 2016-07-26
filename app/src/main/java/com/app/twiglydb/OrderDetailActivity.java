@@ -146,7 +146,7 @@ public class OrderDetailActivity extends BaseActivity {
         mCustomerName.setTextColor(Color.parseColor("#009688"));
 
         orderId.setText("#"+order.getOrderId());
-        address.setText(order.getAddress());
+        address.setText(order.getAddress().trim());
         cartPrice.setText("\u20B9 " + String.format("%.2f",order.getTotal()));
         deliveryTime.setText(order.getDeliveryTime());
         callButton.setOnClickListener(view -> {

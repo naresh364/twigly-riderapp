@@ -140,7 +140,7 @@ public class OrderSummaryActivity extends AppCompatActivity {/*implements XYZint
 
         customViewGroup view = new customViewGroup(this);
         manager.addView(view, localLayoutParams);
-        //-------------notification bar expansion disabler ends here------------------
+        //-------------notification bar expansion disabler ends here------------------*/
     }
 
     @Override
@@ -277,6 +277,10 @@ public class OrderSummaryActivity extends AppCompatActivity {/*implements XYZint
         switch (item.getItemId()) {
             case R.id.action_exit:
                 exitCodeAlert(OrderSummaryActivity.this);
+                return true;
+
+            case R.id.action_summary:
+                startActivity(new Intent(this, DailySummaryActivity.class));
                 return true;
 
             default:

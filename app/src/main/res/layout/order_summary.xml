@@ -4,7 +4,9 @@
     android:id="@+id/order_summary_layout"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="8dp"
+    android:layout_marginLeft="8dp"
+    android:layout_marginTop="8dp"
+    android:layout_marginRight="8dp"
     >
     <TextView
         android:id="@+id/customer_name"
@@ -76,15 +78,6 @@
         android:textSize="@dimen/big"
     />
 
-    <Button
-        android:id="@+id/navigate_button"
-        android:layout_below="@id/delivery_time"
-        android:layout_height="40dp"
-        android:layout_width="wrap_content"
-        android:layout_alignParentRight="true"
-        android:text="Navigate"
-        />
-
     <View
         android:id="@+id/divider2"
         android:layout_below="@+id/address"
@@ -92,5 +85,15 @@
         android:layout_height="1dp"
         android:background="@android:color/darker_gray"
         />
+
+    <Button
+        android:id="@+id/navigate_button"
+        android:layout_below="@id/divider2"
+        android:layout_height="40dp"
+        android:layout_width="wrap_content"
+        android:layout_alignParentRight="true"
+        android:text="Navigate"
+        />
+
 </RelativeLayout>
 
