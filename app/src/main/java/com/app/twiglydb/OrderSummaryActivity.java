@@ -87,6 +87,7 @@ public class OrderSummaryActivity extends AppCompatActivity {/*implements XYZint
     private EventReceiver eventReceiver;
     private CompositeSubscription subscriptions = new CompositeSubscription();
     private int exitCode;
+    public int pos;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -160,6 +161,14 @@ public class OrderSummaryActivity extends AppCompatActivity {/*implements XYZint
     protected void onResume() {
         super.onResume();
 
+        if(orderSummaryAdapter.getOrderStatus() >= 0){
+            Timber.d("getOrderStatus true");
+            //subscriptions.clear();
+            //finish();
+        } else {
+            Toast.makeText(OrderSummaryActivity.this, "Status Update Failed. Try Again!", Toast.LENGTH_SHORT).show();
+        }
+
         TwiglyRestAPI api = TwiglyRestAPIBuilder.buildRetroService();
         subscriptions.add(NetworkRequest.performAsyncRequest(
                 api.getVersionInfo(),
@@ -206,12 +215,6 @@ public class OrderSummaryActivity extends AppCompatActivity {/*implements XYZint
                 }, e -> {
                 }
         ));
-
-        if(orderSummaryAdapter.getOrderStatus()){
-            DeliveryBoy.getInstance().updateOrders();
-            orderSummaryAdapter.notifyDataSetChanged();
-            updateNoOrderView();
-        }
 
         if (eventReceiver== null){
             eventReceiver = new EventReceiver(data -> newOrderReceived(data));

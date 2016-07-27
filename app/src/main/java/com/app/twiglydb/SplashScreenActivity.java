@@ -183,7 +183,7 @@ public class SplashScreenActivity extends Activity{
                     //finish();
                 }, (error) -> {
                     // Handle all errors at one place
-                    subscriptions = null;
+                    subscriptions.clear();
                     AlertDialog.Builder builder = new AlertDialog.Builder(SplashScreenActivity.this)
                         .setTitle("Network error "+ error.toString())
                         .setMessage("Check your internet connection or call your manager to update the states")

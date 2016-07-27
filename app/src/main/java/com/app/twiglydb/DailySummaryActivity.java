@@ -41,7 +41,6 @@ public class DailySummaryActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        //TODO: create a new ordersummary api
         orders = DeliveryBoy.getInstance().getDailyOrders();
         dailySummaryAdapter = new DailySummaryAdapter(this, orders);
 
@@ -59,7 +58,10 @@ public class DailySummaryActivity extends AppCompatActivity {
         mRecyclerView.setLayoutManager(llm);
         mRecyclerView.setAdapter(dailySummaryAdapter);
         mRecyclerView.setHasFixedSize(true);
-        updateNoOrderView();
+
+        mSwipeRefreshLayout.setOnRefreshListener(()->{
+            mSwipeRefreshLayout.setRefreshing(false);
+        });
     }
 
     @Override
@@ -82,14 +84,6 @@ public class DailySummaryActivity extends AppCompatActivity {
                 // Invoke the superclass to handle it.
                 return super.onOptionsItemSelected(item);
 
-        }
-    }
-
-    private void updateNoOrderView(){
-        if (DeliveryBoy.getInstance().hasOrders()) {
-            viewSwitcher.setDisplayedChild(0);
-        } else {
-            viewSwitcher.setDisplayedChild(1);
         }
     }
 

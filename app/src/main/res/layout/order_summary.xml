@@ -84,7 +84,7 @@
         android:layout_width="match_parent"
         android:layout_height="1dp"
         android:background="@android:color/darker_gray"
-        />
+    />
 
     <Button
         android:id="@+id/navigate_button"
@@ -93,7 +93,20 @@
         android:layout_width="wrap_content"
         android:layout_alignParentRight="true"
         android:text="Navigate"
-        />
+    />
+
+    <CheckBox
+        android:id="@+id/checkbox_pending"
+        android:layout_below="@id/divider2"
+        android:layout_height="40dp"
+        android:layout_width="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:buttonTint="@color/style_color_primary"
+        android:checked="true"
+        android:onClick="onPendingCheck"
+        android:visibility="gone"
+        android:text="Pending"
+    />
 
 </RelativeLayout>
 

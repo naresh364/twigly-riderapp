@@ -25,6 +25,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
@@ -65,10 +66,14 @@ public class OrderDetailActivity extends BaseActivity {
     private static final String INTENTEXTRA_PARCEL_ORDERDETAILS = "com.app.twiglydb.extra.parcel.order_details";
     private static final String INTENTEXTRA_ORDERDONE = "com.app.twiglydb.order_done";
     private static final String INTENTEXTRA_ORDER_CHECKEDIN = "com.app.twiglydb.order_checkedin";
+    private static final String INTENTEXTRA_POSITION = "com.app.twiglydb.order_position";
+
 
     private EzTapServices ez;
     private CompositeSubscription subscriptions = new CompositeSubscription();
     private TwiglyRestAPI api = TwiglyRestAPIBuilder.buildRetroService();
+
+    private int position;
 
     @BindView(R.id.order_detail_layout) LinearLayout orderDetailLayout;
     @BindView(R.id.detail_recycler_view) RecyclerView mRecyclerView;
@@ -88,6 +93,7 @@ public class OrderDetailActivity extends BaseActivity {
     @BindView(R.id.delivery_time) public TextView deliveryTime;
     @BindView(R.id.call_button) public ImageButton callButton;
     @BindView(R.id.navigate_button) public Button navigateButton;
+    @BindView(R.id.checkbox_pending) CheckBox checkbox_pending;
 
     @BindView(R.id.my_toolbar) Toolbar myToolbar;
     @BindView(R.id.text_toolbar) TextView textToolbar;
@@ -109,11 +115,16 @@ public class OrderDetailActivity extends BaseActivity {
     ItemDetailAdapter itemDetailAdapter;
     CheckinAdapter checkinAdapter;
 
+    private String isPending = "";
+    private Double pending = 2.1;
+    private int pos;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         //EventBus.getDefault().register(this);
         order = getIntent().getBundleExtra(INTENTEXTRA_ORDERDETAILS).getParcelable(INTENTEXTRA_PARCEL_ORDERDETAILS);
+        pos = getIntent().getBundleExtra(INTENTEXTRA_ORDERDETAILS).getInt(INTENTEXTRA_POSITION);
         //subscriptions = new CompositeSubscription();
         //Toast.makeText(OrderDetailActivity.this, order.getOrderStatus(), Toast.LENGTH_SHORT).show();
         //Toast.makeText(OrderDetailActivity.this, ""+order.isCheckedIn, Toast.LENGTH_SHORT).show();
@@ -142,12 +153,19 @@ public class OrderDetailActivity extends BaseActivity {
         checkinView.bringToFront();
 
         //TODO: repeated stuff-----------------------------------------------------------------------
+        pending = order.getUserPendingBalance();
+        if(pending != 0.0){
+            checkbox_pending.setVisibility(View.VISIBLE);
+            checkbox_pending.setText("Pending  \u20B9"+pending);
+            isPending = "*";
+        }
+
         mCustomerName.setText(order.getName());
         mCustomerName.setTextColor(Color.parseColor("#009688"));
 
         orderId.setText("#"+order.getOrderId());
         address.setText(order.getAddress().trim());
-        cartPrice.setText("\u20B9 " + String.format("%.2f",order.getTotal()));
+        cartPrice.setText("\u20B9 " + String.format("%.2f",order.getTotal()+pending) + isPending);
         deliveryTime.setText(order.getDeliveryTime());
         callButton.setOnClickListener(view -> {
             String uri = "tel:" + order.getMobileNumber().trim() ;
@@ -329,6 +347,11 @@ Eventbus specific---------------------------------------------------------
                 checkinView.setVisibility(View.VISIBLE);
             }
         }
+
+        // if ez-transaction is complete but server call to twigly failed, simply call markorderdone on clicking card
+        if(ezTxnId != null){
+            cardButton.setOnClickListener((click) -> MarkOrderDone(order, "CardOD"));
+        }
     }
 
     @Override
@@ -392,7 +415,8 @@ Eventbus specific---------------------------------------------------------
                 (data) -> {
                     if(ServerResponseCode.valueOf(data.code) == ServerResponseCode.OK) {
                         checkProgress.setVisibility(View.GONE);
-                        setOrderDone(true);
+                        //setPosition(pos);
+                        setOrderDone(pos);
                     }
                 }, (error) -> {
                     // Handle error
@@ -405,26 +429,33 @@ Eventbus specific---------------------------------------------------------
     }
 
     // OrderSummaryAdapter calls this function to start OrderDetailActivity
-    public static Intent newIntent(Context packageContext, Order o) {
+    public static Intent newIntent(Context packageContext, Order o, int position) {
         Intent i = new Intent(packageContext, OrderDetailActivity.class);
         Bundle b = new Bundle();
         b.putParcelable(INTENTEXTRA_PARCEL_ORDERDETAILS, o);
+        b.putInt(INTENTEXTRA_POSITION, position);
         i.putExtra(INTENTEXTRA_ORDERDETAILS, b);
-        // can also put serializeable
         return i;
     }
 
     // OrderSummaryAdapter calls this function to check if the order was done
-    public static boolean wasOrderDone(Intent result) {
-        return result.getBooleanExtra(INTENTEXTRA_ORDERDONE, false);
+    public static int wasOrderDone(Intent result) {
+        return result.getIntExtra(INTENTEXTRA_ORDERDONE, -1);
     }
     public static boolean wasOrderCheckedIn(Intent result){
         return result.getBooleanExtra(INTENTEXTRA_ORDER_CHECKEDIN, false);
     }
+    /*public static int getPosition(Intent result){
+        for (String key : result.getExtras().keySet()) {
+            Object value = result.getExtras().get(key);
+            Timber.d(String.format("%s %s (%s)", key,value.toString(), value.getClass().getName()));
+        }
+        return result.getIntExtra(INTENTEXTRA_POSITION, 0);
+    }*/
 
     // wasOrderDone reads the value set by this function to check if order was done
-    private void setOrderDone(boolean isOrderDone){
-        setResult(RESULT_OK, new Intent().putExtra(INTENTEXTRA_ORDERDONE, isOrderDone));
+    private void setOrderDone(int pos){
+        setResult(RESULT_OK, new Intent().putExtra(INTENTEXTRA_ORDERDONE, pos));
         subscriptions.clear();
         finish(); // go back to previous activity after setting result
     }
@@ -511,6 +542,17 @@ Eventbus specific---------------------------------------------------------
                 return super.onOptionsItemSelected(item);
 
         }
+    }
+
+    public void onPendingCheck(View v){
+        boolean checked = ((CheckBox) v).isChecked();
+
+        if(checked){
+            cartPrice.setText("\u20B9 " + String.format("%.2f",order.getTotal()+pending) + isPending);
+        } else {
+            cartPrice.setText("\u20B9 " + String.format("%.2f",order.getTotal()) + isPending);
+        }
+
     }
 
 }
