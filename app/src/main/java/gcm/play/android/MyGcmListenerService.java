@@ -185,7 +185,7 @@ public class MyGcmListenerService extends GcmListenerService {
         Call<ServerCalls.ServerResponse> responseCall =
                 ServerCalls.getInstance().service.updateDeviceInfo(lat, lng, acc, batteryLevel);
 
-        responseCall.enqueue(new Callback<ServerCalls.ServerResponse>() {
+        /*responseCall.enqueue(new Callback<ServerCalls.ServerResponse>() {
             @Override
             public void onResponse(Response<ServerCalls.ServerResponse> response) {
                 Timber.e("server response");
@@ -195,6 +195,6 @@ public class MyGcmListenerService extends GcmListenerService {
             public void onFailure(Throwable t) {
                 Timber.e("server failure");
             }
-        });
+        });*/
     }
 }

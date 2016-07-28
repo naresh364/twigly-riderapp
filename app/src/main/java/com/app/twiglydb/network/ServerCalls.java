@@ -14,9 +14,9 @@ import okhttp3.Request;
 import okhttp3.Response;
 import retrofit2.Call;
 import retrofit2.Callback;
-import retrofit2.GsonConverterFactory;
+import retrofit2.adapter.rxjava.RxJavaCallAdapterFactory;
+import retrofit2.converter.gson.GsonConverterFactory;
 import retrofit2.Retrofit;
-import retrofit2.RxJavaCallAdapterFactory;
 import retrofit2.http.Field;
 import retrofit2.http.FormUrlEncoded;
 import retrofit2.http.GET;
@@ -34,8 +34,8 @@ public class ServerCalls {
 
     public TwiglyService service;
     //public static final String host = "http://192.168.1.7:9000/";
-    //public static final String host = "http://dev2.twigly.in/";
-    public static final String host = "http://www.twigly.in/";
+    public static final String host = "http://dev2.twigly.in/";
+    //public static final String host = "http://www.twigly.in/";
 
     private ServerCalls() {
 

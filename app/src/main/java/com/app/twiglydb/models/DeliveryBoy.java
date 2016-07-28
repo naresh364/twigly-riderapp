@@ -1,5 +1,7 @@
 package com.app.twiglydb.models;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.widget.Toast;
 
 import com.app.twiglydb.network.NetworkRequest;
@@ -20,6 +22,8 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 import rx.Subscription;
+import rx.subscriptions.CompositeSubscription;
+import timber.log.Timber;
 
 /**
  * Created by naresh on 13/01/16.
@@ -38,6 +42,7 @@ public class DeliveryBoy {
     String name;
     transient String dev_id = null;
     transient List<Order> assignedOrders = new ArrayList<>();
+    transient List<Order> dailyOrders = new ArrayList<>();
 
     private DeliveryBoy(){
     }
@@ -74,15 +79,42 @@ public class DeliveryBoy {
 
     public void updateOrders() {
 
-        updateOrders(new ServerCalls.ServerCallEndCallback() {
+        subscriptions.add(NetworkRequest.performAsyncRequest(
+                api.getOrders(),
+                (orders) -> {
+                    DeliveryBoy.getInstance().setAssignedOrders(orders);
+                    //startActivity(new Intent(this, OrderSummaryActivity.class));
+                    //finish();
+                }, (error) -> {
+                    // Handle all errors at one place
+                    Timber.e(error.toString());
+                }
+        ));
+        subscriptions.add(NetworkRequest.performAsyncRequest(
+                api.getDailyOrders(),
+                (orders) -> {
+                    DeliveryBoy.getInstance().setDailyOrders(orders);
+                    //startActivity(new Intent(this, OrderSummaryActivity.class));
+                    subscriptions.clear();
+                    //finish();
+                }, (error) -> {
+                    // Handle all errors at one place
+                    subscriptions = null;
+                    Timber.e(error.toString());
+                }
+        ));
+       /* updateOrders(new ServerCalls.ServerCallEndCallback() {
             @Override
             public void callback() {
 
             }
-        });
+        });*/
 
     }
 
+    TwiglyRestAPI api = TwiglyRestAPIBuilder.buildRetroService();
+    private CompositeSubscription subscriptions = new CompositeSubscription();
+    /*
     public void updateOrders(final ServerCalls.ServerCallEndCallback serverCallEndCallback) {
         final Call<List<Order>> ordersCall =  ServerCalls.getInstance().service.getOrders();
         ordersCall.enqueue(new Callback<List<Order>>() {
@@ -106,10 +138,13 @@ public class DeliveryBoy {
                 serverCallEndCallback.callback();
             }
         });
-    }
+    }*/
 
     public List<Order> getAssignedOrders() {
         return assignedOrders;
+    }
+    public List<Order> getDailyOrders() {
+        return dailyOrders;
     }
 
     public void addNewOrder(Order order){
@@ -123,6 +158,10 @@ public class DeliveryBoy {
     public void setAssignedOrders(List<Order> assignedOrders) {
         this.assignedOrders.clear();
         this.assignedOrders.addAll(assignedOrders);
+    }
+    public void setDailyOrders(List<Order> dailyOrders) {
+        this.dailyOrders.clear();
+        this.dailyOrders.addAll(dailyOrders);
     }
 
     public String getDeliveryBoyId() {

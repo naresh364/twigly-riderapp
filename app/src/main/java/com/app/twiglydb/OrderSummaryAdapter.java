@@ -14,6 +14,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.ImageButton;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
@@ -22,6 +23,7 @@ import android.widget.Toast;
 
 import com.app.twiglydb.models.DeliveryBoy;
 import com.app.twiglydb.models.Order;
+import com.app.twiglydb.models.OrderDetail;
 import com.app.twiglydb.network.NetworkRequest;
 import com.app.twiglydb.network.ServerResponseCode;
 import com.app.twiglydb.network.TwiglyRestAPI;
@@ -46,6 +48,7 @@ public class OrderSummaryAdapter extends RecyclerView.Adapter<OrderSummaryAdapte
     Context context;
     private Subscription getPostSubscription;
     private CompositeSubscription subscriptions = new CompositeSubscription();
+    private int pos;
 
     //private XYZinterface xyzListener;
     public OrderSummaryAdapter(Context context, List<Order> orders) {
@@ -67,6 +70,7 @@ public class OrderSummaryAdapter extends RecyclerView.Adapter<OrderSummaryAdapte
         @BindView(R.id.delivery_time) public TextView deliveryTime;
         @BindView(R.id.call_button) public ImageButton callButton;
         @BindView(R.id.navigate_button) public Button navigateButton;
+        @BindView(R.id.divider2) public View divider2;
         @BindView(R.id.call_progress) public ProgressBar callProgress;
 
         public OrderViewHolder(View v) {
@@ -102,20 +106,26 @@ public class OrderSummaryAdapter extends RecyclerView.Adapter<OrderSummaryAdapte
         // which will have the updated adapter position
 
         Order order = orders.get(position);
+        String isPending = "";
+        Double pending = order.getUserPendingBalance();
+        if(pending != 0){
+            isPending = "*";
+        }
+        pos = position;
 
         holder.customer_name.setText(order.getName());
         holder.customer_name.setTextColor(Color.parseColor("#009688"));
 
         holder.orderId.setText("#"+order.getOrderId());
-        holder.address.setText(order.getAddress());
-        holder.cartPrice.setText("\u20B9 " + String.format("%.2f",order.getTotal()));
+        holder.address.setText(order.getAddress().trim());
+        holder.cartPrice.setText("\u20B9 " + String.format("%.2f",order.getTotal()+pending) + isPending);
         holder.deliveryTime.setText(order.getDeliveryTime());
 
         //holder.checkinButton.setTag(holder);
 
         holder.callButton.setOnClickListener(view -> {
             String uri = "tel:" + order.getMobileNumber().trim() ;
-            Intent intent = new Intent(Intent.ACTION_CALL);
+            Intent intent = new Intent(Intent.ACTION_DIAL);
             intent.setData(Uri.parse(uri));
             if (Utils.mayRequestPermission(context, Manifest.permission.CALL_PHONE)) {
                 context.startActivity(intent);
@@ -129,12 +139,13 @@ public class OrderSummaryAdapter extends RecyclerView.Adapter<OrderSummaryAdapte
             return;
         });
 
-        holder.customer_name.setOnClickListener(view -> GoToDetails(order));
-        holder.orderId.setOnClickListener(view -> GoToDetails(order));
-        holder.address.setOnClickListener(view -> GoToDetails(order));
+        holder.customer_name.setOnClickListener(view -> GoToDetails(order, holder));
+        holder.orderId.setOnClickListener(view -> GoToDetails(order, holder));
+        holder.address.setOnClickListener(view -> GoToDetails(order, holder));
 
         if (order.getLat() == 0 || order.getLng() == 0) {
-            holder.navigateButton.setVisibility(View.INVISIBLE);
+            holder.navigateButton.setVisibility(View.GONE);
+            holder.divider2.setVisibility(View.GONE);
         } else {
             holder.navigateButton.setVisibility(View.VISIBLE);
         }
@@ -197,14 +208,14 @@ public class OrderSummaryAdapter extends RecyclerView.Adapter<OrderSummaryAdapte
         //((Activity)context).startActivityForResult(new Intent(context, OrderDetailActivity.class), REQUESTCODE_ORDERDONE);
 
     }*/
-    private void GoToDetails(Order order){
+    private void GoToDetails(Order order, OrderViewHolder ovh){
         Timber.i("DB selected an order detail");
         if(!order.isCheckedIn) order.isCheckedIn = mOrderCheckedIn;
-        Intent i = OrderDetailActivity.newIntent(context, order);
+        Intent i = OrderDetailActivity.newIntent(context, order, ovh.getAdapterPosition());
         ((Activity)context).startActivityForResult(i, REQUESTCODE_ORDERDONE);
     }
 
-    private boolean mOrderDone;
+    private int mOrderDone;
     private boolean mOrderCheckedIn = false;
     protected void onActivityResult(int requestCode, int resultCode, Intent data){
         if (resultCode != Activity.RESULT_OK) return;
@@ -214,6 +225,10 @@ public class OrderSummaryAdapter extends RecyclerView.Adapter<OrderSummaryAdapte
             }
             mOrderCheckedIn = OrderDetailActivity.wasOrderCheckedIn(data);
             mOrderDone = OrderDetailActivity.wasOrderDone(data);
+            if(mOrderDone >= 0){
+                orders.remove(mOrderDone);
+                notifyDataSetChanged();
+            }
         }
     }
 
@@ -221,7 +236,7 @@ public class OrderSummaryAdapter extends RecyclerView.Adapter<OrderSummaryAdapte
         if(getPostSubscription != null) getPostSubscription.unsubscribe();
     }
 
-    public Boolean getOrderStatus(){
+    public int getOrderStatus(){
         return mOrderDone;
     }
 

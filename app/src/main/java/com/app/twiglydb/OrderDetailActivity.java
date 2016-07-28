@@ -12,12 +12,20 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.content.ContextCompat;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.Toolbar;
 import android.support.v7.widget.helper.ItemTouchHelper;
+import android.view.KeyEvent;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
@@ -40,6 +48,10 @@ import com.google.android.gms.location.LocationSettingsResult;
 //import org.greenrobot.eventbus.ThreadMode;
 import org.json.JSONObject;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import rx.subscriptions.CompositeSubscription;
@@ -54,10 +66,14 @@ public class OrderDetailActivity extends BaseActivity {
     private static final String INTENTEXTRA_PARCEL_ORDERDETAILS = "com.app.twiglydb.extra.parcel.order_details";
     private static final String INTENTEXTRA_ORDERDONE = "com.app.twiglydb.order_done";
     private static final String INTENTEXTRA_ORDER_CHECKEDIN = "com.app.twiglydb.order_checkedin";
+    private static final String INTENTEXTRA_POSITION = "com.app.twiglydb.order_position";
+
 
     private EzTapServices ez;
     private CompositeSubscription subscriptions = new CompositeSubscription();
     private TwiglyRestAPI api = TwiglyRestAPIBuilder.buildRetroService();
+
+    private int position;
 
     @BindView(R.id.order_detail_layout) LinearLayout orderDetailLayout;
     @BindView(R.id.detail_recycler_view) RecyclerView mRecyclerView;
@@ -77,6 +93,10 @@ public class OrderDetailActivity extends BaseActivity {
     @BindView(R.id.delivery_time) public TextView deliveryTime;
     @BindView(R.id.call_button) public ImageButton callButton;
     @BindView(R.id.navigate_button) public Button navigateButton;
+    @BindView(R.id.checkbox_pending) CheckBox checkbox_pending;
+
+    @BindView(R.id.my_toolbar) Toolbar myToolbar;
+    @BindView(R.id.text_toolbar) TextView textToolbar;
 /*
     @OnClick(R.id.card_payment_button)
     public void cardPayment(){
@@ -95,20 +115,34 @@ public class OrderDetailActivity extends BaseActivity {
     ItemDetailAdapter itemDetailAdapter;
     CheckinAdapter checkinAdapter;
 
+    private String isPending = "";
+    private Double pending = 2.1;
+    private int pos;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         //EventBus.getDefault().register(this);
         order = getIntent().getBundleExtra(INTENTEXTRA_ORDERDETAILS).getParcelable(INTENTEXTRA_PARCEL_ORDERDETAILS);
+        pos = getIntent().getBundleExtra(INTENTEXTRA_ORDERDETAILS).getInt(INTENTEXTRA_POSITION);
         //subscriptions = new CompositeSubscription();
         //Toast.makeText(OrderDetailActivity.this, order.getOrderStatus(), Toast.LENGTH_SHORT).show();
         //Toast.makeText(OrderDetailActivity.this, ""+order.isCheckedIn, Toast.LENGTH_SHORT).show();
         //subscriptions.add( RxBus.getInstance().register(Order.class, o1 -> {
         //    order = o1;
-        setTitle("TwiglyDB: " + DeliveryBoy.getInstance().getName());
+        //setTitle("TwiglyDB: " + DeliveryBoy.getInstance().getName());
+
+        // disable lock screen
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD);
 
         setContentView(R.layout.order_detail);
         ButterKnife.bind(this);
+
+        setSupportActionBar(myToolbar);
+        textToolbar.setText("DB: " + DeliveryBoy.getInstance().getName());
+        ActionBar ab = getSupportActionBar();
+        //ab.setDisplayHomeAsUpEnabled(true);
+
 
         itemDetailAdapter = new ItemDetailAdapter(this, order.getOrderDetails());
         LinearLayoutManager llm = new LinearLayoutManager(this);
@@ -119,16 +153,23 @@ public class OrderDetailActivity extends BaseActivity {
         checkinView.bringToFront();
 
         //TODO: repeated stuff-----------------------------------------------------------------------
+        pending = order.getUserPendingBalance();
+        if(pending != 0.0){
+            checkbox_pending.setVisibility(View.VISIBLE);
+            checkbox_pending.setText("Pending  \u20B9"+pending);
+            isPending = "*";
+        }
+
         mCustomerName.setText(order.getName());
         mCustomerName.setTextColor(Color.parseColor("#009688"));
 
         orderId.setText("#"+order.getOrderId());
-        address.setText(order.getAddress());
-        cartPrice.setText("\u20B9 " + String.format("%.2f",order.getTotal()));
+        address.setText(order.getAddress().trim());
+        cartPrice.setText("\u20B9 " + String.format("%.2f",order.getTotal()+pending) + isPending);
         deliveryTime.setText(order.getDeliveryTime());
         callButton.setOnClickListener(view -> {
             String uri = "tel:" + order.getMobileNumber().trim() ;
-            Intent intent = new Intent(Intent.ACTION_CALL);
+            Intent intent = new Intent(Intent.ACTION_DIAL);
             intent.setData(Uri.parse(uri));
             if (Utils.mayRequestPermission(OrderDetailActivity.this, android.Manifest.permission.CALL_PHONE)) {
                 startActivity(intent);
@@ -139,7 +180,7 @@ public class OrderDetailActivity extends BaseActivity {
             Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
             mapIntent.setPackage("com.google.android.apps.maps");
             startActivity(mapIntent);
-            return;
+            //return;
         });
         if (order.getLat() == 0 || order.getLng() == 0) {
             navigateButton.setVisibility(View.INVISIBLE);
@@ -182,16 +223,16 @@ public class OrderDetailActivity extends BaseActivity {
                         //Remove swiped item from list and notify the RecyclerView
                         checkProgress.setVisibility(View.VISIBLE);
                         //checkinAdapter.notifyDataSetChanged();
-                        if(mGoogleApiClient.isConnected()){
+                        /*if(mGoogleApiClient.isConnected()){
                             checkLocationSettings();
                         }
                         LocationManager manager = (LocationManager) getSystemService(Context.LOCATION_SERVICE );
-                        if(manager.isProviderEnabled(LocationManager.GPS_PROVIDER)){
+                        if(manager.isProviderEnabled(LocationManager.GPS_PROVIDER)){*/
                             checkIn(order);
-                        } else {
+                        /*} else {
                             checkProgress.setVisibility(View.GONE);
                             checkinAdapter.notifyItemChanged(0);
-                        }
+                        }*/
 
                     }
 
@@ -222,11 +263,11 @@ public class OrderDetailActivity extends BaseActivity {
     private void setCardCashListener(){
         Timber.i("Setting up listeners for card/cash button");
         cashButton.setOnClickListener(click -> {
-            if(mGoogleApiClient.isConnected()){
+            /*if(mGoogleApiClient.isConnected()){
                 checkLocationSettings();
             }
             LocationManager manager = (LocationManager) getSystemService(Context.LOCATION_SERVICE );
-            if(manager.isProviderEnabled(LocationManager.GPS_PROVIDER)){
+            if(manager.isProviderEnabled(LocationManager.GPS_PROVIDER)){*/
                 AlertDialog.Builder b = new AlertDialog.Builder(OrderDetailActivity.this);
                 b.setTitle("Cash Payment")
                         .setMessage("Are you sure you want to continue?")
@@ -237,30 +278,35 @@ public class OrderDetailActivity extends BaseActivity {
 
                 AlertDialog d = b.create();
                 d.show();
-            }
+            //}
         });
 
         cardButton.setOnClickListener(click -> {
-            if(mGoogleApiClient.isConnected()){
+            /*if(mGoogleApiClient.isConnected()){
                 checkLocationSettings();
             }
             LocationManager manager = (LocationManager) getSystemService(Context.LOCATION_SERVICE );
-            if(manager.isProviderEnabled(LocationManager.GPS_PROVIDER)){
+            if(manager.isProviderEnabled(LocationManager.GPS_PROVIDER)){*/
+            if(ezTxnId == null){
                 cardCashLayout.setVisibility(View.GONE);
                 checkProgress.setVisibility(View.VISIBLE);
                 ez = new EzTapServices(this, order);
                 ez.initialize();
+            } else {
+                MarkOrderDone(order, "CardOD");
             }
+
+            //}
         });
 
         paidButton.setOnClickListener(click -> {
-            if(mGoogleApiClient.isConnected()){
+            /*if(mGoogleApiClient.isConnected()){
                 checkLocationSettings();
             }
             LocationManager manager = (LocationManager) getSystemService(Context.LOCATION_SERVICE );
-            if(manager.isProviderEnabled(LocationManager.GPS_PROVIDER)){
+            if(manager.isProviderEnabled(LocationManager.GPS_PROVIDER)){*/
                 MarkOrderDone(order, "Online");
-            }
+            //}
         });
     }
 /*
@@ -300,6 +346,11 @@ Eventbus specific---------------------------------------------------------
             } else {
                 checkinView.setVisibility(View.VISIBLE);
             }
+        }
+
+        // if ez-transaction is complete but server call to twigly failed, simply call markorderdone on clicking card
+        if(ezTxnId != null){
+            cardButton.setOnClickListener((click) -> MarkOrderDone(order, "CardOD"));
         }
     }
 
@@ -364,7 +415,8 @@ Eventbus specific---------------------------------------------------------
                 (data) -> {
                     if(ServerResponseCode.valueOf(data.code) == ServerResponseCode.OK) {
                         checkProgress.setVisibility(View.GONE);
-                        setOrderDone(true);
+                        //setPosition(pos);
+                        setOrderDone(pos);
                     }
                 }, (error) -> {
                     // Handle error
@@ -377,26 +429,33 @@ Eventbus specific---------------------------------------------------------
     }
 
     // OrderSummaryAdapter calls this function to start OrderDetailActivity
-    public static Intent newIntent(Context packageContext, Order o) {
+    public static Intent newIntent(Context packageContext, Order o, int position) {
         Intent i = new Intent(packageContext, OrderDetailActivity.class);
         Bundle b = new Bundle();
         b.putParcelable(INTENTEXTRA_PARCEL_ORDERDETAILS, o);
+        b.putInt(INTENTEXTRA_POSITION, position);
         i.putExtra(INTENTEXTRA_ORDERDETAILS, b);
-        // can also put serializeable
         return i;
     }
 
     // OrderSummaryAdapter calls this function to check if the order was done
-    public static boolean wasOrderDone(Intent result) {
-        return result.getBooleanExtra(INTENTEXTRA_ORDERDONE, false);
+    public static int wasOrderDone(Intent result) {
+        return result.getIntExtra(INTENTEXTRA_ORDERDONE, -1);
     }
     public static boolean wasOrderCheckedIn(Intent result){
         return result.getBooleanExtra(INTENTEXTRA_ORDER_CHECKEDIN, false);
     }
+    /*public static int getPosition(Intent result){
+        for (String key : result.getExtras().keySet()) {
+            Object value = result.getExtras().get(key);
+            Timber.d(String.format("%s %s (%s)", key,value.toString(), value.getClass().getName()));
+        }
+        return result.getIntExtra(INTENTEXTRA_POSITION, 0);
+    }*/
 
     // wasOrderDone reads the value set by this function to check if order was done
-    private void setOrderDone(boolean isOrderDone){
-        setResult(RESULT_OK, new Intent().putExtra(INTENTEXTRA_ORDERDONE, isOrderDone));
+    private void setOrderDone(int pos){
+        setResult(RESULT_OK, new Intent().putExtra(INTENTEXTRA_ORDERDONE, pos));
         subscriptions.clear();
         finish(); // go back to previous activity after setting result
     }
@@ -446,6 +505,53 @@ Eventbus specific---------------------------------------------------------
 
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+
+    }
+
+    // Disable volume button
+    private final List blockedKeys = new ArrayList(Arrays.asList(KeyEvent.KEYCODE_VOLUME_DOWN, KeyEvent.KEYCODE_VOLUME_UP));
+    @Override
+    public boolean dispatchKeyEvent(KeyEvent event) {
+        //return blockedKeys.contains(event.getKeyCode()) || super.dispatchKeyEvent(event);
+        if (blockedKeys.contains(event.getKeyCode())) {
+            return true;
+        } else {
+            return super.dispatchKeyEvent(event);
+        }
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.orderdetail_actions, menu);
+
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.action_revert:
+                subscriptions.clear();
+                finish();
+                return true;
+
+            default:
+                // If we got here, the user's action was not recognized.
+                // Invoke the superclass to handle it.
+                return super.onOptionsItemSelected(item);
+
+        }
+    }
+
+    public void onPendingCheck(View v){
+        boolean checked = ((CheckBox) v).isChecked();
+
+        if(checked){
+            cartPrice.setText("\u20B9 " + String.format("%.2f",order.getTotal()+pending) + isPending);
+        } else {
+            cartPrice.setText("\u20B9 " + String.format("%.2f",order.getTotal()) + isPending);
+        }
 
     }
 
