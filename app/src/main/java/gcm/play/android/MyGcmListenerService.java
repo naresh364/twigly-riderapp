@@ -16,8 +16,6 @@
 
 package gcm.play.android;
 
-import android.app.NotificationManager;
-import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
@@ -25,22 +23,20 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.location.Location;
-import android.media.RingtoneManager;
-import android.net.Uri;
+import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.support.v4.app.NotificationCompat;
+import android.provider.Settings;
 
 import com.app.twiglydb.DBLocationService;
-import com.app.twiglydb.OrderSummaryActivity;
-import com.app.twiglydb.R;
 import com.app.twiglydb.bus.EventType;
-import com.app.twiglydb.network.ServerCalls;
+import com.app.twiglydb.bus.RxBus;
+import com.app.twiglydb.network.NetworkRequest;
+import com.app.twiglydb.network.TwiglyRestAPI;
+import com.app.twiglydb.network.TwiglyRestAPIBuilder;
 import com.google.android.gms.gcm.GcmListenerService;
 
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
+import rx.subscriptions.CompositeSubscription;
 import timber.log.Timber;
 
 public class MyGcmListenerService extends GcmListenerService {
@@ -74,10 +70,16 @@ public class MyGcmListenerService extends GcmListenerService {
         if (type == null) type = "";
 
         if (type.equals("order")) {
-            Intent intent = new Intent(EventType.NEW_ORDER_EVENT);
-            intent.putExtra("data", message);
-            sendBroadcast(intent);
-            sendNotification("New order received");
+
+            // play ringtone
+            MediaPlayer player = MediaPlayer.create(this, Settings.System.DEFAULT_RINGTONE_URI);
+            player.start();
+
+            //sendNotification("New order received");
+            //Intent intent = new Intent(EventType.NEW_ORDER_EVENT);
+            //intent.putExtra("data", message);
+            //sendBroadcast(intent);
+            RxBus.INSTANCE.post(data);
         } else if (type.equals("location")){
             while (!serviceConnected || !batteryLevelUpdated){
                 try {
@@ -95,7 +97,7 @@ public class MyGcmListenerService extends GcmListenerService {
                 //sendNotification("Not able to update the location");
             }
         } else {
-            sendNotification(message);
+            //sendNotification(message);
         }
 
         // [START_EXCLUDE]
@@ -119,11 +121,10 @@ public class MyGcmListenerService extends GcmListenerService {
      *
      * @param message GCM message received.
      */
-    private void sendNotification(String message) {
+    /*private void sendNotification(String message) {
         Intent intent = new Intent(this, OrderSummaryActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0 /* Request code */, intent,
-                PendingIntent.FLAG_ONE_SHOT);
+        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0 , intent, PendingIntent.FLAG_ONE_SHOT);
 
         Uri defaultSoundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
         NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this)
@@ -131,14 +132,14 @@ public class MyGcmListenerService extends GcmListenerService {
                 .setContentTitle("New Message")
                 .setContentText(message)
                 .setAutoCancel(true)
-                .setSound(defaultSoundUri)
-                .setContentIntent(pendingIntent);
+                .setSound(defaultSoundUri);
+                //.setContentIntent(pendingIntent);
 
         NotificationManager notificationManager =
                 (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 
-        notificationManager.notify(0 /* ID of notification */, notificationBuilder.build());
-    }
+        notificationManager.notify(0 , notificationBuilder.build());
+    }*/
 
     private ServiceConnection serviceConnection = new ServiceConnection() {
         @Override
@@ -182,10 +183,21 @@ public class MyGcmListenerService extends GcmListenerService {
     }
 
     private void updateDeviceInfo(double lat, double lng, double acc) {
-        Call<ServerCalls.ServerResponse> responseCall =
+
+        CompositeSubscription subscriptions = new CompositeSubscription();
+        TwiglyRestAPI api = TwiglyRestAPIBuilder.buildRetroService();
+        subscriptions.add(NetworkRequest.performAsyncRequest(
+                api.updateDeviceInfo(lat, lng, acc, batteryLevel),
+                response -> {
+                    Timber.d("server response");
+                }, e -> {
+                    Timber.e("server failure");
+                }
+        ));
+        /*Call<ServerCalls.ServerResponse> responseCall =
                 ServerCalls.getInstance().service.updateDeviceInfo(lat, lng, acc, batteryLevel);
 
-        /*responseCall.enqueue(new Callback<ServerCalls.ServerResponse>() {
+        responseCall.enqueue(new Callback<ServerCalls.ServerResponse>() {
             @Override
             public void onResponse(Response<ServerCalls.ServerResponse> response) {
                 Timber.e("server response");

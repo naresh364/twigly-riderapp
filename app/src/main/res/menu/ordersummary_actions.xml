@@ -3,6 +3,10 @@
       xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <!-- Settings, should always be in the overflow -->
+    <item android:id="@+id/action_dailyorders"
+          android:title="Daily Orders"
+          app:showAsAction="never"/>
+
     <item android:id="@+id/action_summary"
           android:title="Summary"
           app:showAsAction="never"/>

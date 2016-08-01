@@ -14,13 +14,8 @@ import rx.subjects.Subject;
  */
 // use rxbus only for async calls or service
 // if there is only 1 subscriber just use intents or listeners
-public class RxBus {
-
-    private static final RxBus INSTANCE = new RxBus();
-
-    public static RxBus getInstance() {
-        return INSTANCE;
-    }
+public enum RxBus {
+    INSTANCE;
 
     private final Subject<Object, Object> stickyBus = new SerializedSubject<>(BehaviorSubject.create());
     private final Subject<Object, Object> bus = new SerializedSubject<>(PublishSubject.create());

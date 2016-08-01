@@ -27,7 +27,10 @@ import android.widget.Toast;
 import com.app.twiglydb.MyApp;
 import com.app.twiglydb.R;
 import com.app.twiglydb.models.DeliveryBoy;
+import com.app.twiglydb.network.NetworkRequest;
 import com.app.twiglydb.network.ServerCalls;
+import com.app.twiglydb.network.TwiglyRestAPI;
+import com.app.twiglydb.network.TwiglyRestAPIBuilder;
 import com.google.android.gms.gcm.GcmPubSub;
 import com.google.android.gms.gcm.GoogleCloudMessaging;
 import com.google.android.gms.iid.InstanceID;
@@ -37,6 +40,7 @@ import java.io.IOException;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
+import rx.subscriptions.CompositeSubscription;
 
 public class RegistrationIntentService extends IntentService {
 
@@ -101,8 +105,18 @@ public class RegistrationIntentService extends IntentService {
      */
     private void sendRegistrationToServer(String token) {
         // Add custom implementation, as needed.
-        Call<ServerCalls.ServerResponse> responseCall = ServerCalls.getInstance().service.updateGCM(token);
-        /*responseCall.enqueue(new Callback<ServerCalls.ServerResponse>() {
+        CompositeSubscription subscriptions = new CompositeSubscription();
+        TwiglyRestAPI api = TwiglyRestAPIBuilder.buildRetroService();
+        subscriptions.add(NetworkRequest.performAsyncRequest(
+                api.updateGCM(token),
+                (response)->{
+                    sharedPreferences.edit().putBoolean(QuickstartPreferences.SENT_TOKEN_TO_SERVER, true).apply();
+                }, e -> {
+
+                }
+        ));
+        /*Call<ServerCalls.ServerResponse> responseCall = ServerCalls.getInstance().service.updateGCM(token);
+        responseCall.enqueue(new Callback<ServerCalls.ServerResponse>() {
             @Override
             public void onResponse(Response<ServerCalls.ServerResponse> response) {
                 sharedPreferences.edit().putBoolean(QuickstartPreferences.SENT_TOKEN_TO_SERVER, true).apply();
@@ -116,19 +130,4 @@ public class RegistrationIntentService extends IntentService {
             }
         });*/
     }
-
-    /**
-     * Subscribe to any GCM topics of interest, as defined by the TOPICS constant.
-     *
-     * @param token GCM token
-     * @throws IOException if unable to reach the GCM PubSub service
-     */
-    // [START subscribe_topics]
-    private void subscribeTopics(String token) throws IOException {
-        GcmPubSub pubSub = GcmPubSub.getInstance(this);
-        for (String topic : TOPICS) {
-            pubSub.subscribe(token, "/topics/" + topic, null);
-        }
-    }
-// [END subscribe_topics]
 }

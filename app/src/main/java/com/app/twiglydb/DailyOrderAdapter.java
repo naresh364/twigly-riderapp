@@ -23,11 +23,11 @@ import butterknife.ButterKnife;
 /**
  * Created by abhishek on 26-07-2016.
  */
-public class DailySummaryAdapter extends RecyclerView.Adapter<DailySummaryAdapter.OrderViewHolder> {
+public class DailyOrderAdapter extends RecyclerView.Adapter<DailyOrderAdapter.OrderViewHolder> {
 
     List<Order> orders;
     Context context;
-    public DailySummaryAdapter(Context context, List<Order> orders) {
+    public DailyOrderAdapter(Context context, List<Order> orders) {
         this.context = context;
         this.orders = orders;
     }
@@ -50,23 +50,16 @@ public class DailySummaryAdapter extends RecyclerView.Adapter<DailySummaryAdapte
             ButterKnife.bind(this,v);
         }
 
-        public void showProgress(boolean show) {
-            if (show) {
-                callProgress.setVisibility(View.VISIBLE);
-            } else {
-                callProgress.setVisibility(View.INVISIBLE);
-            }
-        }
     }
 
     @Override
-    public DailySummaryAdapter.OrderViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+    public DailyOrderAdapter.OrderViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         final View view = LayoutInflater.from(context).inflate(R.layout.order_summary_card, parent, false);
         return new OrderViewHolder(view);
     }
 
     @Override
-    public void onBindViewHolder(DailySummaryAdapter.OrderViewHolder holder, int position) {
+    public void onBindViewHolder(DailyOrderAdapter.OrderViewHolder holder, int position) {
 
         Order order = orders.get(position);
 
