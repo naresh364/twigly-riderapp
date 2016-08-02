@@ -34,8 +34,8 @@ public class ServerCalls {
 
     public TwiglyService service;
     //public static final String host = "http://192.168.1.7:9000/";
-    //public static final String host = "http://dev2.twigly.in/";
-    public static final String host = "http://www.twigly.in/";
+    public static final String host = "http://dev2.twigly.in/";
+    //public static final String host = "http://www.twigly.in/";
 
     private ServerCalls() {
 

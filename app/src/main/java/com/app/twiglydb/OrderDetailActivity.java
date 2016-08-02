@@ -1,5 +1,6 @@
 package com.app.twiglydb;
 
+import android.Manifest;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -10,6 +11,7 @@ import android.location.Location;
 import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Bundle;
+import android.provider.CallLog;
 import android.support.annotation.NonNull;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.ActionBar;
@@ -139,7 +141,7 @@ public class OrderDetailActivity extends BaseActivity {
         ButterKnife.bind(this);
 
         setSupportActionBar(myToolbar);
-        textToolbar.setText("DB: " + DeliveryBoy.getInstance().getName());
+        textToolbar.setText(DeliveryBoy.getInstance().getName());
         ActionBar ab = getSupportActionBar();
         //ab.setDisplayHomeAsUpEnabled(true);
 
@@ -169,9 +171,9 @@ public class OrderDetailActivity extends BaseActivity {
         deliveryTime.setText(order.getDeliveryTime());
         callButton.setOnClickListener(view -> {
             String uri = "tel:" + order.getMobileNumber().trim() ;
-            Intent intent = new Intent(Intent.ACTION_DIAL);
+            Intent intent = new Intent(Intent.ACTION_CALL);
             intent.setData(Uri.parse(uri));
-            if (Utils.mayRequestPermission(OrderDetailActivity.this, android.Manifest.permission.CALL_PHONE)) {
+            if (Utils.mayRequestPermission(OrderDetailActivity.this, Manifest.permission.CALL_PHONE)) {
                 startActivity(intent);
             }
         });
@@ -352,6 +354,7 @@ Eventbus specific---------------------------------------------------------
         if(ezTxnId != null){
             cardButton.setOnClickListener((click) -> MarkOrderDone(order, "CardOD"));
         }
+
     }
 
     @Override

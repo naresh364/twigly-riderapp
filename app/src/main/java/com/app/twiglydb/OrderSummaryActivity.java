@@ -3,13 +3,20 @@ package com.app.twiglydb;
 import android.Manifest;
 import android.app.DownloadManager;
 import android.content.BroadcastReceiver;
+import android.content.ContentProviderOperation;
+import android.content.ContentProviderResult;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.OperationApplicationException;
 import android.graphics.PixelFormat;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.RemoteException;
+import android.provider.Contacts;
+import android.provider.ContactsContract;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AlertDialog;
@@ -37,6 +44,8 @@ import com.app.twiglydb.models.Order;
 import com.app.twiglydb.network.NetworkRequest;
 import com.app.twiglydb.network.TwiglyRestAPI;
 import com.app.twiglydb.network.TwiglyRestAPIBuilder;
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.location.LocationSettingsResult;
 import com.google.gson.Gson;
 
 import java.io.File;
@@ -52,7 +61,7 @@ import timber.log.Timber;
 /**
  * Created by naresh on 10/01/16.
  */
-public class OrderSummaryActivity extends AppCompatActivity {/*implements XYZinterface*/
+public class OrderSummaryActivity extends BaseActivity {/*implements XYZinterface*/
     List<Order> orders;
 
     @BindView(R.id.order_recycler_view) RecyclerView mRecyclerView;
@@ -132,13 +141,63 @@ public class OrderSummaryActivity extends AppCompatActivity {/*implements XYZint
         }));
 
         fab_home.setOnClickListener(click -> {
-            String uri = "tel:" + DeliveryBoy.getInstance().getManager() ;
+            String uri = "tel:" + DeliveryBoy.getInstance().getManager();
             Intent intent = new Intent(Intent.ACTION_DIAL);
             intent.setData(Uri.parse(uri));
             if (Utils.mayRequestPermission(this, Manifest.permission.CALL_PHONE)) {
                 startActivity(intent);
             }
         });
+
+        WritePhoneContact("Utpal Sir", "9560190710", this);
+        WritePhoneContact("Naresh Sir", "9686444640", this);
+        WritePhoneContact("Sonal Sir", "9910030423", this);
+        WritePhoneContact("Rohan Sir", "9910013951", this);
+    }
+
+    public void WritePhoneContact(String displayName, String number,Context cntx /*App or Activity Ctx*/)
+    {
+        Context contetx 	= cntx; //Application's context or Activity's context
+        String strDisplayName 	=  displayName; // Name of the Person to add
+        String strNumber 	=  number; //number of the person to add with the Contact
+
+        ArrayList<ContentProviderOperation> cntProOper = new ArrayList<ContentProviderOperation>();
+        int contactIndex = cntProOper.size();//ContactSize
+
+        //Newly Inserted contact
+        // A raw contact will be inserted ContactsContract.RawContacts table in contacts database.
+        cntProOper.add(ContentProviderOperation.newInsert(ContactsContract.RawContacts.CONTENT_URI)//Step1
+                .withValue(ContactsContract.RawContacts.ACCOUNT_TYPE, null)
+                .withValue(ContactsContract.RawContacts.ACCOUNT_NAME, null).build());
+
+        //Display name will be inserted in ContactsContract.Data table
+        cntProOper.add(ContentProviderOperation.newInsert(ContactsContract.Data.CONTENT_URI)//Step2
+                .withValueBackReference(ContactsContract.Data.RAW_CONTACT_ID, contactIndex)
+                .withValue(ContactsContract.Data.MIMETYPE, ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE)
+                .withValue(ContactsContract.CommonDataKinds.StructuredName.DISPLAY_NAME, strDisplayName) // Name of the contact
+                .build());
+        //Mobile number will be inserted in ContactsContract.Data table
+        cntProOper.add(ContentProviderOperation.newInsert(ContactsContract.Data.CONTENT_URI)//Step 3
+                .withValueBackReference(ContactsContract.Data.RAW_CONTACT_ID,contactIndex)
+                .withValue(ContactsContract.Data.MIMETYPE, ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE)
+                .withValue(ContactsContract.CommonDataKinds.Phone.NUMBER, strNumber) // Number to be added
+                .withValue(ContactsContract.CommonDataKinds.Phone.TYPE, ContactsContract.CommonDataKinds.Phone.TYPE_MOBILE).build()); //Type like HOME, MOBILE etc
+        try
+        {
+            // We will do batch operation to insert all above data
+            //Contains the output of the app of a ContentProviderOperation.
+            //It is sure to have exactly one of uri or count set
+            ContentProviderResult[] contentProresult = null;
+            contentProresult = contetx.getContentResolver().applyBatch(ContactsContract.AUTHORITY, cntProOper); //apply above data insertion into contacts list
+        }
+        catch (RemoteException exp)
+        {
+            //logs;
+        }
+        catch (OperationApplicationException exp)
+        {
+            //logs
+        }
     }
 
     @Override
@@ -239,6 +298,26 @@ public class OrderSummaryActivity extends AppCompatActivity {/*implements XYZint
         } catch (Exception ex) {
             Timber.e("Unable to convert the order");
         }
+    }
+
+    @Override
+    public void onConnected(Bundle bundle) {
+
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) {
+
+    }
+
+    @Override
+    public void onConnectionFailed(ConnectionResult connectionResult) {
+
+    }
+
+    @Override
+    public void onResult(LocationSettingsResult locationSettingsResult) {
+
     }
 
     public class OrderWrapper {
