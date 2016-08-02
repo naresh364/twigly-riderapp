@@ -2,6 +2,7 @@ package com.app.twiglydb.network;
 
 import com.app.twiglydb.models.DeliveryBoy;
 import com.app.twiglydb.models.Order;
+import com.app.twiglydb.models.Summary;
 import com.app.twiglydb.models.Version;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
@@ -21,8 +22,8 @@ import retrofit2.http.Query;
  */
 public interface TwiglyRestAPI {
 
-    //String TWIGLYAPI_ENDPOINT = "http://www.twigly.in/";
-    String TWIGLYAPI_ENDPOINT = "http://dev2.twigly.in/";
+    String TWIGLYAPI_ENDPOINT = "http://www.twigly.in/";
+    //String TWIGLYAPI_ENDPOINT = "http://dev2.twigly.in/";
 
 
     @GET("/employees/signup")
@@ -33,6 +34,9 @@ public interface TwiglyRestAPI {
 
     @GET("/db/dailyorders")
     Observable<List<Order>> getDailyOrders();
+
+    @GET("/db/summary")
+    Observable<Summary> getSummary(@Query("dateTo") String from, @Query("dateFrom") String to);
 
     @FormUrlEncoded
     @POST("/db/markdone")

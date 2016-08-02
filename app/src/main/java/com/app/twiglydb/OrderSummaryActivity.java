@@ -1,28 +1,22 @@
 package com.app.twiglydb;
 
+import android.Manifest;
 import android.app.DownloadManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.IntentSender;
 import android.graphics.PixelFormat;
-import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
-import android.provider.Settings;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.widget.SwipeRefreshLayout;
-import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
-import android.support.v7.widget.helper.ItemTouchHelper;
 import android.text.InputFilter;
 import android.text.InputType;
 import android.view.Gravity;
@@ -30,33 +24,19 @@ import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.view.View;
 import android.view.WindowManager;
-import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ViewSwitcher;
 
-import com.app.twiglydb.bus.EventCallback;
 import com.app.twiglydb.bus.EventReceiver;
-import com.app.twiglydb.bus.EventType;
+import com.app.twiglydb.bus.RxBus;
 import com.app.twiglydb.models.DeliveryBoy;
 import com.app.twiglydb.models.Order;
 import com.app.twiglydb.network.NetworkRequest;
-import com.app.twiglydb.network.ServerCalls;
 import com.app.twiglydb.network.TwiglyRestAPI;
 import com.app.twiglydb.network.TwiglyRestAPIBuilder;
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.common.api.PendingResult;
-import com.google.android.gms.common.api.ResultCallback;
-import com.google.android.gms.common.api.Status;
-import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.location.LocationSettingsRequest;
-import com.google.android.gms.location.LocationSettingsResult;
-import com.google.android.gms.location.LocationSettingsStates;
-import com.google.android.gms.location.LocationSettingsStatusCodes;
 import com.google.gson.Gson;
 
 import java.io.File;
@@ -79,8 +59,9 @@ public class OrderSummaryActivity extends AppCompatActivity {/*implements XYZint
     @BindView(R.id.activity_main_swipe_refresh_layout) SwipeRefreshLayout mSwipeRefreshLayout;
     @BindView(R.id.order_list_noorders) TextView noOrdersView;
     @BindView(R.id.ViewSwitcher) ViewSwitcher viewSwitcher;
-    @BindView(R.id.my_toolbar) Toolbar myToolbar;
+    @BindView(R.id.toolbar) Toolbar myToolbar;
     @BindView(R.id.text_toolbar) TextView textToolbar;
+    @BindView(R.id.fab_home) FloatingActionButton fab_home;
 
     OrderSummaryAdapter orderSummaryAdapter;
 
@@ -142,6 +123,22 @@ public class OrderSummaryActivity extends AppCompatActivity {/*implements XYZint
         customViewGroup view = new customViewGroup(this);
         manager.addView(view, localLayoutParams);
         //-------------notification bar expansion disabler ends here------------------*/
+
+        subscriptions.add(RxBus.INSTANCE.register(Bundle.class, bundle -> {
+            String type = bundle.getString("title");
+            if(type != null && type.equalsIgnoreCase("order")){
+                newOrderReceived(bundle.getString("msg"));
+            }
+        }));
+
+        fab_home.setOnClickListener(click -> {
+            String uri = "tel:" + DeliveryBoy.getInstance().getManager() ;
+            Intent intent = new Intent(Intent.ACTION_DIAL);
+            intent.setData(Uri.parse(uri));
+            if (Utils.mayRequestPermission(this, Manifest.permission.CALL_PHONE)) {
+                startActivity(intent);
+            }
+        });
     }
 
     @Override
@@ -165,8 +162,6 @@ public class OrderSummaryActivity extends AppCompatActivity {/*implements XYZint
             Timber.d("getOrderStatus true");
             //subscriptions.clear();
             //finish();
-        } else {
-            Toast.makeText(OrderSummaryActivity.this, "Status Update Failed. Try Again!", Toast.LENGTH_SHORT).show();
         }
 
         TwiglyRestAPI api = TwiglyRestAPIBuilder.buildRetroService();
@@ -216,11 +211,11 @@ public class OrderSummaryActivity extends AppCompatActivity {/*implements XYZint
                 }
         ));
 
-        if (eventReceiver== null){
+        /*if (eventReceiver== null){
             eventReceiver = new EventReceiver(data -> newOrderReceived(data));
         }
         IntentFilter intentFilter = new IntentFilter(EventType.NEW_ORDER_EVENT);
-        registerReceiver(eventReceiver, intentFilter);
+        registerReceiver(eventReceiver, intentFilter);*/
     }
 
     private void updateNoOrderView(){
@@ -282,8 +277,12 @@ public class OrderSummaryActivity extends AppCompatActivity {/*implements XYZint
                 exitCodeAlert(OrderSummaryActivity.this);
                 return true;
 
+            case R.id.action_dailyorders:
+                startActivity(new Intent(this, DailyOrderActivity.class));
+                return true;
+
             case R.id.action_summary:
-                startActivity(new Intent(this, DailySummaryActivity.class));
+                startActivity(new Intent(this, DBSummaryActivity.class));
                 return true;
 
             default:

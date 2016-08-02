@@ -40,6 +40,9 @@ public class DeliveryBoy {
     @SerializedName("deliveryBoyName")
     @Expose
     String name;
+    @SerializedName("deliveryManagerContact")
+    @Expose
+    String manager = null;
     transient String dev_id = null;
     transient List<Order> assignedOrders = new ArrayList<>();
     transient List<Order> dailyOrders = new ArrayList<>();
@@ -77,6 +80,16 @@ public class DeliveryBoy {
         TwiglyDBSharedPreference.getPreference().setDevid(dev_id);
     }
 
+    public String getManager() {
+        if (manager == null) manager = "";//TwiglyDBSharedPreference.getPreference().getManagerNum();
+        return manager;
+    }
+
+    public void setManager(String mob) {
+        this.manager = manager;
+        TwiglyDBSharedPreference.getPreference().setManagerNum(mob);
+    }
+
     public void updateOrders() {
 
         subscriptions.add(NetworkRequest.performAsyncRequest(
@@ -99,7 +112,7 @@ public class DeliveryBoy {
                     //finish();
                 }, (error) -> {
                     // Handle all errors at one place
-                    subscriptions = null;
+                    subscriptions.clear();
                     Timber.e(error.toString());
                 }
         ));

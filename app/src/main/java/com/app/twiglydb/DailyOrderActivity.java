@@ -24,25 +24,27 @@ import java.util.List;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
-public class DailySummaryActivity extends AppCompatActivity {
+public class DailyOrderActivity extends AppCompatActivity {
 
     List<Order> orders;
+
+    //showed nothing until I had finished marking my 1st order of the day as done
 
     @BindView(R.id.order_recycler_view) RecyclerView mRecyclerView;
     @BindView(R.id.activity_main_swipe_refresh_layout) SwipeRefreshLayout mSwipeRefreshLayout;
     @BindView(R.id.order_list_noorders) TextView noOrdersView;
     @BindView(R.id.ViewSwitcher) ViewSwitcher viewSwitcher;
-    @BindView(R.id.my_toolbar) Toolbar myToolbar;
+    @BindView(R.id.toolbar) Toolbar myToolbar;
     @BindView(R.id.text_toolbar) TextView textToolbar;
 
-    DailySummaryAdapter dailySummaryAdapter;
+    DailyOrderAdapter dailyOrderAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         orders = DeliveryBoy.getInstance().getDailyOrders();
-        dailySummaryAdapter = new DailySummaryAdapter(this, orders);
+        dailyOrderAdapter = new DailyOrderAdapter(this, orders);
 
         // disable lock screen
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD);
@@ -56,7 +58,7 @@ public class DailySummaryActivity extends AppCompatActivity {
         LinearLayoutManager llm = new LinearLayoutManager(this);
         llm.setAutoMeasureEnabled(true);
         mRecyclerView.setLayoutManager(llm);
-        mRecyclerView.setAdapter(dailySummaryAdapter);
+        mRecyclerView.setAdapter(dailyOrderAdapter);
         mRecyclerView.setHasFixedSize(true);
 
         mSwipeRefreshLayout.setOnRefreshListener(()->{

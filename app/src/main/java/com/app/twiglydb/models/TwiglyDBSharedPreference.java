@@ -10,6 +10,7 @@ import com.app.twiglydb.MyApp;
  * Created by naresh on 13/01/16.
  */
 public class TwiglyDBSharedPreference {
+    public static final String MANAGER_NUM = "MANAGER";
     public static final String MOB_NUM = "MOB";
     public static final String NAME = "NAME";
     public static final String DEVID= "DEV_ID";
@@ -39,6 +40,16 @@ public class TwiglyDBSharedPreference {
 
     public String getName() {
         return sharedPreferences.getString(NAME, null);
+    }
+
+    public String getManagerNum() {
+        return sharedPreferences.getString(MANAGER_NUM, null);
+    }
+
+    public void setManagerNum(String mob){
+        //SharedPreferences.Editor editor = sharedPreferences.edit();
+        //editor.putString(MANAGER_NUM, mob);
+        //editor.apply();
     }
 
     public void setMobNum(String mob){
