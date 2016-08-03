@@ -41,10 +41,11 @@ public interface TwiglyRestAPI {
     @FormUrlEncoded
     @POST("/db/markdone")
     Observable<ServerResponse> markDone(@Field("mode") String mode,
-                                  @Field("displayId") String orderId,
-                                  @Field("lat") double lat,
-                                  @Field("lng") double lng,
-                                  @Field("acc") double acc);
+                                        @Field("displayId") String orderId,
+                                        @Field("lat") double lat,
+                                        @Field("lng") double lng,
+                                        @Field("acc") double acc,
+                                        @Field("pending_collected") boolean pendingCollected);
 
     @FormUrlEncoded
     @POST("/db/updatedeviceinfo")

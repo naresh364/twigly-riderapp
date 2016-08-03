@@ -57,7 +57,7 @@ dependencies {
     testCompile 'junit:junit:4.12'
     apt 'com.jakewharton:butterknife-compiler:8.1.0'
     compile files('libs/EzetapAndroidSDK-Cordova1.0.7.jar')
-    compile('com.crashlytics.sdk.android:crashlytics:2.5.7@aar') {
+    compile('com.crashlytics.sdk.android:crashlytics:2.6.1@aar') {
         transitive = true;
     }
     debugCompile 'com.squareup.leakcanary:leakcanary-android:1.4-beta2'

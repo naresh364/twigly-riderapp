@@ -167,7 +167,7 @@ public class OrderDetailActivity extends BaseActivity {
 
         orderId.setText("#"+order.getOrderId());
         address.setText(order.getAddress().trim());
-        cartPrice.setText("\u20B9 " + String.format("%.2f",order.getTotal()+pending) + isPending);
+        cartPrice.setText(getOrderTotal(true));
         deliveryTime.setText(order.getDeliveryTime());
         callButton.setOnClickListener(view -> {
             String uri = "tel:" + order.getMobileNumber().trim() ;
@@ -192,12 +192,9 @@ public class OrderDetailActivity extends BaseActivity {
         //----------------------------------------------------------------------------------
 
         //check if it is already paid
-        String mode = order.getPaymentOption();
-        if (!mode.equalsIgnoreCase("CardOD") && !mode.equalsIgnoreCase("COD")) {
+        if (order.isPaid() && pending.intValue() <= 0) {
             //mode = "OnLine";
-            paidButton.setVisibility(View.VISIBLE);
-            cardButton.setVisibility(View.GONE);
-            cashButton.setVisibility(View.GONE);
+            showPaidButton(true);
         }
 
         if(order.isCheckedIn){
@@ -414,7 +411,7 @@ Eventbus specific---------------------------------------------------------
 
         // iff async-call (done to twigly server)successful, use lambda to call setOrderDone
         subscriptions.add( NetworkRequest.performAsyncRequest(
-                api.markDone(mode, order.getOrderId(), lat, lng, acc),
+                api.markDone(mode, order.getOrderId(), lat, lng, acc, order.shouldCollectPending()),
                 (data) -> {
                     if(ServerResponseCode.valueOf(data.code) == ServerResponseCode.OK) {
                         checkProgress.setVisibility(View.GONE);
@@ -551,11 +548,44 @@ Eventbus specific---------------------------------------------------------
         boolean checked = ((CheckBox) v).isChecked();
 
         if(checked){
-            cartPrice.setText("\u20B9 " + String.format("%.2f",order.getTotal()+pending) + isPending);
+            cartPrice.setText(getOrderTotal(true));
+            order.setCollectPending(true);
+            if (order.isPaid() && pending.intValue() > 0) {
+                //we have pending amount should show card/cash
+                showPaidButton(false);
+            }
         } else {
-            cartPrice.setText("\u20B9 " + String.format("%.2f",order.getTotal()) + isPending);
+            cartPrice.setText(getOrderTotal(false));
+            order.setCollectPending(false);
+            if (order.isPaid() && pending.intValue() > 0) {
+                //we have pending amount should show card/cash
+                showPaidButton(true);
+            }
         }
 
+    }
+
+    private void showPaidButton(boolean show) {
+         if (show) {
+             paidButton.setVisibility(View.VISIBLE);
+             cardButton.setVisibility(View.GONE);
+             cashButton.setVisibility(View.GONE);
+         } else {
+             paidButton.setVisibility(View.GONE);
+             cardButton.setVisibility(View.VISIBLE);
+             cashButton.setVisibility(View.VISIBLE);
+
+         }
+
+    }
+
+    private String getOrderTotal(boolean includePending) {
+        double pendingAmount = (includePending) ? pending : 0;
+        String orderValue = "\u20B9 " + String.format("%.2f",order.getTotal()+pendingAmount) + isPending;
+        if (order.isPaid()) {
+            orderValue = "PAID"+isPending;
+        }
+        return orderValue;
     }
 
 }

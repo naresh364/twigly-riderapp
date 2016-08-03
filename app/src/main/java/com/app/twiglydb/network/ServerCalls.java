@@ -1,5 +1,6 @@
 package com.app.twiglydb.network;
 
+import com.app.twiglydb.BuildConfig;
 import com.app.twiglydb.models.DeliveryBoy;
 import com.app.twiglydb.models.Order;
 import com.google.gson.annotations.Expose;
@@ -34,8 +35,8 @@ public class ServerCalls {
 
     public TwiglyService service;
     //public static final String host = "http://192.168.1.7:9000/";
-    public static final String host = "http://dev2.twigly.in/";
-    //public static final String host = "http://www.twigly.in/";
+    //public static final String host = "http://dev2.twigly.in/";
+    public static final String host = (BuildConfig.DEBUG)?"http://dev2.twigly.in/":"http://www.twigly.in/";
 
     private ServerCalls() {
 

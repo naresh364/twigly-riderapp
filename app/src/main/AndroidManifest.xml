@@ -140,7 +140,7 @@
 
         <meta-data
             android:name="io.fabric.ApiKey"
-            android:value="a15f61569febe328d9ef0db2d0d492d8189337c4"/>
+            android:value="***REMOVED***" />
 
         <activity
             android:name=".DBSummaryActivity"

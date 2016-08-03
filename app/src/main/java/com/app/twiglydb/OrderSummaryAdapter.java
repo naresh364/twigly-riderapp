@@ -28,6 +28,7 @@ import com.app.twiglydb.network.NetworkRequest;
 import com.app.twiglydb.network.ServerResponseCode;
 import com.app.twiglydb.network.TwiglyRestAPI;
 import com.app.twiglydb.network.TwiglyRestAPIBuilder;
+import com.google.android.gms.common.api.GoogleApiClient;
 
 //import org.greenrobot.eventbus.EventBus;
 
@@ -142,6 +143,8 @@ public class OrderSummaryAdapter extends RecyclerView.Adapter<OrderSummaryAdapte
         holder.customer_name.setOnClickListener(view -> GoToDetails(order, holder));
         holder.orderId.setOnClickListener(view -> GoToDetails(order, holder));
         holder.address.setOnClickListener(view -> GoToDetails(order, holder));
+        holder.cartPrice.setOnClickListener(view -> GoToDetails(order, holder));
+        holder.deliveryTime.setOnClickListener(view -> GoToDetails(order, holder));
 
         if (order.getLat() == 0 || order.getLng() == 0) {
             holder.navigateButton.setVisibility(View.GONE);

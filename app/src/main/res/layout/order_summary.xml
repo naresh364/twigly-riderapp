@@ -98,14 +98,18 @@
     <CheckBox
         android:id="@+id/checkbox_pending"
         android:layout_below="@id/divider2"
-        android:layout_height="40dp"
+        android:layout_height="wrap_content"
         android:layout_width="wrap_content"
         android:layout_alignParentLeft="true"
-        android:buttonTint="@color/style_color_primary"
+        android:layout_marginTop="4dp"
+        android:layout_marginBottom="12dp"
+        android:buttonTint="@color/style_color_accent"
         android:checked="true"
         android:onClick="onPendingCheck"
         android:visibility="gone"
         android:text="Pending"
+        android:textSize="22sp"
+        android:textColor="@color/style_color_accent"
     />
 
 </RelativeLayout>

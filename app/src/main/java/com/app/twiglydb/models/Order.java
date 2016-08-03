@@ -779,4 +779,18 @@ public class Order implements Parcelable {
             return new Order[size];
         }
     };
+
+    public boolean isPaid() {
+        return !this.paymentOption.equalsIgnoreCase("COD") && !this.paymentOption.equalsIgnoreCase("CardOD");
+    }
+
+    boolean collectPending = false;
+
+    public boolean shouldCollectPending() {
+        return collectPending;
+    }
+
+    public void setCollectPending(boolean collectPending) {
+        this.collectPending = collectPending;
+    }
 }

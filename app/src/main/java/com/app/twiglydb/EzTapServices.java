@@ -43,7 +43,7 @@ public class EzTapServices {
         EzeAPI.initialize(mContext, REQUESTCODE_INIT, jsonInitRequest);
 
     }
-    public void pay() {
+    public boolean pay() {
         JSONObject jsonPayRequest = new JSONObject();
         JSONObject jsonOptionalParams = new JSONObject();
         JSONObject jsonReferences = new JSONObject();
@@ -57,13 +57,21 @@ public class EzTapServices {
             jsonReferences.put("reference1", mOrder.getOrderId());
 
             // Building final request object
-            jsonPayRequest.put("amount", mOrder.getTotal());
+            double total = mOrder.isPaid()?0:mOrder.getTotal();
+            total += mOrder.shouldCollectPending()?mOrder.getUserPendingBalance():0;
+            if ((int)total <= 0) {
+                //less than 0 no payment
+                return false;
+            }
+            jsonPayRequest.put("amount", total);
             jsonPayRequest.put("mode", "SALE");// type of transaction
             jsonPayRequest.put("options", jsonOptionalParams);
 
             EzeAPI.cardTransaction(mContext, REQUESTCODE_SALE, jsonPayRequest);
         } catch (JSONException e) {
             e.printStackTrace();
+            return false;
         }
+        return true;
     }
 }

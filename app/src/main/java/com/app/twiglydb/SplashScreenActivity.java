@@ -67,74 +67,16 @@ public class SplashScreenActivity extends Activity{
         }
         super.onCreate(savedInstanceState);
 
-        Fabric.with(this, new Crashlytics());
+        if (BuildConfig.DEBUG) Fabric.with(this, new Crashlytics());
         setContentView(R.layout.splash_screen);
 
         if (mob ==  null || device_id == null) {
             startActivity(new Intent(this, LoginActivity.class));
         } else {
             DeliveryBoy.getInstance().initDeliveryBoy(mob, device_id);
-            /*String[] listOfFiles = Environment.getExternalStoragePublicDirectory (Environment.DIRECTORY_DOWNLOADS).list();
-            for(String file: listOfFiles){
-                Toast.makeText(SplashScreenActivity.this, file, Toast.LENGTH_SHORT).show();
-                Timber.i(file);
-            }*/
-            /*String extension = MimeTypeMap.getFileExtensionFromUrl(PATH);
-            Toast.makeText(SplashScreenActivity.this, MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension) +"", Toast.LENGTH_LONG).show();*/
         }
 
-/*
-        final Call<List<Order>> ordersCall =  ServerCalls.getInstance().service.getOrders();
-        ordersCall.enqueue(new Callback<List<Order>>() {
-            @Override
-            public void onResponse(Response<List<Order>> response) {
-                if (response.code() == 401) {
-                    //user not authorized, ask for signin
-                    startActivity(loginIntent);
-                    finish();
-                    return;
-                }
-                List<Order> orders = response.body();
-                if (orders == null) {
-                    Toast.makeText(SplashScreenActivity.this, "Not able to retrieve the details", Toast.LENGTH_LONG).show();
-                    return;
-                }
-                DeliveryBoy.getInstance().setAssignedOrders(orders);
-                startActivity(deliverySummaryIntent);
-                finish();
-            }
-
-            @Override
-            public void onFailure(Throwable t) {
-                AlertDialog.Builder builder = new AlertDialog.Builder(SplashScreenActivity.this)
-                        .setTitle("Network error")
-                        .setMessage("Check your internet connection or call your manager to update the states")
-                        .setPositiveButton("Exit", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                finish();
-                            }
-                        });
-                builder.show();
-                t.printStackTrace();
-            }
-        });*/
     }
-
-    @Override
-    protected void onDestroy(){
-        if(subscriptions != null) subscriptions.clear();
-        super.onDestroy();
-    }
-
-    private void logUser() {
-        // TODO: Use the current user's information
-        // You can call any combination of these three methods
-        Crashlytics.setUserIdentifier("12345");
-        Crashlytics.setUserEmail("mabhi256@gmail.com");
-        Crashlytics.setUserName("mabhi");
-    }
-
     /**
      * Check the device to make sure it has the Google Play Services APK. If
      * it doesn't, display a dialog that allows users to download the APK from
