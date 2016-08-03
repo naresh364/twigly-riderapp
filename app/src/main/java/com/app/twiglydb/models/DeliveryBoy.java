@@ -106,56 +106,22 @@ public class DeliveryBoy {
                     callback.orderRefreshed(false);
                 }
         ));
+
         subscriptions.add(NetworkRequest.performAsyncRequest(
                 api.getDailyOrders(),
                 (orders) -> {
                     DeliveryBoy.getInstance().setDailyOrders(orders);
                     //startActivity(new Intent(this, OrderSummaryActivity.class));
-                    subscriptions.clear();
                     //finish();
                 }, (error) -> {
                     // Handle all errors at one place
-                    subscriptions.clear();
                     Timber.e(error.toString());
                 }
         ));
-       /* updateOrders(new ServerCalls.ServerCallEndCallback() {
-            @Override
-            public void callback() {
-
-            }
-        });*/
-
     }
 
     TwiglyRestAPI api = TwiglyRestAPIBuilder.buildRetroService();
     private CompositeSubscription subscriptions = new CompositeSubscription();
-    /*
-    public void updateOrders(final ServerCalls.ServerCallEndCallback serverCallEndCallback) {
-        final Call<List<Order>> ordersCall =  ServerCalls.getInstance().service.getOrders();
-        ordersCall.enqueue(new Callback<List<Order>>() {
-            @Override
-            public void onResponse(Response<List<Order>> response) {
-                if (response.code() == 401) {
-                    serverCallEndCallback.callback();
-                    return;
-                }
-                List<Order> orders = response.body();
-                if (orders == null) {
-                    serverCallEndCallback.callback();
-                    return;
-                }
-                DeliveryBoy.getInstance().setAssignedOrders(orders);
-                serverCallEndCallback.callback();
-            }
-
-            @Override
-            public void onFailure(Throwable t) {
-                serverCallEndCallback.callback();
-            }
-        });
-    }*/
-
     public List<Order> getAssignedOrders() {
         return assignedOrders;
     }

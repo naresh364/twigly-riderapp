@@ -70,7 +70,6 @@ public class OrderSummaryActivity extends BaseActivity {/*implements XYZinterfac
     @BindView(R.id.toolbar) Toolbar myToolbar;
     @BindView(R.id.text_toolbar) TextView textToolbar;
     @BindView(R.id.fab_home) FloatingActionButton fab_home;
-    @BindView(R.id.main_progress) ProgressBar main_progress;
 
     OrderSummaryAdapter orderSummaryAdapter;
 
@@ -104,17 +103,15 @@ public class OrderSummaryActivity extends BaseActivity {/*implements XYZinterfac
         updateNoOrderView();
 
         mSwipeRefreshLayout.setOnRefreshListener(()->{
-            main_progress.setVisibility(View.VISIBLE);
             DeliveryBoy.getInstance().updateOrders(new OrderRefreshCallback() {
                 @Override
                 public void orderRefreshed(boolean wasSuccess) {
-                    main_progress.setVisibility(View.GONE);
+                    mSwipeRefreshLayout.setRefreshing(false);
                     if (!wasSuccess) {
                         Toast.makeText(MyApp.getContext(), "Unable to refresh orders", Toast.LENGTH_SHORT).show();
                     }
                 }
             });
-            mSwipeRefreshLayout.setRefreshing(false);
             orderSummaryAdapter.notifyDataSetChanged();
             updateNoOrderView();
         });
