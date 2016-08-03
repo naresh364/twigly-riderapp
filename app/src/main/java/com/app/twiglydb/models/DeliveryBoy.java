@@ -4,6 +4,7 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.widget.Toast;
 
+import com.app.twiglydb.OrderSummaryActivity;
 import com.app.twiglydb.network.NetworkRequest;
 //import com.app.twiglydb.network.ServerCalls;
 import com.app.twiglydb.network.ServerCalls;
@@ -90,7 +91,7 @@ public class DeliveryBoy {
         TwiglyDBSharedPreference.getPreference().setManagerNum(mob);
     }
 
-    public void updateOrders() {
+    public void updateOrders(OrderSummaryActivity.OrderRefreshCallback callback) {
 
         subscriptions.add(NetworkRequest.performAsyncRequest(
                 api.getOrders(),
@@ -98,9 +99,11 @@ public class DeliveryBoy {
                     DeliveryBoy.getInstance().setAssignedOrders(orders);
                     //startActivity(new Intent(this, OrderSummaryActivity.class));
                     //finish();
+                    callback.orderRefreshed(true);
                 }, (error) -> {
                     // Handle all errors at one place
                     Timber.e(error.toString());
+                    callback.orderRefreshed(false);
                 }
         ));
         subscriptions.add(NetworkRequest.performAsyncRequest(

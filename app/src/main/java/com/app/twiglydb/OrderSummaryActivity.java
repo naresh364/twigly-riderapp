@@ -5,7 +5,6 @@ import android.app.DownloadManager;
 import android.content.BroadcastReceiver;
 import android.content.ContentProviderOperation;
 import android.content.ContentProviderResult;
-import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -15,12 +14,10 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.RemoteException;
-import android.provider.Contacts;
 import android.provider.ContactsContract;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AlertDialog;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
@@ -31,8 +28,10 @@ import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.View;
 import android.view.WindowManager;
 import android.widget.EditText;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ViewSwitcher;
@@ -71,6 +70,7 @@ public class OrderSummaryActivity extends BaseActivity {/*implements XYZinterfac
     @BindView(R.id.toolbar) Toolbar myToolbar;
     @BindView(R.id.text_toolbar) TextView textToolbar;
     @BindView(R.id.fab_home) FloatingActionButton fab_home;
+    @BindView(R.id.main_progress) ProgressBar main_progress;
 
     OrderSummaryAdapter orderSummaryAdapter;
 
@@ -104,7 +104,16 @@ public class OrderSummaryActivity extends BaseActivity {/*implements XYZinterfac
         updateNoOrderView();
 
         mSwipeRefreshLayout.setOnRefreshListener(()->{
-            DeliveryBoy.getInstance().updateOrders();
+            main_progress.setVisibility(View.VISIBLE);
+            DeliveryBoy.getInstance().updateOrders(new OrderRefreshCallback() {
+                @Override
+                public void orderRefreshed(boolean wasSuccess) {
+                    main_progress.setVisibility(View.GONE);
+                    if (!wasSuccess) {
+                        Toast.makeText(MyApp.getContext(), "Unable to refresh orders", Toast.LENGTH_SHORT).show();
+                    }
+                }
+            });
             mSwipeRefreshLayout.setRefreshing(false);
             orderSummaryAdapter.notifyDataSetChanged();
             updateNoOrderView();
@@ -153,6 +162,14 @@ public class OrderSummaryActivity extends BaseActivity {/*implements XYZinterfac
         WritePhoneContact("Naresh Sir", "9686444640", this);
         WritePhoneContact("Sonal Sir", "9910030423", this);
         WritePhoneContact("Rohan Sir", "9910013951", this);
+        WritePhoneContact("Osama Sir", "8006260747", this);
+        WritePhoneContact("Sonali Mam", "9971336107", this);
+        WritePhoneContact("Anuj Sir", "9654335332", this);
+        WritePhoneContact("Amit Sir (Sector 46)", "9205270022", this);
+        WritePhoneContact("Amit Sir (Phase1)", "9821879503", this);
+        WritePhoneContact("Aalam", "9560304801", this);
+        WritePhoneContact("OP", "9560304367", this);
+        WritePhoneContact("Ranjeet", "9599395053", this);
     }
 
     public void WritePhoneContact(String displayName, String number,Context cntx /*App or Activity Ctx*/)
@@ -415,5 +432,9 @@ public class OrderSummaryActivity extends BaseActivity {/*implements XYZinterfac
 
         alert.show();
 
+    }
+
+    public interface OrderRefreshCallback {
+        public void orderRefreshed(boolean wasSuccess);
     }
 }
