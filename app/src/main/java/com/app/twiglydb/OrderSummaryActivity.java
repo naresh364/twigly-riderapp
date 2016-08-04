@@ -107,13 +107,13 @@ public class OrderSummaryActivity extends BaseActivity {/*implements XYZinterfac
                 @Override
                 public void orderRefreshed(boolean wasSuccess) {
                     mSwipeRefreshLayout.setRefreshing(false);
+                    orderSummaryAdapter.notifyDataSetChanged();
+                    updateNoOrderView();
                     if (!wasSuccess) {
                         Toast.makeText(MyApp.getContext(), "Unable to refresh orders", Toast.LENGTH_SHORT).show();
                     }
                 }
             });
-            orderSummaryAdapter.notifyDataSetChanged();
-            updateNoOrderView();
         });
 
         // Disable notification bar expansion
