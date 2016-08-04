@@ -91,6 +91,27 @@ public class DeliveryBoy {
         TwiglyDBSharedPreference.getPreference().setManagerNum(mob);
     }
 
+    public void updateDeviceInfo(double lat, double lng, double acc, int battery) {
+        subscriptions.add(NetworkRequest.performAsyncRequest(
+                api.updateDeviceInfo(lat, lng, acc, battery),
+                (data) -> {
+                    if(ServerResponseCode.valueOf(data.code) == ServerResponseCode.OK) {
+                    }
+                }, (error) -> {
+                }));
+
+    }
+
+    public void dbCalled(String mob) {
+        subscriptions.add(NetworkRequest.performAsyncRequest(
+                api.dbCalled(mob),
+                (data) -> {
+                    if(ServerResponseCode.valueOf(data.code) == ServerResponseCode.OK) {
+                    }
+                }, (error) -> {
+                }));
+
+    }
     public void updateOrders(OrderSummaryActivity.OrderRefreshCallback callback) {
 
         subscriptions.add(NetworkRequest.performAsyncRequest(

@@ -176,6 +176,7 @@ public class OrderDetailActivity extends BaseActivity {
             if (Utils.mayRequestPermission(OrderDetailActivity.this, Manifest.permission.CALL_PHONE)) {
                 startActivity(intent);
             }
+            api.dbCalled(order.getMobileNumber());
         });
         navigateButton.setOnClickListener(view -> {
             Uri gmmIntentUri = Uri.parse("google.navigation:q=" + order.getLat() + ","+order.getLng());
@@ -402,11 +403,15 @@ Eventbus specific---------------------------------------------------------
         checkProgress.setVisibility(View.VISIBLE);
 
         double lat =0 , lng=0, acc=0;
-        Location location = mCurrentLocation;
-        if (location != null) {
-            lat = location.getLatitude();
-            lng = location.getLongitude();
-            acc = location.getAccuracy();
+        try {
+            mCurrentLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+        } catch (Exception ex) {
+            Timber.d("unable to load location");
+        }
+        if (mCurrentLocation!= null) {
+            lat = mCurrentLocation.getLatitude();
+            lng = mCurrentLocation.getLongitude();
+            acc = mCurrentLocation.getAccuracy();
         }
 
         // iff async-call (done to twigly server)successful, use lambda to call setOrderDone
