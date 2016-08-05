@@ -1,19 +1,16 @@
 package com.app.twiglydb;
 
-import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
 import android.location.Location;
-import android.net.Uri;
+import android.os.Handler;
 import android.provider.CallLog;
-import android.provider.ContactsContract;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.WindowManager;
-import android.widget.Toast;
 
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.PendingResult;
@@ -49,6 +46,7 @@ public abstract class BaseActivity extends AppCompatActivity implements
 
     protected final static String KEY_REQUESTING_LOCATION_UPDATES = "requesting-location-updates";
     protected final static String KEY_LOCATION = "location";
+    private Context mContext;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,6 +57,7 @@ public abstract class BaseActivity extends AppCompatActivity implements
         buildGoogleApiClient();
         createLocationRequest();
         buildLocationSettingsRequest();
+        mContext = this;
     }
 
     private void updateValuesFromBundle(Bundle savedInstanceState) {
@@ -213,14 +212,22 @@ public abstract class BaseActivity extends AppCompatActivity implements
     @Override
     protected void onResume() {
         super.onResume();
-        if (DialerReceiver.ly1 != null) {
-            WindowManager wm = (WindowManager) this.getSystemService(Context.WINDOW_SERVICE);
-            wm.removeView(DialerReceiver.ly1);
-            DialerReceiver.ly1 = null;
-        }
-        Uri uri = Uri.parse("content://call_log/calls");
-        int d  = getContentResolver().delete(uri, null, null);
-        MyApp.getContext().getContentResolver().delete(CallLog.Calls.CONTENT_URI, null, null);
+        if (!DialerReceiver.callDone) return;
+        DialerReceiver.removeViewHandler.removeCallbacks(DialerReceiver.removeViewRunnable);
+        Handler handler = new Handler();
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                WindowManager wm = (WindowManager) mContext.getSystemService(Context.WINDOW_SERVICE);
+                if(DialerReceiver.ly1!=null)
+                {
+                    DialerReceiver.callDone = false;
+                    wm.removeView(DialerReceiver.ly1);
+                    DialerReceiver.ly1 = null;
+                    MyApp.getContext().getContentResolver().delete(CallLog.Calls.CONTENT_URI, null, null);
+                }
+            }
+        }, 1000);
     }
     
     /*private DBLocationService serviceReference = null;

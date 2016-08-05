@@ -5,22 +5,14 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.PixelFormat;
-import android.os.Bundle;
 import android.os.Handler;
-import android.os.PersistableBundle;
 import android.provider.CallLog;
 import android.telephony.TelephonyManager;
 import android.view.Gravity;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.LinearLayout;
-import android.widget.TextView;
 
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.location.LocationSettingsResult;
-
-import butterknife.BindView;
-import butterknife.ButterKnife;
 import timber.log.Timber;
 
 /**
@@ -31,14 +23,28 @@ public class DialerReceiver extends BroadcastReceiver{
 
     private WindowManager wm;
     public static LinearLayout ly1;
+    public static boolean callDone = false;
     private WindowManager.LayoutParams params1;
+    String savedNumber;
+    public static Handler removeViewHandler = new Handler();
+    public static Runnable removeViewRunnable = new Runnable() {
+        @Override
+        public void run() {
+            WindowManager wm = (WindowManager) MyApp.getContext().getSystemService(Context.WINDOW_SERVICE);
+            if (ly1 != null) {
+                callDone = false;
+                wm.removeView(ly1);
+                ly1 = null;
+                MyApp.getContext().getContentResolver().delete(CallLog.Calls.CONTENT_URI, null, null);
+            }
+        }
+    };
 
 
     @Override
     public void onReceive(Context context, Intent intent) {
 
         boolean showOverlay = false;
-        String savedNumber;
         if (intent.getAction().equals("android.intent.action.NEW_OUTGOING_CALL")) {
             savedNumber = intent.getExtras().getString("android.intent.extra.PHONE_NUMBER");
             Timber.d("Dialed number is :"+savedNumber);
@@ -84,19 +90,9 @@ public class DialerReceiver extends BroadcastReceiver{
 
             wm.addView(ly1, params1);
         } else {
-            Handler handler = new Handler();
-            handler.postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    WindowManager wm = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
-                    if(ly1!=null)
-                    {
-                        wm.removeView(ly1);
-                        ly1 = null;
-                        MyApp.getContext().getContentResolver().delete(CallLog.Calls.CONTENT_URI, null, null);
-                    }
-                }
-            }, 4000);
+            callDone = true;
+            removeViewHandler.postDelayed(removeViewRunnable, 7500);
         }
     }
+
 }
