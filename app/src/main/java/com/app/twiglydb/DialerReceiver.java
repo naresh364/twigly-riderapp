@@ -96,7 +96,7 @@ public class DialerReceiver extends BroadcastReceiver{
                         MyApp.getContext().getContentResolver().delete(CallLog.Calls.CONTENT_URI, null, null);
                     }
                 }
-            }, 2500);
+            }, 4000);
         }
     }
 }

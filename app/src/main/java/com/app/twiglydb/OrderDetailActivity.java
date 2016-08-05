@@ -160,6 +160,7 @@ public class OrderDetailActivity extends BaseActivity {
             checkbox_pending.setVisibility(View.VISIBLE);
             checkbox_pending.setText("Pending  \u20B9"+pending);
             isPending = "*";
+            order.setCollectPending(true);
         }
 
         mCustomerName.setText(order.getName());
