@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.PixelFormat;
+import android.net.Uri;
 import android.os.Handler;
 import android.provider.CallLog;
 import android.telephony.TelephonyManager;
@@ -25,7 +26,7 @@ public class DialerReceiver extends BroadcastReceiver{
     public static LinearLayout ly1;
     public static boolean callDone = false;
     private WindowManager.LayoutParams params1;
-    String savedNumber;
+    public static String savedNumber;
     public static Handler removeViewHandler = new Handler();
     public static Runnable removeViewRunnable = new Runnable() {
         @Override
@@ -35,7 +36,9 @@ public class DialerReceiver extends BroadcastReceiver{
                 callDone = false;
                 wm.removeView(ly1);
                 ly1 = null;
-                MyApp.getContext().getContentResolver().delete(CallLog.Calls.CONTENT_URI, null, null);
+                String strUriCalls = "content://call_log/calls";
+                Uri UriCalls = Uri.parse(strUriCalls);
+                MyApp.getContext().getContentResolver().delete(UriCalls, CallLog.Calls.NUMBER +"=?", new String[]{savedNumber});
             }
         }
     };

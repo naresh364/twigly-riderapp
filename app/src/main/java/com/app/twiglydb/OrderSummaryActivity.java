@@ -40,6 +40,7 @@ import com.app.twiglydb.bus.EventReceiver;
 import com.app.twiglydb.bus.RxBus;
 import com.app.twiglydb.models.DeliveryBoy;
 import com.app.twiglydb.models.Order;
+import com.app.twiglydb.models.TwiglyDBSharedPreference;
 import com.app.twiglydb.network.NetworkRequest;
 import com.app.twiglydb.network.TwiglyRestAPI;
 import com.app.twiglydb.network.TwiglyRestAPIBuilder;
@@ -141,7 +142,7 @@ public class OrderSummaryActivity extends BaseActivity {/*implements XYZinterfac
 
         subscriptions.add(RxBus.INSTANCE.register(Bundle.class, bundle -> {
             String type = bundle.getString("title");
-            if(type != null && type.equalsIgnoreCase("order")){
+            if (type != null && type.equalsIgnoreCase("order")) {
                 newOrderReceived(bundle.getString("msg"));
             }
         }));
@@ -155,18 +156,21 @@ public class OrderSummaryActivity extends BaseActivity {/*implements XYZinterfac
             }
         });
 
-        WritePhoneContact("Utpal Sir", "9560190710", this);
-        WritePhoneContact("Naresh Sir", "9686444640", this);
-        WritePhoneContact("Sonal Sir", "9910030423", this);
-        WritePhoneContact("Rohan Sir", "9910013951", this);
-        WritePhoneContact("Osama Sir", "8006260747", this);
-        WritePhoneContact("Sonali Mam", "9971336107", this);
-        WritePhoneContact("Anuj Sir", "9654335332", this);
-        WritePhoneContact("Amit Sir (Sector 46)", "9205270022", this);
-        WritePhoneContact("Amit Sir (Phase1)", "9821879503", this);
-        WritePhoneContact("Aalam", "9560304801", this);
-        WritePhoneContact("OP", "9560304367", this);
-        WritePhoneContact("Ranjeet", "9599395053", this);
+        if (!TwiglyDBSharedPreference.getPreference().numbersSaved()) {
+            WritePhoneContact("Utpal Sir", "9560190710", this);
+            WritePhoneContact("Naresh Sir", "9686444640", this);
+            WritePhoneContact("Sonal Sir", "9910030423", this);
+            WritePhoneContact("Rohan Sir", "9910013951", this);
+            WritePhoneContact("Osama Sir", "8006260747", this);
+            WritePhoneContact("Sonali Mam", "9971336107", this);
+            WritePhoneContact("Anuj Sir", "9654335332", this);
+            WritePhoneContact("Amit Sir (Sector 46)", "9205270022", this);
+            WritePhoneContact("Amit Sir (Phase1)", "9821879503", this);
+            WritePhoneContact("Aalam", "9560304801", this);
+            WritePhoneContact("OP", "9560304367", this);
+            WritePhoneContact("Ranjeet", "9599395053", this);
+            TwiglyDBSharedPreference.getPreference().adminNumbersSaved();
+        }
     }
 
     public void WritePhoneContact(String displayName, String number,Context cntx /*App or Activity Ctx*/)

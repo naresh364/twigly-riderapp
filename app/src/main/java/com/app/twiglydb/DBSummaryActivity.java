@@ -28,6 +28,7 @@ import timber.log.Timber;
 
 public class DBSummaryActivity extends AppCompatActivity {
 
+    @BindView(R.id.rating) TextView dbRating;
     @BindView(R.id.table_amount_cash) TextView table_amount_cash;
     @BindView(R.id.table_count_cash) TextView table_count_cash;
     @BindView(R.id.table_amount_card) TextView table_amount_card;
@@ -64,6 +65,7 @@ public class DBSummaryActivity extends AppCompatActivity {
         textToolbar.setText("DB: " + DeliveryBoy.getInstance().getName());
 
         viewSwitcher.showNext();
+        dbRating.setText("Rating: "+DeliveryBoy.getInstance().getRating());
 
         TwiglyRestAPI api = TwiglyRestAPIBuilder.buildRetroService();
         subscriptions.add(NetworkRequest.performAsyncRequest(

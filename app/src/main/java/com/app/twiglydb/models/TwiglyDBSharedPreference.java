@@ -15,6 +15,7 @@ public class TwiglyDBSharedPreference {
     public static final String NAME = "NAME";
     public static final String DEVID= "DEV_ID";
     public static final String PREF = "TWIGLY_DB_PREF";
+    public static final String NUMBER_ADDED = "TWIGLY_NUMBERS_ADDED";
 
     public SharedPreferences sharedPreferences;
 
@@ -68,5 +69,15 @@ public class TwiglyDBSharedPreference {
         SharedPreferences.Editor editor = sharedPreferences.edit();
         editor.putString(DEVID, devid);
         editor.apply();
+    }
+
+    public void adminNumbersSaved() {
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putBoolean(NUMBER_ADDED, true);
+        editor.apply();
+    }
+
+    public boolean numbersSaved(){
+        return sharedPreferences.getBoolean(NUMBER_ADDED, false);
     }
 }

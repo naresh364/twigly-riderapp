@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
 import android.location.Location;
+import android.net.Uri;
 import android.os.Handler;
 import android.provider.CallLog;
 import android.support.v4.content.ContextCompat;
@@ -224,7 +225,10 @@ public abstract class BaseActivity extends AppCompatActivity implements
                     DialerReceiver.callDone = false;
                     wm.removeView(DialerReceiver.ly1);
                     DialerReceiver.ly1 = null;
-                    MyApp.getContext().getContentResolver().delete(CallLog.Calls.CONTENT_URI, null, null);
+                    String strUriCalls = "content://call_log/calls";
+                    Uri UriCalls = Uri.parse(strUriCalls);
+                    MyApp.getContext().getContentResolver().
+                            delete(UriCalls, CallLog.Calls.NUMBER +"=?", new String[]{DialerReceiver.savedNumber});
                 }
             }
         }, 1000);

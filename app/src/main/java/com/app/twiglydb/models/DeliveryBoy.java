@@ -44,6 +44,10 @@ public class DeliveryBoy {
     @SerializedName("deliveryManagerContact")
     @Expose
     String manager = null;
+    @SerializedName("deliveryBoyRating")
+    @Expose
+    String rating;
+
     transient String dev_id = null;
     transient List<Order> assignedOrders = new ArrayList<>();
     transient List<Order> dailyOrders = new ArrayList<>();
@@ -89,6 +93,15 @@ public class DeliveryBoy {
     public void setManager(String mob) {
         this.manager = manager;
         TwiglyDBSharedPreference.getPreference().setManagerNum(mob);
+    }
+
+    public String getRating() {
+        if (rating == null) return "NA";
+        return rating;
+    }
+
+    public void setRating(String rating) {
+        this.rating = rating;
     }
 
     public void updateDeviceInfo(double lat, double lng, double acc, int battery) {
