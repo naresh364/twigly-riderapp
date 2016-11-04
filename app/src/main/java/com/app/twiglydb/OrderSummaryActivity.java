@@ -137,7 +137,8 @@ public class OrderSummaryActivity extends BaseActivity {/*implements XYZinterfac
         localLayoutParams.format = PixelFormat.TRANSPARENT;
 
         customViewGroup view = new customViewGroup(this);
-        manager.addView(view, localLayoutParams);
+        //disable for now
+        //manager.addView(view, localLayoutParams);
         //-------------notification bar expansion disabler ends here------------------*/
 
         subscriptions.add(RxBus.INSTANCE.register(Bundle.class, bundle -> {
