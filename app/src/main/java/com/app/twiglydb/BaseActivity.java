@@ -227,8 +227,8 @@ public abstract class BaseActivity extends AppCompatActivity implements
                     DialerReceiver.ly1 = null;
                     String strUriCalls = "content://call_log/calls";
                     Uri UriCalls = Uri.parse(strUriCalls);
-                    MyApp.getContext().getContentResolver().
-                            delete(UriCalls, CallLog.Calls.NUMBER +"=?", new String[]{DialerReceiver.savedNumber});
+                    //MyApp.getContext().getContentResolver().
+                    //        delete(UriCalls, CallLog.Calls.NUMBER +"=?", new String[]{DialerReceiver.savedNumber});
                 }
             }
         }, 1000);

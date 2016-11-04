@@ -38,7 +38,7 @@ public class DialerReceiver extends BroadcastReceiver{
                 ly1 = null;
                 String strUriCalls = "content://call_log/calls";
                 Uri UriCalls = Uri.parse(strUriCalls);
-                MyApp.getContext().getContentResolver().delete(UriCalls, CallLog.Calls.NUMBER +"=?", new String[]{savedNumber});
+                //MyApp.getContext().getContentResolver().delete(UriCalls, CallLog.Calls.NUMBER +"=?", new String[]{savedNumber});
             }
         }
     };
@@ -68,7 +68,7 @@ public class DialerReceiver extends BroadcastReceiver{
         }
 
         // Adds a view on top of the dialer app when it launches.
-        if(showOverlay ){
+        if(showOverlay  && false){//disabled temporary
             if (ly1 != null) return;
             wm = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
             params1 = new WindowManager.LayoutParams(
