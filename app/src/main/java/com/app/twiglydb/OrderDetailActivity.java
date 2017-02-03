@@ -26,6 +26,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
+import android.webkit.WebView;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.ImageButton;
@@ -96,6 +97,7 @@ public class OrderDetailActivity extends BaseActivity {
     @BindView(R.id.call_button) public ImageButton callButton;
     @BindView(R.id.navigate_button) public Button navigateButton;
     @BindView(R.id.checkbox_pending) CheckBox checkbox_pending;
+    @BindView(R.id.qr_button) ImageButton qr_button;
 
     @BindView(R.id.my_toolbar) Toolbar myToolbar;
     @BindView(R.id.text_toolbar) TextView textToolbar;
@@ -120,10 +122,12 @@ public class OrderDetailActivity extends BaseActivity {
     private String isPending = "";
     private Double pending = 2.1;
     private int pos;
+    Context mContext;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        this.mContext = this;
         //EventBus.getDefault().register(this);
         order = getIntent().getBundleExtra(INTENTEXTRA_ORDERDETAILS).getParcelable(INTENTEXTRA_PARCEL_ORDERDETAILS);
         pos = getIntent().getBundleExtra(INTENTEXTRA_ORDERDETAILS).getInt(INTENTEXTRA_POSITION);
@@ -161,6 +165,21 @@ public class OrderDetailActivity extends BaseActivity {
             checkbox_pending.setText("Pending  \u20B9"+pending);
             isPending = "*";
             order.setCollectPending(true);
+        }
+
+        if (order.getQrCode() != null) {
+            qr_button.setVisibility(View.VISIBLE);
+            String htmlqr = "<html> <p style=\"text-align:center;\"><img style='width:70%;'" +
+                    " src=\"data:image/png;base64," + order.getQrCode()+"\" id=\"qrCode\"></p></html>";
+            qr_button.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent intent = new Intent(mContext, WebviewActivity.class);
+                    intent.putExtra("title", "QR code for #"+order.getOrderId());
+                    intent.putExtra("data", htmlqr);
+                    startActivity(intent);
+                }
+            });
         }
 
         mCustomerName.setText(order.getName());

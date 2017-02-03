@@ -56,6 +56,11 @@ public class EzTapServices {
             // Building References Object
             jsonReferences.put("reference1", mOrder.getOrderId());
 
+            jsonOptionalParams.put("amountCashback",0.00);//Cannot have amount cashback in SALE transaction.
+            jsonOptionalParams.put("amountTip",0.00);
+            jsonOptionalParams.put("references",jsonReferences);
+            jsonOptionalParams.put("customer",jsonCustomer);
+
             // Building final request object
             double total = mOrder.isPaid()?0:mOrder.getTotal();
             total += mOrder.shouldCollectPending()?mOrder.getUserPendingBalance():0;

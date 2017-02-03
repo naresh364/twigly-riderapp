@@ -119,6 +119,9 @@ public class Order implements Parcelable {
     @Expose
     public boolean isCheckedIn;
 
+    @SerializedName("qrCode")
+    @Expose
+    private String qrCode;
     /**
      *
      * @return
@@ -650,6 +653,14 @@ public class Order implements Parcelable {
         return userPendingBalance;
     }
 
+    public String getQrCode() {
+        return qrCode;
+    }
+
+    public void setQrCode(String qrCode) {
+        this.qrCode = qrCode;
+    }
+
     /**
      *
      * @param userPendingBalance
@@ -716,6 +727,7 @@ public class Order implements Parcelable {
         addFreeItem = in.readByte() != 0x00;
         userPendingBalance = in.readDouble();
         isCheckedIn = in.readByte() != 0x00;
+        qrCode = in.readString();
     }
 
     @Override
@@ -765,6 +777,7 @@ public class Order implements Parcelable {
         dest.writeByte((byte) (addFreeItem ? 0x01 : 0x00));
         dest.writeDouble(userPendingBalance);
         dest.writeByte((byte) (isCheckedIn ? 0x01 : 0x00));
+        dest.writeString(qrCode);
     }
 
     @SuppressWarnings("unused")
