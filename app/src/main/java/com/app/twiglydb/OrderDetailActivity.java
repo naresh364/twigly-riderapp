@@ -169,11 +169,17 @@ public class OrderDetailActivity extends BaseActivity {
 
         if (order.getQrCode() != null) {
             qr_button.setVisibility(View.VISIBLE);
-            String htmlqr = "<html> <p style=\"text-align:center;\"><img style='width:70%;'" +
-                    " src=\"data:image/png;base64," + order.getQrCode()+"\" id=\"qrCode\"></p></html>";
             qr_button.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
+                    String qrCode;
+                    if (order.shouldCollectPending()) {
+                        qrCode = order.getQrCode();
+                    } else {
+                        qrCode = order.getQrCodeWithPending();
+                    }
+                    String htmlqr = "<html> <p style=\"text-align:center;\"><img style='width:70%;'" +
+                            " src=\"data:image/png;base64," + qrCode +"\" id=\"qrCode\"></p></html>";
                     Intent intent = new Intent(mContext, WebviewActivity.class);
                     intent.putExtra("title", "QR code for #"+order.getOrderId());
                     intent.putExtra("data", htmlqr);
@@ -422,7 +428,7 @@ Eventbus specific---------------------------------------------------------
         cardCashLayout.setVisibility(View.GONE);
         checkProgress.setVisibility(View.VISIBLE);
 
-        double lat =0 , lng=0, acc=0;
+        double lat=0, lng=0, acc=0;
         try {
             mCurrentLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
         } catch (Exception ex) {

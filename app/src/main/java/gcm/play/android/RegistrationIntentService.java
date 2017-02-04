@@ -22,24 +22,15 @@ import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
-import android.widget.Toast;
 
-import com.app.twiglydb.MyApp;
 import com.app.twiglydb.R;
 import com.app.twiglydb.models.DeliveryBoy;
 import com.app.twiglydb.network.NetworkRequest;
-import com.app.twiglydb.network.ServerCalls;
 import com.app.twiglydb.network.TwiglyRestAPI;
 import com.app.twiglydb.network.TwiglyRestAPIBuilder;
-import com.google.android.gms.gcm.GcmPubSub;
 import com.google.android.gms.gcm.GoogleCloudMessaging;
 import com.google.android.gms.iid.InstanceID;
 
-import java.io.IOException;
-
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
 import rx.subscriptions.CompositeSubscription;
 
 public class RegistrationIntentService extends IntentService {

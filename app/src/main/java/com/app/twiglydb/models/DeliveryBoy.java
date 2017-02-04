@@ -1,13 +1,8 @@
 package com.app.twiglydb.models;
 
-import android.app.AlertDialog;
-import android.content.DialogInterface;
-import android.widget.Toast;
-
 import com.app.twiglydb.OrderSummaryActivity;
 import com.app.twiglydb.network.NetworkRequest;
 //import com.app.twiglydb.network.ServerCalls;
-import com.app.twiglydb.network.ServerCalls;
 import com.app.twiglydb.network.ServerResponseCode;
 import com.app.twiglydb.network.TwiglyRestAPI;
 import com.app.twiglydb.network.TwiglyRestAPIBuilder;
@@ -19,10 +14,6 @@ import java.util.List;
 
 import javax.annotation.Generated;
 
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
-import rx.Subscription;
 import rx.subscriptions.CompositeSubscription;
 import timber.log.Timber;
 

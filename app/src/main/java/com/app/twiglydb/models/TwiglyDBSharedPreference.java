@@ -16,6 +16,8 @@ public class TwiglyDBSharedPreference {
     public static final String DEVID= "DEV_ID";
     public static final String PREF = "TWIGLY_DB_PREF";
     public static final String NUMBER_ADDED = "TWIGLY_NUMBERS_ADDED";
+    public static final String LOC_UPDATE_ON_JOB = "LOC_UPDATE_ON_JOB";
+    public static final String LOC_UPDATE_OFF_JOB = "LOC_UPDATE_OFF_JOB";
 
     public SharedPreferences sharedPreferences;
 
@@ -48,7 +50,7 @@ public class TwiglyDBSharedPreference {
     }
 
     public void setManagerNum(String mob){
-        //SharedPreferences.Editor editor = sharedPreferences.edit();
+        //SharedPref.Editor editor = sharedPreferences.edit();
         //editor.putString(MANAGER_NUM, mob);
         //editor.apply();
     }
@@ -80,4 +82,26 @@ public class TwiglyDBSharedPreference {
     public boolean numbersSaved(){
         return sharedPreferences.getBoolean(NUMBER_ADDED, false);
     }
+
+    public int getLocUpdateOnJob() {
+        return sharedPreferences.getInt(LOC_UPDATE_ON_JOB, 60*60);
+    }
+
+    public int getLocUpdateOffJob() {
+        return sharedPreferences.getInt(LOC_UPDATE_ON_JOB, 60*60);
+    }
+
+    public void setLocUpdateOnJob(int time) {
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putInt(LOC_UPDATE_ON_JOB, time);
+        editor.apply();
+    }
+
+    public void setLocUpdateOffJob(int time) {
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putInt(LOC_UPDATE_OFF_JOB, time);
+        editor.apply();
+    }
+
+
 }

@@ -64,6 +64,7 @@ public class SplashScreenActivity extends Activity{
         if (checkPlayServices()) {
             // Start IntentService to register this application with GCM.
             startService(new Intent(this, RegistrationIntentService.class));
+            startService(new Intent(this, DBLocationService.class));
         }
         super.onCreate(savedInstanceState);
 

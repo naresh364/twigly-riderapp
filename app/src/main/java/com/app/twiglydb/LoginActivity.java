@@ -28,16 +28,12 @@ import android.widget.Toast;
 
 import com.app.twiglydb.models.DeliveryBoy;
 import com.app.twiglydb.network.NetworkRequest;
-import com.app.twiglydb.network.ServerCalls;
 import com.app.twiglydb.network.TwiglyRestAPI;
 import com.app.twiglydb.network.TwiglyRestAPIBuilder;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
 import rx.Subscription;
 
 import static android.Manifest.permission.READ_CONTACTS;

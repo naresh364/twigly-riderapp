@@ -2,10 +2,12 @@ package com.app.twiglydb;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.net.Uri;
+import android.os.BatteryManager;
 import android.os.Handler;
 import android.provider.CallLog;
 import android.support.v4.content.ContextCompat;
@@ -233,88 +235,17 @@ public abstract class BaseActivity extends AppCompatActivity implements
             }
         }, 1000);
     }
-    
-    /*private DBLocationService serviceReference = null;
-    private boolean isDBLocationBound = false;
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+    private float getBatteryLevel(){
+        Intent batteryIntent = registerReceiver(null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
+        int level = batteryIntent.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
+        int scale = batteryIntent.getIntExtra(BatteryManager.EXTRA_SCALE, -1);
 
-        Intent intent = new Intent(this, DBLocationService.class);
-        startService(intent);
-        bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE);
-    }
-
-    @Override
-    protected void onDestroy() {
-        unbindService(serviceConnection);
-        super.onDestroy();
-    }
-    public Location getCurrentLocation(){
-        if (!serviceReference.isGPSEnabled()) {
-            showSettingsAlert();
-            return null;
-        } else {
-            return serviceReference.getLocation();
-        }
-    }
-
-    public boolean checkLocationEnabled() {
-        if (!serviceReference.isGPSEnabled()) {
-            showSettingsAlert();
-            return false;
-        }
-        return true;
-    }
-
-    private ServiceConnection serviceConnection = new ServiceConnection() {
-        @Override
-        public void onServiceConnected(ComponentName name, IBinder service) {
-            serviceReference = ((DBLocationService.DBLocationBinder) service).getService();
-            isDBLocationBound = true;
+        // Error checking that probably isn't needed but I added just in case.
+        if(level == -1 || scale == -1) {
+            return 50.0f;
         }
 
-        @Override
-        public void onServiceDisconnected(ComponentName name) {
-            serviceReference = null;
-            isDBLocationBound = false;
-        }
-    };*/
-
-    /**
-     * Function to show settings alert dialog
-     * */
-    /*
-    private void showSettingsAlert(){
-        AlertDialog.Builder alertDialog = new AlertDialog.Builder(this);
-
-        // Setting Dialog Title
-        alertDialog.setTitle("GPS settings");
-
-        // Setting Dialog Message
-        alertDialog.setMessage("GPS is not enabled. Do you want to go to settings menu?");
-
-        // Setting Icon to Dialog
-        //alertDialog.setIcon(R.drawable.delete);
-
-        // On pressing Settings button
-        alertDialog.setPositiveButton("Settings", new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog,int which) {
-                Intent intent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
-                startActivity(intent);
-            }
-        });
-
-        // on pressing cancel button
-        alertDialog.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int which) {
-                dialog.cancel();
-            }
-        });
-
-        // Showing Alert Message
-        alertDialog.show();
-    }*/
-
+        return ((float)level / (float)scale) * 100.0f;
+    }
 }

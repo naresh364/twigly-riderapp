@@ -1,234 +1,263 @@
 package com.app.twiglydb;
 
-import android.Manifest;
-import android.app.AlertDialog;
+import android.app.IntentService;
 import android.app.Service;
+import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.location.Location;
-import android.location.LocationListener;
-import android.location.LocationManager;
-import android.os.Binder;
+import android.os.BatteryManager;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.provider.Settings;
+import android.support.annotation.Nullable;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
+import android.widget.Toast;
 
-import com.app.twiglydb.bus.EventCallback;
-import com.app.twiglydb.bus.EventReceiver;
-import com.app.twiglydb.bus.EventType;
+import com.app.twiglydb.network.NetworkRequest;
+import com.app.twiglydb.network.ServerResponseCode;
+import com.app.twiglydb.network.TwiglyRestAPI;
+import com.app.twiglydb.network.TwiglyRestAPIBuilder;
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.LocationListener;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationServices;
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 
+import java.text.DateFormat;
+import java.util.Date;
+
+import rx.subscriptions.CompositeSubscription;
 import timber.log.Timber;
 
 /**
  * Created by naresh on 14/01/16.
  */
-public class DBLocationService extends Service implements LocationListener {
+public class DBLocationService extends Service implements
+        GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener {
 
-    // flag for GPS status
-    boolean isGPSEnabled = false;
+    protected static final String TAG = "location-updates-sample";
 
-    // flag for network status
-    boolean isNetworkEnabled = false;
+    /**
+     * The desired interval for location updates. Inexact. Updates may be more or less frequent.
+     */
+    public static final long UPDATE_INTERVAL_IN_MILLISECONDS = 30000;
 
-    boolean canGetLocation = false;
+    /**
+     * Provides the entry point to Google Play services.
+     */
+    protected GoogleApiClient mGoogleApiClient;
 
-    Location location; // location
-    double latitude; // latitude
-    double longitude; // longitude
+    /**
+     * Stores parameters for requests to the FusedLocationProviderApi.
+     */
+    protected LocationRequest mLocationRequest;
 
-    // The minimum distance to change Updates in meters
-    private static final long MIN_DISTANCE_CHANGE_FOR_UPDATES = 10; // 10 meters
+    /**
+     * Represents a geographical location.
+     */
+    protected Location mCurrentLocation;
 
-    // The minimum time between updates in milliseconds
-    private static final long MIN_TIME_BW_UPDATES = 1000 * 60 * 1; // 1 minute
+    /**
+     * Tracks the status of the location updates request. Value changes when the user presses the
+     * Start Updates and Stop Updates buttons.
+     */
 
-    // Declaring a Location Manager
-    protected LocationManager locationManager;
-    private EventReceiver eventReceiver;
-    private IBinder mBinder = new DBLocationBinder();
+    /**
+     * Time when the location was updated represented as a String.
+     */
+    protected String mLastUpdateTime;
 
-    public DBLocationService() {
-        super();
-    }
+    TwiglyRestAPI api;
+    private CompositeSubscription subscriptions;
 
     @Override
     public void onCreate() {
         super.onCreate();
-        locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
-        eventReceiver = new EventReceiver(new EventCallback() {
-            @Override
-            public void callback(String data) {
-                Timber.e("Update location");
-            }
-        });
-        IntentFilter intentFilter = new IntentFilter(EventType.LOCATION_UPDATE_EVENT);
-        registerReceiver(eventReceiver, intentFilter);
+
+        mLastUpdateTime = "";
+
+        // Kick off the process of building a GoogleApiClient and requesting the LocationServices
+        // API.
+        api =  TwiglyRestAPIBuilder.buildRetroService();
+        subscriptions = new CompositeSubscription();
+    }
+
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        buildGoogleApiClient();
+        mGoogleApiClient.connect();
+        LocalBroadcastManager.getInstance(this).registerReceiver(
+                mMessageReceiver, new IntentFilter("GPSLocationUpdates"));
+        return START_STICKY;
+    }
+
+    @Nullable
+    @Override
+    public IBinder onBind(Intent intent) {
+        return null;
+    }
+
+    /**
+     * Builds a GoogleApiClient. Uses the {@code #addApi} method to request the
+     * LocationServices API.
+     */
+    protected synchronized void buildGoogleApiClient() {
+        Log.i(TAG, "Building GoogleApiClient");
+        mGoogleApiClient = new GoogleApiClient.Builder(this)
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
+                .addApi(LocationServices.API)
+                .build();
+    }
+
+    /**
+     * Sets up the location request. Android has two location request settings:
+     * {@code ACCESS_COARSE_LOCATION} and {@code ACCESS_FINE_LOCATION}. These settings control
+     * the accuracy of the current location. This sample uses ACCESS_FINE_LOCATION, as defined in
+     * the AndroidManifest.xml.
+     * <p/>
+     * When the ACCESS_FINE_LOCATION setting is specified, combined with a fast update
+     * interval (5 seconds), the Fused Location Provider API returns location updates that are
+     * accurate to within a few feet.
+     * <p/>
+     * These settings are appropriate for mapping applications that show real-time location
+     * updates.
+     */
+    protected void createLocationRequest(long interval) {
+        if (mLocationRequest == null) {
+            mLocationRequest = new LocationRequest();
+        }
+
+        // Sets the desired interval for active location updates. This interval is
+        // inexact. You may not receive updates at all if no location sources are available, or
+        // you may receive them slower than requested. You may also receive updates faster than
+        // requested if other applications are requesting location at a faster interval.
+        mLocationRequest.setInterval(interval);
+
+        // Sets the fastest rate for active location updates. This interval is exact, and your
+        // application will never receive updates faster than this value.
+        mLocationRequest.setFastestInterval(interval/2);
+
+        mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+        LocationServices.FusedLocationApi.requestLocationUpdates(
+                mGoogleApiClient, mLocationRequest, this);
+    }
+
+    /**
+     * Removes location updates from the FusedLocationApi.
+     */
+    protected void stopLocationUpdates() {
+        // It is a good practice to remove location requests when the activity is in a paused or
+        // stopped state. Doing so helps battery performance and is especially
+        // recommended in applications that request frequent location updates.
+
+        // The final argument to {@code requestLocationUpdates()} is a LocationListener
+        // (http://developer.android.com/reference/com/google/android/gms/location/LocationListener.html).
+        LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
     }
 
     @Override
     public void onDestroy() {
+        stopLocationUpdates();
+        mGoogleApiClient.disconnect();
         super.onDestroy();
-        if (eventReceiver != null) unregisterReceiver(eventReceiver);
     }
 
-    public boolean isGPSEnabled(){
+    /**
+     * Runs when a GoogleApiClient object successfully connects.
+     */
+    @Override
+    public void onConnected(Bundle connectionHint) {
+        Log.i(TAG, "Connected to GoogleApiClient");
 
-        // getting GPS status
-        isGPSEnabled = locationManager
-                .isProviderEnabled(LocationManager.GPS_PROVIDER);
-
-        // getting network status
-        isNetworkEnabled = locationManager
-                .isProviderEnabled(LocationManager.NETWORK_PROVIDER);
-
-        return (isGPSEnabled || isNetworkEnabled);
-    }
-
-    public Location getLocation() {
-        try {
-            String permission;
-
-            // getting GPS status
-            isGPSEnabled = locationManager
-                    .isProviderEnabled(LocationManager.GPS_PROVIDER);
-
-            // getting network status
-            isNetworkEnabled = locationManager
-                    .isProviderEnabled(LocationManager.NETWORK_PROVIDER);
-
-            if (!isGPSEnabled && !isNetworkEnabled) {
-                // no network provider is enabled
-            } else {
-                this.canGetLocation = true;
-                // First get location from Network Provider
-                if (isGPSEnabled) {
-                    permission = Manifest.permission.ACCESS_FINE_LOCATION;
-                } else {
-                    permission = Manifest.permission.ACCESS_COARSE_LOCATION;
-                }
-                if (Utils.mayRequestPermission(this, permission)) {
-                    if (isNetworkEnabled) {
-                        locationManager.requestLocationUpdates(
-                                LocationManager.NETWORK_PROVIDER,
-                                MIN_TIME_BW_UPDATES,
-                                MIN_DISTANCE_CHANGE_FOR_UPDATES, this);
-                        Log.d("Network", "Network");
-                        if (locationManager != null) {
-                            location = locationManager
-                                    .getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
-                            if (location != null) {
-                                latitude = location.getLatitude();
-                                longitude = location.getLongitude();
-                            }
-                        }
-                    }
-                    // if GPS Enabled get lat/long using GPS Services
-                    if (isGPSEnabled) {
-                        if (location == null) {
-                            locationManager.requestLocationUpdates(
-                                    LocationManager.GPS_PROVIDER,
-                                    MIN_TIME_BW_UPDATES,
-                                    MIN_DISTANCE_CHANGE_FOR_UPDATES, this);
-                            Log.d("GPS Enabled", "GPS Enabled");
-                            if (locationManager != null) {
-                                location = locationManager
-                                        .getLastKnownLocation(LocationManager.GPS_PROVIDER);
-                                if (location != null) {
-                                    latitude = location.getLatitude();
-                                    longitude = location.getLongitude();
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace();
+        // If the initial location was never previously requested, we use
+        // FusedLocationApi.getLastLocation() to get it. If it was previously requested, we store
+        // its value in the Bundle and check for it in onCreate(). We
+        // do not request it again unless the user specifically requests location updates by pressing
+        // the Start Updates button.
+        //
+        // Because we cache the value of the initial location in the Bundle, it means that if the
+        // user launches the activity,
+        // moves to a new location, and then changes the device orientation, the original location
+        // is displayed as the activity is re-created.
+        createLocationRequest(UPDATE_INTERVAL_IN_MILLISECONDS);
+        if (mCurrentLocation == null) {
+            mCurrentLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+            mLastUpdateTime = DateFormat.getTimeInstance().format(new Date());
+            //TODO: update my location
+            sendMessageToServer(mCurrentLocation);
         }
-
-        return location;
     }
+
+    /**
+     * Callback that fires when the location changes.
+     */
     @Override
     public void onLocationChanged(Location location) {
-       // if (location != null) {
-       //     latitude = location.getLatitude();
-       //     longitude = location.getLongitude();
-       // }
+        mCurrentLocation = location;
+        mLastUpdateTime = DateFormat.getTimeInstance().format(new Date());
+        //TODO: notify our server
+        sendMessageToServer(location);
     }
 
     @Override
-    public void onProviderDisabled(String provider) {
+    public void onConnectionSuspended(int cause) {
+        // The connection to Google Play services was lost for some reason. We call connect() to
+        // attempt to re-establish the connection.
+        Log.i(TAG, "Connection suspended");
+        mGoogleApiClient.connect();
     }
 
     @Override
-    public void onProviderEnabled(String provider) {
+    public void onConnectionFailed(ConnectionResult result) {
+        // Refer to the javadoc for ConnectionResult to see what error codes might be returned in
+        // onConnectionFailed.
+        Log.i(TAG, "Connection failed: ConnectionResult.getErrorCode() = " + result.getErrorCode());
     }
 
-    @Override
-    public void onStatusChanged(String provider, int status, Bundle extras) {
-    }
+    private float getBatteryLevel(){
+        Intent batteryIntent = registerReceiver(null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
+        int level = batteryIntent.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
+        int scale = batteryIntent.getIntExtra(BatteryManager.EXTRA_SCALE, -1);
 
-    @Override
-    public IBinder onBind(Intent arg0) {
-        return mBinder;
-    }
-
-    @Override
-    public boolean onUnbind(Intent intent) {
-        return true;
-    }
-
-    /**
-    * Function to get latitude
-    * */
-    public double getLatitude(){
-        if(location != null){
-            latitude = location.getLatitude();
+        // Error checking that probably isn't needed but I added just in case.
+        if(level == -1 || scale == -1) {
+            return 50.0f;
         }
 
-        // return latitude
-        return latitude;
+        return ((float)level / (float)scale) * 100.0f;
     }
 
-    /**
-     * Function to get longitude
-     * */
-    public double getLongitude(){
-        if(location != null){
-            longitude = location.getLongitude();
+    private void sendMessageToServer(Location l) {
+        if (l == null) return;
+        api.updateDeviceInfo(l.getLatitude(), l.getLongitude(), l.getAccuracy(), getBatteryLevel());
+        subscriptions.add( NetworkRequest.performAsyncRequest(
+                api.updateDeviceInfo(l.getLatitude(), l.getLongitude(), l.getAccuracy(), getBatteryLevel()),
+                (data) -> {
+                    if(ServerResponseCode.valueOf(data.code) == ServerResponseCode.OK) {
+                        Timber.d("location status update sent");
+                    }
+                }, (error) -> {
+                    Timber.d("location status update failed");
+                }));
+    }
+
+    private BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            // Get extra data included in the Intent
+            long updateInterval = intent.getLongExtra("updateInterval", UPDATE_INTERVAL_IN_MILLISECONDS);
+            createLocationRequest(updateInterval);
+
+            // Sets the fastest rate for active location updates. This interval is exact, and your
+            // application will never receive updates faster than this value.
         }
+    };
 
-        // return longitude
-        return longitude;
-    }
+    //listen for update events
 
-    /**
-     * Stop using GPS listener
-     * Calling this function will stop using GPS in your app
-     * */
-    public void stopUsingGPS(){
-        if(locationManager != null){
-            if (Utils.mayRequestPermission(MyApp.getContext(), Manifest.permission.ACCESS_COARSE_LOCATION) ||
-                 Utils.mayRequestPermission(MyApp.getContext(), Manifest.permission.ACCESS_FINE_LOCATION))
-            locationManager.removeUpdates(DBLocationService.this);
-        }
-    }
-
-    /**
-     * Function to check if best network provider
-     * @return boolean
-     * */
-    public boolean canGetLocation() {
-        return this.canGetLocation;
-    }
-
-    public class DBLocationBinder extends Binder {
-        public DBLocationService getService() {
-            return DBLocationService.this;
-        }
-    }
 }

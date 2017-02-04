@@ -122,6 +122,10 @@ public class Order implements Parcelable {
     @SerializedName("qrCode")
     @Expose
     private String qrCode;
+
+    @SerializedName("qrCodeWithPending")
+    @Expose
+    private String qrCodeWithPending;
     /**
      *
      * @return
@@ -661,6 +665,14 @@ public class Order implements Parcelable {
         this.qrCode = qrCode;
     }
 
+    public String getQrCodeWithPending() {
+        return qrCodeWithPending;
+    }
+
+    public void setQrCodeWithPending(String qrCodeWithPending) {
+        this.qrCodeWithPending = qrCodeWithPending;
+    }
+
     /**
      *
      * @param userPendingBalance
@@ -728,6 +740,7 @@ public class Order implements Parcelable {
         userPendingBalance = in.readDouble();
         isCheckedIn = in.readByte() != 0x00;
         qrCode = in.readString();
+        qrCodeWithPending = in.readString();
     }
 
     @Override
@@ -778,6 +791,7 @@ public class Order implements Parcelable {
         dest.writeDouble(userPendingBalance);
         dest.writeByte((byte) (isCheckedIn ? 0x01 : 0x00));
         dest.writeString(qrCode);
+        dest.writeString(qrCodeWithPending);
     }
 
     @SuppressWarnings("unused")
