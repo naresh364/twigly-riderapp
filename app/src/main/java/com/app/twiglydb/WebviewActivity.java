@@ -3,6 +3,7 @@ package com.app.twiglydb;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.view.MenuItem;
 import android.webkit.WebChromeClient;
 import android.webkit.WebView;
 import android.widget.ProgressBar;
@@ -33,6 +34,17 @@ public class WebviewActivity extends AppCompatActivity{
         getSupportActionBar().setTitle(getIntent().getStringExtra("title"));
 
         webView.loadData(getIntent().getStringExtra("data"), "text/html", null);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case android.R.id.home:
+                onBackPressed();
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
     }
 
 }

@@ -65,6 +65,7 @@ public class OrderDetailActivity extends BaseActivity {
     private String ezTxnId = null;
     private final int REQUESTCODE_INIT = 10001;
     private final int REQUESTCODE_SALE = 10006;
+    private final int REQUESTCODE_PAYTM_OFFLINE = 1100;
     private static final String INTENTEXTRA_ORDERDETAILS = "com.app.twiglydb.extra.order_details";
     private static final String INTENTEXTRA_PARCEL_ORDERDETAILS = "com.app.twiglydb.extra.parcel.order_details";
     private static final String INTENTEXTRA_ORDERDONE = "com.app.twiglydb.order_done";
@@ -173,17 +174,29 @@ public class OrderDetailActivity extends BaseActivity {
                 @Override
                 public void onClick(View v) {
                     String qrCode;
-                    if (order.shouldCollectPending()) {
-                        qrCode = order.getQrCode();
-                    } else {
-                        qrCode = order.getQrCodeWithPending();
+                    double pendingAmount;
+                    if (!order.isCheckedIn) {
+                        Toast.makeText(OrderDetailActivity.this, "Checkin before payment", Toast.LENGTH_LONG).show();
+                        return;
                     }
-                    String htmlqr = "<html> <p style=\"text-align:center;\"><img style='width:70%;'" +
-                            " src=\"data:image/png;base64," + qrCode +"\" id=\"qrCode\"></p></html>";
+                    if (order.shouldCollectPending()) {
+                        qrCode = order.getQrCodeWithPending();
+                        pendingAmount = pending;
+                    } else {
+                        qrCode = order.getQrCode();
+                        pendingAmount = 0;
+                    }
+                    cardCashLayout.setVisibility(View.GONE);
+                    checkProgress.setVisibility(View.VISIBLE);
+                    String amount = String.format("%.2f",order.getTotal()+pendingAmount);
+                    String htmlqr = "<html> <div style=\"text-align:center;\"><div><h2> Amount : &#8377;"
+                            +amount+" </h2></div>  <div><h3> Customer Name : "+order.getName()+
+                            "</h3></div> <br><img style='width:70%;' src=\"data:image/png;base64,"
+                            + qrCode +"\" id=\"qrCode\"></p></html>";
                     Intent intent = new Intent(mContext, WebviewActivity.class);
                     intent.putExtra("title", "QR code for #"+order.getOrderId());
                     intent.putExtra("data", htmlqr);
-                    startActivity(intent);
+                    startActivityForResult(intent, REQUESTCODE_PAYTM_OFFLINE);
                 }
             });
         }
@@ -389,6 +402,26 @@ Eventbus specific---------------------------------------------------------
             Timber.i("EZtap log: ",intent.getStringExtra("response"));
         }
         switch (requestCode) {
+            case REQUESTCODE_PAYTM_OFFLINE:
+                subscriptions.add( NetworkRequest.performAsyncRequest(
+                        api.getPaymentStatus(order.getOrderId(), order.shouldCollectPending()),
+                        (data) -> {
+                            if(ServerResponseCode.valueOf(data.code) == ServerResponseCode.OK) {
+                                checkProgress.setVisibility(View.GONE);
+                                //setPosition(pos);
+                                MarkOrderDone(order, "PAYTM_OFFLINE");
+                            }
+                        }, (error) -> {
+                            // Handle error
+                            //getPostSubscription = null;
+                            //TODO: alert dialog and  option to call
+                            Toast.makeText(OrderDetailActivity.this, "Order Status Update Failed", Toast.LENGTH_LONG).show();
+                            checkProgress.setVisibility(View.GONE);
+                            cardCashLayout.setVisibility(View.VISIBLE);
+                        }));
+
+
+                break;
             case REQUESTCODE_INIT:
                 // if ez device is successfully initialized and prepared, start the card payment process
                 if (resultCode == RESULT_OK) {
@@ -447,7 +480,6 @@ Eventbus specific---------------------------------------------------------
                     if(ServerResponseCode.valueOf(data.code) == ServerResponseCode.OK) {
                         checkProgress.setVisibility(View.GONE);
                         //setPosition(pos);
-                        setOrderDone(pos);
                     }
                 }, (error) -> {
                     // Handle error
@@ -456,6 +488,7 @@ Eventbus specific---------------------------------------------------------
                     Toast.makeText(OrderDetailActivity.this, "Order Status Update Failed", Toast.LENGTH_LONG).show();
                     checkProgress.setVisibility(View.GONE);
                     cardCashLayout.setVisibility(View.VISIBLE);
+
                 }));
     }
 

@@ -44,7 +44,8 @@ public class DBLocationService extends Service implements
     /**
      * The desired interval for location updates. Inexact. Updates may be more or less frequent.
      */
-    public static final long UPDATE_INTERVAL_IN_MILLISECONDS = 30000;
+    public static final long UPDATE_INTERVAL_IN_MILLISECONDS = 30*60*1000;
+    public static final long SERVER_CALL_INTERVAL = 30*1000;
 
     /**
      * Provides the entry point to Google Play services.
@@ -61,6 +62,7 @@ public class DBLocationService extends Service implements
      */
     protected Location mCurrentLocation;
 
+    private Context mContext;
     /**
      * Tracks the status of the location updates request. Value changes when the user presses the
      * Start Updates and Stop Updates buttons.
@@ -69,7 +71,7 @@ public class DBLocationService extends Service implements
     /**
      * Time when the location was updated represented as a String.
      */
-    protected String mLastUpdateTime;
+    protected Date mLastUpdateTime;
 
     TwiglyRestAPI api;
     private CompositeSubscription subscriptions;
@@ -78,12 +80,11 @@ public class DBLocationService extends Service implements
     public void onCreate() {
         super.onCreate();
 
-        mLastUpdateTime = "";
-
         // Kick off the process of building a GoogleApiClient and requesting the LocationServices
         // API.
         api =  TwiglyRestAPIBuilder.buildRetroService();
         subscriptions = new CompositeSubscription();
+        mLastUpdateTime = new Date();
     }
 
     @Override
@@ -143,8 +144,10 @@ public class DBLocationService extends Service implements
         mLocationRequest.setFastestInterval(interval/2);
 
         mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-        LocationServices.FusedLocationApi.requestLocationUpdates(
-                mGoogleApiClient, mLocationRequest, this);
+        if (mGoogleApiClient != null && mGoogleApiClient.isConnected()) {
+            LocationServices.FusedLocationApi.requestLocationUpdates(
+                    mGoogleApiClient, mLocationRequest, this);
+        }
     }
 
     /**
@@ -185,12 +188,7 @@ public class DBLocationService extends Service implements
         // moves to a new location, and then changes the device orientation, the original location
         // is displayed as the activity is re-created.
         createLocationRequest(UPDATE_INTERVAL_IN_MILLISECONDS);
-        if (mCurrentLocation == null) {
-            mCurrentLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
-            mLastUpdateTime = DateFormat.getTimeInstance().format(new Date());
-            //TODO: update my location
-            sendMessageToServer(mCurrentLocation);
-        }
+        sendMessageToServer(mCurrentLocation);
     }
 
     /**
@@ -199,7 +197,6 @@ public class DBLocationService extends Service implements
     @Override
     public void onLocationChanged(Location location) {
         mCurrentLocation = location;
-        mLastUpdateTime = DateFormat.getTimeInstance().format(new Date());
         //TODO: notify our server
         sendMessageToServer(location);
     }
@@ -234,6 +231,11 @@ public class DBLocationService extends Service implements
 
     private void sendMessageToServer(Location l) {
         if (l == null) return;
+        long time = (new Date()).getTime() - mLastUpdateTime.getTime();
+        if (time < SERVER_CALL_INTERVAL) return;
+
+        mLastUpdateTime = new Date();
+        //TODO: update my location
         api.updateDeviceInfo(l.getLatitude(), l.getLongitude(), l.getAccuracy(), getBatteryLevel());
         subscriptions.add( NetworkRequest.performAsyncRequest(
                 api.updateDeviceInfo(l.getLatitude(), l.getLongitude(), l.getAccuracy(), getBatteryLevel()),
@@ -244,6 +246,7 @@ public class DBLocationService extends Service implements
                 }, (error) -> {
                     Timber.d("location status update failed");
                 }));
+        stopLocationUpdates();
     }
 
     private BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {
@@ -251,10 +254,8 @@ public class DBLocationService extends Service implements
         public void onReceive(Context context, Intent intent) {
             // Get extra data included in the Intent
             long updateInterval = intent.getLongExtra("updateInterval", UPDATE_INTERVAL_IN_MILLISECONDS);
+            updateInterval = (updateInterval <= 30) ? UPDATE_INTERVAL_IN_MILLISECONDS : updateInterval*1000;
             createLocationRequest(updateInterval);
-
-            // Sets the fastest rate for active location updates. This interval is exact, and your
-            // application will never receive updates faster than this value.
         }
     };
 

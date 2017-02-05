@@ -42,48 +42,53 @@
         android:background="@android:color/darker_gray"
     />
 
-    <TextView
-        android:id="@+id/address"
+    <RelativeLayout
+        android:id="@+id/mid_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
         android:layout_below="@+id/divider"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="8dp"
-        android:spinnerMode="dialog"
-        android:maxLines="10"
-        android:text="Address"
-        android:textSize="@dimen/normal"
-        android:layout_marginTop="16dp"
-    />
+        android:layout_marginBottom="4dp"
+        >
+        <TextView
+            android:id="@+id/address"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:spinnerMode="dialog"
+            android:maxLines="10"
+            android:text="Address"
+            android:textSize="@dimen/normal"
+            android:layout_marginTop="16dp"
+            />
 
-    <TextView
-        android:id="@+id/cart_price"
-        android:layout_below="@+id/divider"
-        android:layout_alignParentRight="true"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="200.00"
-        android:textStyle="bold"
-        android:textColor="@color/style_color_primary"
-        android:textSize="@dimen/big"
-        android:layout_marginTop="16dp"
-    />
+        <TextView
+            android:id="@+id/cart_price"
+            android:layout_alignParentRight="true"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="200.00"
+            android:textStyle="bold"
+            android:textColor="@color/style_color_primary"
+            android:textSize="@dimen/big"
+            android:layout_marginTop="16dp"
+            />
 
-    <TextView
-        android:id="@+id/delivery_time"
-        android:layout_below="@+id/cart_price"
-        android:layout_alignParentRight="true"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="25 Minutes"
-        android:textColor="@color/style_color_primary"
-        android:textSize="@dimen/big"
-    />
+        <TextView
+            android:id="@+id/delivery_time"
+            android:layout_below="@+id/cart_price"
+            android:layout_alignParentRight="true"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="25 Minutes"
+            android:textColor="@color/style_color_primary"
+            android:textSize="@dimen/big"
+            />
+    </RelativeLayout>
 
     <RelativeLayout
         android:id="@+id/button_layout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/address">
+        android:layout_below="@id/mid_layout">
 
     <Button
         android:id="@+id/navigate_button"

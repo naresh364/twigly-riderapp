@@ -17,6 +17,8 @@
 package gcm.play.android;
 
 import android.Manifest;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
@@ -26,13 +28,18 @@ import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.media.MediaPlayer;
+import android.media.RingtoneManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.provider.Settings;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.LocalBroadcastManager;
+import android.support.v4.app.NotificationCompat;
 
+import com.app.twiglydb.OrderSummaryActivity;
+import com.app.twiglydb.R;
 import com.app.twiglydb.models.TwiglyDBSharedPreference;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.PendingResult;
@@ -87,18 +94,21 @@ public class MyGcmListenerService extends GcmListenerService {
             player.start();
 
             RxBus.INSTANCE.post(data);
-        } else if (type.equals("settings")){
+        } else if (type.equals("update_interval")){
             //timeout
             try {
                 Gson gson = new Gson();
                 JsonObject jsonObject = gson.fromJson(message, JsonObject.class);
-                long interval = jsonObject.get("updateInterval").getAsLong();
+                long interval = jsonObject.get("update_interval").getAsLong();
                 sendMessageToActivity(interval);
             } catch (Exception ex) {
 
             }
-        } else {
-            //sendNotification(message);
+        } else if (type.equals("location")) {
+            sendMessageToActivity(0);
+        }
+        else {
+            sendNotification(message);
         }
         Timber.d("app exited");
 
@@ -117,7 +127,7 @@ public class MyGcmListenerService extends GcmListenerService {
      * Create and show a simple notification containing the received GCM message.
      *
      */
-    /*private void sendNotification(String message) {
+    private void sendNotification(String message) {
         Intent intent = new Intent(this, OrderSummaryActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 0 , intent, PendingIntent.FLAG_ONE_SHOT);
@@ -135,6 +145,6 @@ public class MyGcmListenerService extends GcmListenerService {
                 (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 
         notificationManager.notify(0 , notificationBuilder.build());
-    }*/
+    }
 
 }

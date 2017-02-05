@@ -64,6 +64,9 @@ public interface TwiglyRestAPI {
     @GET("/db/updategcm")
     Observable<ServerResponse> updateGCM(@Query("gcmid") String gcmId);
 
+    @GET("/db/payment/status")
+    Observable<ServerResponse> getPaymentStatus(@Query("orderId") String orderId, @Query("pendings") boolean withPendings);
+
     class ServerResponse{
         @SerializedName("serverResponse")
         @Expose

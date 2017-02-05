@@ -168,10 +168,11 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                 api.signup(mobile, android_id),
                 (deliveryBoy) -> {
                     DeliveryBoy.getInstance().setName(deliveryBoy.getName());
+                    Toast.makeText(LoginActivity.this, "Contact admin for approval", Toast.LENGTH_LONG).show();
                     showProgress(false);
                 }, (error) -> {
                     getPostSubscription = null;
-                    Toast.makeText(LoginActivity.this, "Not able to login, Network error:"+error.toString(), Toast.LENGTH_LONG).show();
+                    Toast.makeText(LoginActivity.this, "Either delivery boy not found or duplicate entries", Toast.LENGTH_LONG).show();
                     showProgress(false);
                 }
             );

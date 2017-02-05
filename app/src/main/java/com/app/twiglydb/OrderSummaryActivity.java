@@ -246,10 +246,8 @@ public class OrderSummaryActivity extends BaseActivity {/*implements XYZinterfac
     private void updateNoOrderView(){
         if (DeliveryBoy.getInstance().hasOrders()) {
             viewSwitcher.setDisplayedChild(0);
-            sendMessageToActivity(60*1000);
         } else {
             viewSwitcher.setDisplayedChild(1);
-            sendMessageToActivity(30*60*1000);
         }
     }
 
