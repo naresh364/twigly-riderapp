@@ -267,7 +267,7 @@ public class OrderDetailActivity extends BaseActivity {
                         }
                         LocationManager manager = (LocationManager) getSystemService(Context.LOCATION_SERVICE );
                         if(manager.isProviderEnabled(LocationManager.GPS_PROVIDER)){*/
-                            checkIn(order);
+                        checkIn(order);
                         /*} else {
                             checkProgress.setVisibility(View.GONE);
                             checkinAdapter.notifyItemChanged(0);
@@ -408,12 +408,9 @@ Eventbus specific---------------------------------------------------------
                         (data) -> {
                             if(ServerResponseCode.valueOf(data.code) == ServerResponseCode.OK) {
                                 checkProgress.setVisibility(View.GONE);
-                                //setPosition(pos);
                                 MarkOrderDone(order, "PAYTM_OFFLINE");
                             }
                         }, (error) -> {
-                            // Handle error
-                            //getPostSubscription = null;
                             //TODO: alert dialog and  option to call
                             Toast.makeText(OrderDetailActivity.this, "Order Status Update Failed", Toast.LENGTH_LONG).show();
                             checkProgress.setVisibility(View.GONE);
@@ -479,7 +476,7 @@ Eventbus specific---------------------------------------------------------
                 (data) -> {
                     if(ServerResponseCode.valueOf(data.code) == ServerResponseCode.OK) {
                         checkProgress.setVisibility(View.GONE);
-                        //setPosition(pos);
+                        setOrderDone(pos);
                     }
                 }, (error) -> {
                     // Handle error
@@ -538,6 +535,7 @@ Eventbus specific---------------------------------------------------------
                     checkinView.setVisibility(View.GONE);
                     cardCashLayout.setVisibility(View.VISIBLE);
                     setCardCashListener();
+                    order.isCheckedIn = true;
                 }, (error) -> {
                     checkProgress.setVisibility(View.GONE);
                     Toast.makeText(OrderDetailActivity.this, "chekin fail", Toast.LENGTH_LONG).show();

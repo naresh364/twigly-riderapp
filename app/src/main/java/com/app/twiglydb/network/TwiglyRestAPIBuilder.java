@@ -1,5 +1,7 @@
 package com.app.twiglydb.network;
 
+import android.util.Log;
+
 import com.app.twiglydb.models.DeliveryBoy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -29,7 +31,14 @@ public class TwiglyRestAPIBuilder {
                         .addHeader("EUID", uuid)
                         .build();
             }
-            return chain.proceed(request);
+            Response response = chain.proceed(request);
+            int tryCount = 0;
+            while (!response.isSuccessful() && tryCount < 3) {
+                Log.d("intercept", "Request is not successful - " + tryCount);
+                tryCount++;
+                response = chain.proceed(request);
+            }
+            return response;
         }).build();
 
         //Gson gson = new GsonBuilder().setLenient().create();
