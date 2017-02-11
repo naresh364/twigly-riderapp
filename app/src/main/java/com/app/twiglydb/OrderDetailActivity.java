@@ -408,7 +408,14 @@ Eventbus specific---------------------------------------------------------
                         (data) -> {
                             if(ServerResponseCode.valueOf(data.code) == ServerResponseCode.OK) {
                                 checkProgress.setVisibility(View.GONE);
-                                MarkOrderDone(order, "PAYTM_OFFLINE");
+                                AlertDialog.Builder b = new AlertDialog.Builder(OrderDetailActivity.this);
+                                b.setTitle("Paytm payment success")
+                                        .setMessage("Paytm payment successful")
+                                        .setPositiveButton("Done", (DialogInterface dialog, int id) -> {
+                                            MarkOrderDone(order, "PAYTM_OFFLINE");
+                                        });
+                                AlertDialog d = b.create();
+                                d.show();
                             }
                         }, (error) -> {
                             //TODO: alert dialog and  option to call

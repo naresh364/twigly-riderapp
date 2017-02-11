@@ -144,9 +144,13 @@ public class DBLocationService extends Service implements
         mLocationRequest.setFastestInterval(interval/2);
 
         mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-        if (mGoogleApiClient != null && mGoogleApiClient.isConnected()) {
-            LocationServices.FusedLocationApi.requestLocationUpdates(
-                    mGoogleApiClient, mLocationRequest, this);
+        try {
+            if (mGoogleApiClient != null && mGoogleApiClient.isConnected()) {
+                LocationServices.FusedLocationApi.requestLocationUpdates(
+                        mGoogleApiClient, mLocationRequest, this);
+            }
+        } catch (SecurityException ex) {
+            Log.d("Locaiton", "Location permission issue");
         }
     }
 
