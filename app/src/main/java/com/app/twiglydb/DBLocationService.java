@@ -44,8 +44,8 @@ public class DBLocationService extends Service implements
     /**
      * The desired interval for location updates. Inexact. Updates may be more or less frequent.
      */
-    public static final long UPDATE_INTERVAL_IN_MILLISECONDS = 30*60*1000;
-    public static final long SERVER_CALL_INTERVAL = 30*1000;
+    public static final long UPDATE_INTERVAL_IN_MILLISECONDS = 30*60*1000l;
+    public static final long SERVER_CALL_INTERVAL = 30*1000l;
 
     /**
      * Provides the entry point to Google Play services.

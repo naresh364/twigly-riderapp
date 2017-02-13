@@ -44,14 +44,16 @@
             android:name=".SplashScreenActivity"
             android:excludeFromRecents="true"
             android:label="@string/app_name"
-            android:theme="@android:style/Theme.NoTitleBar.Fullscreen">
+            android:theme="@android:style/Theme.Light.NoTitleBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <action android:name="android.intent.action.ASSIST" />
 
+                <category android:name="android.intent.category.LAUNCHER"/>
+                <!--
                 <category android:name="android.intent.category.HOME"/>
                 <category android:name="android.intent.category.DEFAULT"/>
-                <category android:name="android.intent.category.LAUNCHER"/>
+                -->
             </intent-filter>
         </activity>
         <activity

@@ -90,8 +90,15 @@ public class MyGcmListenerService extends GcmListenerService {
         if (type.equals("order")) {
 
             // play ringtone
-            MediaPlayer player = MediaPlayer.create(this, Settings.System.DEFAULT_RINGTONE_URI);
+            MediaPlayer player = MediaPlayer.create(this, RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION));
             player.start();
+            sendNotification("New order received");
+
+            RxBus.INSTANCE.post(data);
+        } else if (type.equals("order_update")){
+            MediaPlayer player = MediaPlayer.create(this, RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION));
+            player.start();
+            sendNotification("Order updated");
 
             RxBus.INSTANCE.post(data);
         } else if (type.equals("update_interval")){
@@ -106,8 +113,7 @@ public class MyGcmListenerService extends GcmListenerService {
             }
         } else if (type.equals("location")) {
             sendMessageToActivity(0);
-        }
-        else {
+        } else {
             sendNotification(message);
         }
         Timber.d("app exited");

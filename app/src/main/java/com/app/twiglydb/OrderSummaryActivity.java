@@ -52,7 +52,11 @@ import com.google.gson.Gson;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -79,6 +83,8 @@ public class OrderSummaryActivity extends BaseActivity {/*implements XYZinterfac
     private CompositeSubscription subscriptions = new CompositeSubscription();
     private int exitCode;
     public int pos;
+    ScheduledExecutorService scheduleTaskExecutor = Executors.newScheduledThreadPool(1);
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -157,6 +163,12 @@ public class OrderSummaryActivity extends BaseActivity {/*implements XYZinterfac
                 startActivity(intent);
             }
         });
+
+        scheduleTaskExecutor.scheduleAtFixedRate(new Runnable() {
+            public void run() {
+                sendLocationUpdate();
+            }
+        }, 0, 5, TimeUnit.MINUTES);
     }
 
     @Override
@@ -172,10 +184,25 @@ public class OrderSummaryActivity extends BaseActivity {/*implements XYZinterfac
         orderSummaryAdapter.onActivityResult(requestCode, resultCode, data);
     }
 
-    private void sendMessageToActivity(long interval) {
+    Date lastUpdate = new Date();
+    long onJobRepeat = 5*60;
+    long offJobRepeat = 30*60;
+
+    private long getLocationUpdateDelay() {
+        int numJobs = DeliveryBoy.getInstance().getAssignedOrders().size();
+        long delay = offJobRepeat;
+        if (numJobs > 0) delay = onJobRepeat;
+        return delay;
+    }
+
+    private void sendLocationUpdate() {
+        long delay = getLocationUpdateDelay();
+        long timeSpent = (new Date()).getTime() - lastUpdate.getTime();
+        if (timeSpent < delay) return;
+
         Intent intent = new Intent("GPSLocationUpdates");
         // You can also include some extra data.
-        intent.putExtra("updateInterval", interval);
+        intent.putExtra("updateInterval", 0);
         LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
     }
 
@@ -243,6 +270,7 @@ public class OrderSummaryActivity extends BaseActivity {/*implements XYZinterfac
         registerReceiver(eventReceiver, intentFilter);*/
     }
 
+// This schedule a runnable task every 2 minutes
     private void updateNoOrderView(){
         if (DeliveryBoy.getInstance().hasOrders()) {
             viewSwitcher.setDisplayedChild(0);
@@ -257,6 +285,13 @@ public class OrderSummaryActivity extends BaseActivity {/*implements XYZinterfac
         try {
             OrderWrapper wrapper = gson.fromJson(message, OrderWrapper.class);
             if (wrapper != null && wrapper.order != null) {
+                Order order = null;
+                for (Order current : DeliveryBoy.getInstance().getAssignedOrders()) {
+                    if (current.getOrderId().equalsIgnoreCase(wrapper.order.getOrderId())) {
+                        order = current;
+                    }
+                }
+                if (order != null) DeliveryBoy.getInstance().getAssignedOrders().remove(order);
                 DeliveryBoy.getInstance().addNewOrder(wrapper.order);
                 orderSummaryAdapter.notifyDataSetChanged();
                 updateNoOrderView();

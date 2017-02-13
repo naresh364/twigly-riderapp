@@ -403,6 +403,8 @@ Eventbus specific---------------------------------------------------------
         }
         switch (requestCode) {
             case REQUESTCODE_PAYTM_OFFLINE:
+                checkProgress.setVisibility(View.VISIBLE);
+                cardCashLayout.setVisibility(View.GONE);
                 subscriptions.add( NetworkRequest.performAsyncRequest(
                         api.getPaymentStatus(order.getOrderId(), order.shouldCollectPending()),
                         (data) -> {
