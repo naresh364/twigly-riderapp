@@ -134,6 +134,9 @@ public class SplashScreenActivity extends Activity{
                     builder.show();
                 }
             ));
+        } else {
+            //we are already at sigin page
+            finish();
         }
     }
 }
