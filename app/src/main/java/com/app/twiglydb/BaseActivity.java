@@ -1,5 +1,6 @@
 package com.app.twiglydb;
 
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -11,10 +12,15 @@ import android.os.BatteryManager;
 import android.os.Handler;
 import android.provider.CallLog;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.WindowManager;
 
+import com.app.twiglydb.network.NetworkRequest;
+import com.app.twiglydb.network.ServerResponseCode;
+import com.app.twiglydb.network.TwiglyRestAPI;
+import com.app.twiglydb.network.TwiglyRestAPIBuilder;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.PendingResult;
 import com.google.android.gms.common.api.ResultCallback;
@@ -26,195 +32,38 @@ import com.google.android.gms.location.LocationSettingsRequest;
 import com.google.android.gms.location.LocationSettingsResult;
 import com.google.android.gms.location.LocationSettingsStatusCodes;
 
+import java.util.Date;
+
+import rx.subscriptions.CompositeSubscription;
 import timber.log.Timber;
 
-public abstract class BaseActivity extends AppCompatActivity implements
-        GoogleApiClient.ConnectionCallbacks,
-        GoogleApiClient.OnConnectionFailedListener,
-        LocationListener,
-        ResultCallback<LocationSettingsResult> {
+public abstract class BaseActivity extends AppCompatActivity {
 
     /*
         In future, when we need to track DBs, ordersummary activity also needs to extend base activity
      */
 
-    protected GoogleApiClient mGoogleApiClient;
-    protected LocationRequest mLocationRequest;
-    protected LocationSettingsRequest mLocationSettingsRequest;
-    protected Location mCurrentLocation;
-
-    protected Boolean mRequestingLocationUpdates = false;
-
-    protected final static int REQUEST_CHECK_SETTINGS = 0x1;
-
-    protected final static String KEY_REQUESTING_LOCATION_UPDATES = "requesting-location-updates";
-    protected final static String KEY_LOCATION = "location";
     private Context mContext;
+    protected static double lat, lng, acc, speed;
+    protected static float bat;
+    protected static long location_update_time;
+
+    TwiglyRestAPI api;
+    protected CompositeSubscription subscriptions;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        updateValuesFromBundle(savedInstanceState);
-
-        buildGoogleApiClient();
-        createLocationRequest();
-        buildLocationSettingsRequest();
+        api =  TwiglyRestAPIBuilder.buildRetroService();
+        subscriptions = new CompositeSubscription();
         mContext = this;
-    }
-
-    private void updateValuesFromBundle(Bundle savedInstanceState) {
-        Timber.i("Updating values from Bundle");
-        if (savedInstanceState != null) {
-            if (savedInstanceState.keySet().contains(KEY_REQUESTING_LOCATION_UPDATES)) {
-                mRequestingLocationUpdates = savedInstanceState.getBoolean(
-                        KEY_REQUESTING_LOCATION_UPDATES);
-            }
-
-            if (savedInstanceState.keySet().contains(KEY_LOCATION)) {
-                mCurrentLocation = savedInstanceState.getParcelable(KEY_LOCATION);
-            }
-
-        }
-    }
-
-    // Create a GoogleApiClient which supports LocationServices.API
-    protected synchronized void buildGoogleApiClient() {
-        Timber.i("Building GoogleApiClient");
-        mGoogleApiClient = new GoogleApiClient.Builder(this)
-                .addConnectionCallbacks(this)
-                .addOnConnectionFailedListener(this)
-                .addApi(LocationServices.API)
-                .build();
-    }
-
-    // Create Location Request
-    protected void createLocationRequest() {
-        Timber.i("Creating Location Request");
-        mLocationRequest = LocationRequest.create()
-                .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
-                .setInterval(5 * 60 * 1000)
-                .setFastestInterval(60 * 1000);
-    }
-
-    protected void buildLocationSettingsRequest() {
-        Timber.i("Building Location Setting request");
-        LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder()
-            .addLocationRequest(mLocationRequest)
-            .setAlwaysShow(true);
-        mLocationSettingsRequest = builder.build();
-    }
-
-    protected void checkLocationSettings() {
-        Timber.i("Checking Location Settings");
-        PendingResult<LocationSettingsResult> result =
-                LocationServices.SettingsApi.checkLocationSettings(
-                        mGoogleApiClient,
-                        mLocationSettingsRequest
-                );
-        result.setResultCallback(this);
-    }
-
-    protected void getStatus(LocationSettingsResult locationSettingsResult){
-        final Status status = locationSettingsResult.getStatus();
-        switch (status.getStatusCode()) {
-            case LocationSettingsStatusCodes.SUCCESS:
-                Timber.i("All location settings are satisfied.");
-                startLocationUpdates();
-                break;
-            case LocationSettingsStatusCodes.RESOLUTION_REQUIRED:
-                Timber.i("Location settings are not satisfied.");
-
-                try {
-                    // Show the dialog by calling startResolutionForResult(), and check the result
-                    // in onActivityResult().
-                    status.startResolutionForResult(BaseActivity.this, REQUEST_CHECK_SETTINGS);
-                } catch (IntentSender.SendIntentException e) {
-                    Timber.i("PendingIntent unable to execute request.");
-                }
-                break;
-            case LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE:
-                Timber.i("Location settings are inadequate, and cannot be fixed here. Dialog not created.");
-                break;
-        }
-    }
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == REQUEST_CHECK_SETTINGS) {
-
-            if (resultCode == RESULT_OK) {
-                Timber.i("DB agreed to make enable GPS.");
-                startLocationUpdates();
-                //Toast.makeText(getApplicationContext(), "GPS enabled", Toast.LENGTH_LONG).show();
-            } else {
-                Timber.i("DB refused to make enable GPS.");
-                //Toast.makeText(getApplicationContext(), "GPS is not enabled", Toast.LENGTH_LONG).show();
-            }
-        }
-    }
-
-    @Override
-    public void onLocationChanged(Location location) {
-        mCurrentLocation = location;
-    }
-
-    protected void startLocationUpdates() {
-        int permissionCheck = ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION);
-        if(permissionCheck == PackageManager.PERMISSION_GRANTED) {
-            LocationServices.FusedLocationApi.requestLocationUpdates(
-                    mGoogleApiClient,
-                    mLocationRequest,
-                    this
-            ).setResultCallback(status -> {
-                mRequestingLocationUpdates = true;
-            });
-        }
-    }
-
-    protected void stopLocationUpdates() {
-        // It is a good practice to remove location requests when the activity is in a paused or
-        // stopped state. Doing so helps battery performance and is especially
-        // recommended in applications that request frequent location updates.
-        LocationServices.FusedLocationApi.removeLocationUpdates(
-                mGoogleApiClient,
-                this
-        ).setResultCallback(status -> {
-                mRequestingLocationUpdates = false;
-        });
-    }
-
-    @Override
-    protected void onStart() {
-        super.onStart();
-        mGoogleApiClient.connect();
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-        // Stop location updates to save battery, but don't disconnect the GoogleApiClient object.
-        if (mGoogleApiClient.isConnected()) {
-            stopLocationUpdates();
-        }
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
-        mGoogleApiClient.disconnect();
-    }
-
-    public void onSaveInstanceState(Bundle savedInstanceState) {
-        savedInstanceState.putBoolean(KEY_REQUESTING_LOCATION_UPDATES, mRequestingLocationUpdates);
-        savedInstanceState.putParcelable(KEY_LOCATION, mCurrentLocation);
-        super.onSaveInstanceState(savedInstanceState);
     }
 
     @Override
     protected void onResume() {
         super.onResume();
+        LocalBroadcastManager.getInstance(this).registerReceiver(
+                mMessageReceiver, new IntentFilter("NewLocationRecevied"));
         if (!DialerReceiver.callDone) return;
         DialerReceiver.removeViewHandler.removeCallbacks(DialerReceiver.removeViewRunnable);
         Handler handler = new Handler();
@@ -236,16 +85,33 @@ public abstract class BaseActivity extends AppCompatActivity implements
         }, 1000);
     }
 
-    private float getBatteryLevel(){
-        Intent batteryIntent = registerReceiver(null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
-        int level = batteryIntent.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
-        int scale = batteryIntent.getIntExtra(BatteryManager.EXTRA_SCALE, -1);
+    private final long update_delay = 5*1000;
+    private static long last_update = (new Date()).getTime();
+    private BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            // Get extra data included in the Intent
+            lat = intent.getDoubleExtra("lat", 0f);
+            lng = intent.getDoubleExtra("lng", 0f);
+            acc = intent.getDoubleExtra("acc", 0f);
+            bat = intent.getFloatExtra("bat", 0f);
+            speed = intent.getDoubleExtra("speed", 0f);
+            location_update_time = intent.getLongExtra("time", 0);
+            if (location_update_time - last_update < update_delay) return;
+            last_update = location_update_time;
+            api.updateDeviceInfo(lat, lng, acc,
+                    speed, location_update_time, bat);
+            subscriptions.add( NetworkRequest.performAsyncRequest(
+                    api.updateDeviceInfo(lat, lng, acc,
+                            speed, location_update_time, bat),
+                    (data) -> {
+                        if(ServerResponseCode.valueOf(data.code) == ServerResponseCode.OK) {
+                            Timber.d("location status update sent");
+                        }
+                    }, (error) -> {
+                        Timber.d("location status update failed");
+                    }));
 
-        // Error checking that probably isn't needed but I added just in case.
-        if(level == -1 || scale == -1) {
-            return 50.0f;
         }
-
-        return ((float)level / (float)scale) * 100.0f;
-    }
+    };
 }

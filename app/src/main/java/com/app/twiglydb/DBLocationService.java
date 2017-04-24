@@ -1,6 +1,5 @@
 package com.app.twiglydb;
 
-import android.app.IntentService;
 import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -13,7 +12,6 @@ import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
-import android.widget.Toast;
 
 import com.app.twiglydb.network.NetworkRequest;
 import com.app.twiglydb.network.ServerResponseCode;
@@ -24,10 +22,7 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
-import com.google.gson.Gson;
-import com.google.gson.JsonObject;
 
-import java.text.DateFormat;
 import java.util.Date;
 
 import rx.subscriptions.CompositeSubscription;
@@ -45,7 +40,8 @@ public class DBLocationService extends Service implements
      * The desired interval for location updates. Inexact. Updates may be more or less frequent.
      */
     public static final long UPDATE_INTERVAL_IN_MILLISECONDS = 30*60*1000l;
-    public static final long SERVER_CALL_INTERVAL = 30*1000l;
+    public static final long FASTETST_UPDATE_INTERVAL_IN_MILLISECONDS = 20*1000l;
+    public static final long SERVER_CALL_INTERVAL = 5*1000l;
 
     /**
      * Provides the entry point to Google Play services.
@@ -73,17 +69,12 @@ public class DBLocationService extends Service implements
      */
     protected Date mLastUpdateTime;
 
-    TwiglyRestAPI api;
-    private CompositeSubscription subscriptions;
-
     @Override
     public void onCreate() {
         super.onCreate();
 
         // Kick off the process of building a GoogleApiClient and requesting the LocationServices
         // API.
-        api =  TwiglyRestAPIBuilder.buildRetroService();
-        subscriptions = new CompositeSubscription();
         mLastUpdateTime = new Date();
     }
 
@@ -141,7 +132,7 @@ public class DBLocationService extends Service implements
 
         // Sets the fastest rate for active location updates. This interval is exact, and your
         // application will never receive updates faster than this value.
-        mLocationRequest.setFastestInterval(interval/2);
+        mLocationRequest.setFastestInterval(FASTETST_UPDATE_INTERVAL_IN_MILLISECONDS);
 
         mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
         try {
@@ -192,7 +183,7 @@ public class DBLocationService extends Service implements
         // moves to a new location, and then changes the device orientation, the original location
         // is displayed as the activity is re-created.
         createLocationRequest(UPDATE_INTERVAL_IN_MILLISECONDS);
-        sendMessageToServer(mCurrentLocation);
+        broadcastLocation(mCurrentLocation);
     }
 
     /**
@@ -202,7 +193,7 @@ public class DBLocationService extends Service implements
     public void onLocationChanged(Location location) {
         mCurrentLocation = location;
         //TODO: notify our server
-        sendMessageToServer(location);
+        broadcastLocation(location);
     }
 
     @Override
@@ -233,24 +224,22 @@ public class DBLocationService extends Service implements
         return ((float)level / (float)scale) * 100.0f;
     }
 
-    private void sendMessageToServer(Location l) {
+    private void broadcastLocation(Location l) {
         if (l == null) return;
         long time = (new Date()).getTime() - mLastUpdateTime.getTime();
         if (time < SERVER_CALL_INTERVAL) return;
 
         mLastUpdateTime = new Date();
-        //TODO: update my location
-        api.updateDeviceInfo(l.getLatitude(), l.getLongitude(), l.getAccuracy(), getBatteryLevel());
-        subscriptions.add( NetworkRequest.performAsyncRequest(
-                api.updateDeviceInfo(l.getLatitude(), l.getLongitude(), l.getAccuracy(), getBatteryLevel()),
-                (data) -> {
-                    if(ServerResponseCode.valueOf(data.code) == ServerResponseCode.OK) {
-                        Timber.d("location status update sent");
-                    }
-                }, (error) -> {
-                    Timber.d("location status update failed");
-                }));
-        stopLocationUpdates();
+        Intent intent = new Intent("NewLocationRecevied");
+        // You can also include some extra data.
+        intent.putExtra("lat", l.getLatitude());
+        intent.putExtra("lng", l.getLongitude());
+        intent.putExtra("acc", l.getAccuracy());
+        intent.putExtra("speed", l.getSpeed());
+        intent.putExtra("bat", getBatteryLevel());
+        intent.putExtra("time", l.getTime());
+        LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
+        //stopLocationUpdates();
     }
 
     private BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {

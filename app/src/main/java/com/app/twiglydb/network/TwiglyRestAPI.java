@@ -25,6 +25,7 @@ public interface TwiglyRestAPI {
 
     //String TWIGLYAPI_ENDPOINT = "http://dev2.twigly.in/";
     String TWIGLYAPI_ENDPOINT = (BuildConfig.DEBUG)?"http://dev2.twigly.in/":"https://www.twigly.in/";
+    //String TWIGLYAPI_ENDPOINT = "https://www.twigly.in/";
 
 
     @GET("/employees/signup")
@@ -46,6 +47,8 @@ public interface TwiglyRestAPI {
                                         @Field("lat") double lat,
                                         @Field("lng") double lng,
                                         @Field("acc") double acc,
+                                        @Field("bat") double bat,
+                                        @Field("time") double time,
                                         @Field("pending_collected") boolean pendingCollected);
 
     @FormUrlEncoded
@@ -53,6 +56,8 @@ public interface TwiglyRestAPI {
     Observable<ServerResponse> updateDeviceInfo(@Field("lat") double lat,
                                           @Field("lng") double lng,
                                           @Field("acc") double accuracy,
+                                          @Field("speed") double speed,
+                                          @Field("time") long time,
                                           @Field("battery") double battery);
 
     @GET("/db/reached")

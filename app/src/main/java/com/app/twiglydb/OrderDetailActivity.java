@@ -74,10 +74,6 @@ public class OrderDetailActivity extends BaseActivity {
 
 
     private EzTapServices ez;
-    private CompositeSubscription subscriptions = new CompositeSubscription();
-    private TwiglyRestAPI api = TwiglyRestAPIBuilder.buildRetroService();
-
-    private int position;
 
     @BindView(R.id.order_detail_layout) LinearLayout orderDetailLayout;
     @BindView(R.id.detail_recycler_view) RecyclerView mRecyclerView;
@@ -374,10 +370,6 @@ Eventbus specific---------------------------------------------------------
     protected void onResume(){
         super.onResume();
 
-        if (mGoogleApiClient.isConnected() && mRequestingLocationUpdates) {
-            startLocationUpdates();
-        }
-
         if(checkProgress.getVisibility() == View.VISIBLE){
             checkProgress.setVisibility(View.GONE);
             if(order.isCheckedIn){
@@ -467,21 +459,11 @@ Eventbus specific---------------------------------------------------------
         cardCashLayout.setVisibility(View.GONE);
         checkProgress.setVisibility(View.VISIBLE);
 
-        double lat=0, lng=0, acc=0;
-        try {
-            mCurrentLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
-        } catch (Exception ex) {
-            Timber.d("unable to load location");
-        }
-        if (mCurrentLocation!= null) {
-            lat = mCurrentLocation.getLatitude();
-            lng = mCurrentLocation.getLongitude();
-            acc = mCurrentLocation.getAccuracy();
-        }
-
         // iff async-call (done to twigly server)successful, use lambda to call setOrderDone
         subscriptions.add( NetworkRequest.performAsyncRequest(
-                api.markDone(mode, order.getOrderId(), lat, lng, acc, order.shouldCollectPending()),
+                api.markDone(mode, order.getOrderId(),
+                        lat, lng, acc, bat, location_update_time,
+                        order.shouldCollectPending()),
                 (data) -> {
                     if(ServerResponseCode.valueOf(data.code) == ServerResponseCode.OK) {
                         checkProgress.setVisibility(View.GONE);
@@ -554,35 +536,12 @@ Eventbus specific---------------------------------------------------------
                 }));
     }
 
-    @Override
-    public void onConnected(Bundle bundle){
-        checkLocationSettings();
-        int permissionCheck = ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION);
-        if(permissionCheck == PackageManager.PERMISSION_GRANTED && mCurrentLocation == null){
-            mCurrentLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
-        }
-    }
-
-    // Invoked when SettingsApi#checkLocationSettings is called
-    @Override
-    public void onResult(LocationSettingsResult locationSettingsResult) {
-        getStatus(locationSettingsResult);
-    }
-
-    @Override
-    public void onConnectionSuspended(int i) {
-
-    }
-
-    @Override
-    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-
-    }
-
     // Disable volume button
     private final List blockedKeys = new ArrayList(Arrays.asList(KeyEvent.KEYCODE_VOLUME_DOWN, KeyEvent.KEYCODE_VOLUME_UP));
+    private boolean disableKeys = false;
     @Override
     public boolean dispatchKeyEvent(KeyEvent event) {
+        if (!disableKeys) return super.dispatchKeyEvent(event);
         //return blockedKeys.contains(event.getKeyCode()) || super.dispatchKeyEvent(event);
         if (blockedKeys.contains(event.getKeyCode())) {
             return true;

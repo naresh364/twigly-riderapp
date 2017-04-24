@@ -95,17 +95,6 @@ public class DeliveryBoy {
         this.rating = rating;
     }
 
-    public void updateDeviceInfo(double lat, double lng, double acc, int battery) {
-        subscriptions.add(NetworkRequest.performAsyncRequest(
-                api.updateDeviceInfo(lat, lng, acc, battery),
-                (data) -> {
-                    if(ServerResponseCode.valueOf(data.code) == ServerResponseCode.OK) {
-                    }
-                }, (error) -> {
-                }));
-
-    }
-
     public void dbCalled(String mob) {
         subscriptions.add(NetworkRequest.performAsyncRequest(
                 api.dbCalled(mob),

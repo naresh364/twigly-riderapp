@@ -13,7 +13,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Naresh Kumar"
-        android:textSize="@dimen/big"
+        android:textSize="18sp"
     />
 
     <TextView
@@ -50,19 +50,7 @@
         android:layout_marginBottom="4dp"
         >
         <TextView
-            android:id="@+id/address"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:spinnerMode="dialog"
-            android:maxLines="10"
-            android:text="Address"
-            android:textSize="@dimen/normal"
-            android:layout_marginTop="16dp"
-            />
-
-        <TextView
             android:id="@+id/cart_price"
-            android:layout_alignParentRight="true"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="200.00"
@@ -74,14 +62,26 @@
 
         <TextView
             android:id="@+id/delivery_time"
-            android:layout_below="@+id/cart_price"
             android:layout_alignParentRight="true"
+            android:layout_alignBaseline="@+id/cart_price"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="25 Minutes"
-            android:textColor="@color/style_color_primary"
-            android:textSize="@dimen/big"
+            android:textColor="@color/style_color_accent"
+            android:textSize="16sp"
             />
+        <TextView
+            android:id="@+id/address"
+            android:layout_below="@+id/cart_price"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:spinnerMode="dialog"
+            android:maxLines="10"
+            android:text="Address address addresss address\naddress address \n address address address\naddress"
+            android:textSize="@dimen/normal"
+            android:layout_marginTop="14dp"
+            />
+
     </RelativeLayout>
 
     <RelativeLayout

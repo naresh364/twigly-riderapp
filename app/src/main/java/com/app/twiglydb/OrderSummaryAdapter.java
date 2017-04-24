@@ -73,6 +73,7 @@ public class OrderSummaryAdapter extends RecyclerView.Adapter<OrderSummaryAdapte
         @BindView(R.id.navigate_button) public Button navigateButton;
         @BindView(R.id.divider2) public View divider2;
         @BindView(R.id.call_progress) public ProgressBar callProgress;
+        @BindView(R.id.mid_layout) public RelativeLayout mid_layout;
 
         public OrderViewHolder(View v) {
             super(v);
@@ -142,9 +143,7 @@ public class OrderSummaryAdapter extends RecyclerView.Adapter<OrderSummaryAdapte
 
         holder.customer_name.setOnClickListener(view -> GoToDetails(order, holder));
         holder.orderId.setOnClickListener(view -> GoToDetails(order, holder));
-        holder.address.setOnClickListener(view -> GoToDetails(order, holder));
-        holder.cartPrice.setOnClickListener(view -> GoToDetails(order, holder));
-        holder.deliveryTime.setOnClickListener(view -> GoToDetails(order, holder));
+        holder.mid_layout.setOnClickListener(view -> GoToDetails(order, holder));
 
         if (order.getLat() == 0 || order.getLng() == 0) {
             holder.navigateButton.setVisibility(View.GONE);

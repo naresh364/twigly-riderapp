@@ -166,9 +166,9 @@ public class OrderSummaryActivity extends BaseActivity {/*implements XYZinterfac
 
         scheduleTaskExecutor.scheduleAtFixedRate(new Runnable() {
             public void run() {
-                sendLocationUpdate();
+                //sendLocationUpdate();
             }
-        }, 0, 5, TimeUnit.MINUTES);
+        }, 0, 1, TimeUnit.MINUTES);
     }
 
     @Override
@@ -182,10 +182,13 @@ public class OrderSummaryActivity extends BaseActivity {/*implements XYZinterfac
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         orderSummaryAdapter.onActivityResult(requestCode, resultCode, data);
+        int numOrdersAfter = DeliveryBoy.getInstance().getAssignedOrders().size();
+        if (numOrdersAfter ==  0){
+            sendLocationUpdate();
+        }
     }
 
-    Date lastUpdate = new Date();
-    long onJobRepeat = 5*60;
+    long onJobRepeat = 1*60;
     long offJobRepeat = 30*60;
 
     private long getLocationUpdateDelay() {
@@ -197,12 +200,12 @@ public class OrderSummaryActivity extends BaseActivity {/*implements XYZinterfac
 
     private void sendLocationUpdate() {
         long delay = getLocationUpdateDelay();
-        long timeSpent = (new Date()).getTime() - lastUpdate.getTime();
-        if (timeSpent < delay) return;
+        //long timeSpent = (new Date()).getTime() - lastUpdate.getTime();
+        //if (timeSpent < delay) return;
 
         Intent intent = new Intent("GPSLocationUpdates");
         // You can also include some extra data.
-        intent.putExtra("updateInterval", 0);
+        intent.putExtra("updateInterval", delay);
         LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
     }
 
@@ -216,7 +219,6 @@ public class OrderSummaryActivity extends BaseActivity {/*implements XYZinterfac
             //finish();
         }
 
-        TwiglyRestAPI api = TwiglyRestAPIBuilder.buildRetroService();
         subscriptions.add(NetworkRequest.performAsyncRequest(
                 api.getVersionInfo(),
                 info -> {
@@ -270,13 +272,13 @@ public class OrderSummaryActivity extends BaseActivity {/*implements XYZinterfac
         registerReceiver(eventReceiver, intentFilter);*/
     }
 
-// This schedule a runnable task every 2 minutes
     private void updateNoOrderView(){
         if (DeliveryBoy.getInstance().hasOrders()) {
             viewSwitcher.setDisplayedChild(0);
         } else {
             viewSwitcher.setDisplayedChild(1);
         }
+        sendLocationUpdate();
     }
 
     private void newOrderReceived(String message) {
@@ -299,26 +301,6 @@ public class OrderSummaryActivity extends BaseActivity {/*implements XYZinterfac
         } catch (Exception ex) {
             Timber.e("Unable to convert the order");
         }
-    }
-
-    @Override
-    public void onConnected(Bundle bundle) {
-
-    }
-
-    @Override
-    public void onConnectionSuspended(int i) {
-
-    }
-
-    @Override
-    public void onConnectionFailed(ConnectionResult connectionResult) {
-
-    }
-
-    @Override
-    public void onResult(LocationSettingsResult locationSettingsResult) {
-
     }
 
     public class OrderWrapper {
