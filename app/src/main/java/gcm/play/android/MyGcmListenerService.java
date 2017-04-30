@@ -103,14 +103,7 @@ public class MyGcmListenerService extends GcmListenerService {
             RxBus.INSTANCE.post(data);
         } else if (type.equals("update_interval")){
             //timeout
-            try {
-                Gson gson = new Gson();
-                JsonObject jsonObject = gson.fromJson(message, JsonObject.class);
-                long interval = jsonObject.get("update_interval").getAsLong();
-                sendMessageToActivity(interval);
-            } catch (Exception ex) {
-
-            }
+            RxBus.INSTANCE.post(data);
         } else if (type.equals("location")) {
             sendMessageToActivity(0);
         } else {

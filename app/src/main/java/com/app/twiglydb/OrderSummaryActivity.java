@@ -3,18 +3,13 @@ package com.app.twiglydb;
 import android.Manifest;
 import android.app.DownloadManager;
 import android.content.BroadcastReceiver;
-import android.content.ContentProviderOperation;
-import android.content.ContentProviderResult;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.OperationApplicationException;
 import android.graphics.PixelFormat;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
-import android.os.RemoteException;
-import android.provider.ContactsContract;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.widget.SwipeRefreshLayout;
@@ -48,6 +43,7 @@ import com.app.twiglydb.network.TwiglyRestAPIBuilder;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.location.LocationSettingsResult;
 import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -152,6 +148,28 @@ public class OrderSummaryActivity extends BaseActivity {/*implements XYZinterfac
             String type = bundle.getString("title");
             if (type != null && type.equalsIgnoreCase("order")) {
                 newOrderReceived(bundle.getString("msg"));
+            } else if (type != null && type.equals("update_interval")) {
+                Gson gson = new Gson();
+                try {
+                    JsonObject jsonObject = gson.fromJson(bundle.getString("msg"), JsonObject.class);
+                    long interval = jsonObject.get("update_interval").getAsLong();
+                    long offjobinterval = jsonObject.get("off_job_interval").getAsLong();
+                    if (interval == 0 && offjobinterval == 0) {
+                        //it is just a location request
+                        sendLocationUpdate();
+                        return;
+                    }
+
+                    if (interval < 30*1000) interval = 30*1000;
+                    if (offjobinterval < 120*1000) offjobinterval = 120*1000;
+                    if (onJobRepeat != interval || offjobinterval != offjobinterval) {
+                        onJobRepeat = interval;
+                        offJobRepeat = offjobinterval;
+                        sendLocationUpdate();
+                    }
+                } catch (Exception ex) {
+
+                }
             }
         }));
 
@@ -188,8 +206,8 @@ public class OrderSummaryActivity extends BaseActivity {/*implements XYZinterfac
         }
     }
 
-    long onJobRepeat = 1*60;
-    long offJobRepeat = 30*60;
+    static long onJobRepeat = 1*60*1000;
+    static long offJobRepeat = 10*60*1000;
 
     private long getLocationUpdateDelay() {
         int numJobs = DeliveryBoy.getInstance().getAssignedOrders().size();
@@ -218,6 +236,20 @@ public class OrderSummaryActivity extends BaseActivity {/*implements XYZinterfac
             //subscriptions.clear();
             //finish();
         }
+        subscriptions.add(NetworkRequest.performAsyncRequest(
+                api.getLocationParams(),
+                params -> {
+                    long onJob = params.getUpdateInterval();
+                    long offJob = params.getOffJobInterval();
+                    if (onJob != onJobRepeat || offJob != offJobRepeat) {
+                        onJobRepeat = onJob;
+                        offJobRepeat = offJob;
+                        sendLocationUpdate();
+                    }
+                }, e -> {
+
+                }
+        ));
 
         subscriptions.add(NetworkRequest.performAsyncRequest(
                 api.getVersionInfo(),

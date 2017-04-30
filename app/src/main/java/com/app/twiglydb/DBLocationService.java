@@ -39,7 +39,7 @@ public class DBLocationService extends Service implements
     /**
      * The desired interval for location updates. Inexact. Updates may be more or less frequent.
      */
-    public static final long UPDATE_INTERVAL_IN_MILLISECONDS = 30*60*1000l;
+    public static final long UPDATE_INTERVAL_IN_MILLISECONDS = 10*1000l;
     public static final long FASTETST_UPDATE_INTERVAL_IN_MILLISECONDS = 20*1000l;
     public static final long SERVER_CALL_INTERVAL = 5*1000l;
 
@@ -246,8 +246,8 @@ public class DBLocationService extends Service implements
         @Override
         public void onReceive(Context context, Intent intent) {
             // Get extra data included in the Intent
-            long updateInterval = intent.getLongExtra("updateInterval", UPDATE_INTERVAL_IN_MILLISECONDS);
-            updateInterval = (updateInterval <= 30) ? UPDATE_INTERVAL_IN_MILLISECONDS : updateInterval*1000;
+            long updateInterval = intent.getLongExtra("updateInterval", FASTETST_UPDATE_INTERVAL_IN_MILLISECONDS);
+            updateInterval = (updateInterval <= FASTETST_UPDATE_INTERVAL_IN_MILLISECONDS) ? FASTETST_UPDATE_INTERVAL_IN_MILLISECONDS: updateInterval;
             createLocationRequest(updateInterval);
         }
     };

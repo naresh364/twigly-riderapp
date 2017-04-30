@@ -40,8 +40,8 @@ android {
         applicationId "com.app.twiglydb"
         minSdkVersion 16
         targetSdkVersion 23
-        versionCode 10
-        versionName "0.0.11"
+        versionCode 13
+        versionName "0.0.13"
         multiDexEnabled true
     }
     buildTypes {

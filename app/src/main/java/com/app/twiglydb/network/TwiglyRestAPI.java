@@ -2,6 +2,7 @@ package com.app.twiglydb.network;
 
 import com.app.twiglydb.BuildConfig;
 import com.app.twiglydb.models.DeliveryBoy;
+import com.app.twiglydb.models.LocationParamas;
 import com.app.twiglydb.models.Order;
 import com.app.twiglydb.models.Summary;
 import com.app.twiglydb.models.Version;
@@ -84,4 +85,6 @@ public interface TwiglyRestAPI {
     @GET("/assets/static/dbapp/dbapp_data")
     Observable<Version> getVersionInfo();
 
+    @GET("/db/location/params")
+    Observable<LocationParamas> getLocationParams();
 }
