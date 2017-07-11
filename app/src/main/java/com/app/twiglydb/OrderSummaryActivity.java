@@ -160,8 +160,8 @@ public class OrderSummaryActivity extends BaseActivity {/*implements XYZinterfac
                         return;
                     }
 
-                    if (interval < 30*1000) interval = 30*1000;
-                    if (offjobinterval < 120*1000) offjobinterval = 120*1000;
+                    if (interval < 10*1000) interval = 10*1000;
+                    if (offjobinterval < 20*1000) offjobinterval = 20*1000;
                     if (onJobRepeat != interval || offjobinterval != offjobinterval) {
                         onJobRepeat = interval;
                         offJobRepeat = offjobinterval;

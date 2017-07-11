@@ -119,13 +119,14 @@ public abstract class BaseActivity extends AppCompatActivity implements GoogleAp
         @Override
         public void onReceive(Context context, Intent intent) {
             // Get extra data included in the Intent
-            lat = intent.getDoubleExtra("lat", 0f);
-            lng = intent.getDoubleExtra("lng", 0f);
-            acc = intent.getDoubleExtra("acc", 0f);
+            lat = intent.getDoubleExtra("lat", 0d);
+            lng = intent.getDoubleExtra("lng", 0d);
+            acc = intent.getDoubleExtra("acc", 0d);
             bat = intent.getFloatExtra("bat", 0f);
-            speed = intent.getDoubleExtra("speed", 0f);
+            speed = intent.getDoubleExtra("speed", 0d);
             location_update_time = intent.getLongExtra("time", 0);
             if (location_update_time - last_update < update_delay) return;
+            Timber.d("Location update sent : "+lat+", "+lng+", "+acc+", "+speed +", "+bat);
             last_update = location_update_time;
             api.updateDeviceInfo(lat, lng, acc,
                     speed, location_update_time, bat);
@@ -221,6 +222,9 @@ public abstract class BaseActivity extends AppCompatActivity implements GoogleAp
             case REQUEST_CHECK_SETTINGS:
                 switch (resultCode) {
                     case Activity.RESULT_OK:
+                        if (mGoogleApiClient.isConnected()) {
+                            mGoogleApiClient.disconnect();
+                        }
                         break;
                     case Activity.RESULT_CANCELED:
                         settingsrequest();//keep asking if imp or do whatever
