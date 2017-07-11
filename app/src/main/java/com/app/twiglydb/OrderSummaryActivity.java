@@ -182,11 +182,6 @@ public class OrderSummaryActivity extends BaseActivity {/*implements XYZinterfac
             }
         });
 
-        scheduleTaskExecutor.scheduleAtFixedRate(new Runnable() {
-            public void run() {
-                //sendLocationUpdate();
-            }
-        }, 0, 1, TimeUnit.MINUTES);
     }
 
     @Override
@@ -204,27 +199,6 @@ public class OrderSummaryActivity extends BaseActivity {/*implements XYZinterfac
         if (numOrdersAfter ==  0){
             sendLocationUpdate();
         }
-    }
-
-    static long onJobRepeat = 1*60*1000;
-    static long offJobRepeat = 10*60*1000;
-
-    private long getLocationUpdateDelay() {
-        int numJobs = DeliveryBoy.getInstance().getAssignedOrders().size();
-        long delay = offJobRepeat;
-        if (numJobs > 0) delay = onJobRepeat;
-        return delay;
-    }
-
-    private void sendLocationUpdate() {
-        long delay = getLocationUpdateDelay();
-        //long timeSpent = (new Date()).getTime() - lastUpdate.getTime();
-        //if (timeSpent < delay) return;
-
-        Intent intent = new Intent("GPSLocationUpdates");
-        // You can also include some extra data.
-        intent.putExtra("updateInterval", delay);
-        LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
     }
 
     @Override
@@ -256,41 +230,41 @@ public class OrderSummaryActivity extends BaseActivity {/*implements XYZinterfac
                 info -> {
                     exitCode = info.getPassword();
                     if(info.getVersion() > BuildConfig.VERSION_CODE){
-                        final Uri dlUri = Uri.parse(info.getUrl());
+                        //final Uri dlUri = Uri.parse(info.getUrl());
 
-                        String PATH = Environment.getExternalStoragePublicDirectory (Environment.DIRECTORY_DOWNLOADS) + "/" + dlUri.getLastPathSegment();
-                        final Uri uri = Uri.parse("file://" + PATH);
+                        //String PATH = Environment.getExternalStoragePublicDirectory (Environment.DIRECTORY_DOWNLOADS) + "/" + dlUri.getLastPathSegment();
+                        //final Uri uri = Uri.parse("file://" + PATH);
 
-                        //Delete update file if exists
-                        File file = new File(PATH);
-                        if(file.exists()) file.delete();
+                        ////Delete update file if exists
+                        //File file = new File(PATH);
+                        //if(file.exists()) file.delete();
 
-                        //set download manager
-                        DownloadManager.Request request = new DownloadManager.Request(dlUri);
+                        ////set download manager
+                        //DownloadManager.Request request = new DownloadManager.Request(dlUri);
 
-                        //set destination
-                        request.setDestinationUri(uri);
+                        ////set destination
+                        //request.setDestinationUri(uri);
 
-                        // get download service and enqueue file
-                        final DownloadManager manager = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
-                        final long downloadId = manager.enqueue(request);
+                        //// get download service and enqueue file
+                        //final DownloadManager manager = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
+                        //final long downloadId = manager.enqueue(request);
 
-                        //set BroadcastReceiver to install app when .apk is downloaded
-                        BroadcastReceiver onComplete = new BroadcastReceiver() {
-                            public void onReceive(Context ctxt, Intent intent) {
-                                Intent install = new Intent(Intent.ACTION_VIEW);
-                                install.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                                install.setDataAndType(uri, "application/vnd.android.package-archive");
-                                //manager.getMimeTypeForDownloadedFile(downloadId));
-                                startActivity(install);
-                                unregisterReceiver(this);
-                                subscriptions.clear();
-                                finish();
-                            }
-                        };
+                        ////set BroadcastReceiver to install app when .apk is downloaded
+                        //BroadcastReceiver onComplete = new BroadcastReceiver() {
+                        //    public void onReceive(Context ctxt, Intent intent) {
+                        //        Intent install = new Intent(Intent.ACTION_VIEW);
+                        //        install.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                        //        install.setDataAndType(uri, "application/vnd.android.package-archive");
+                        //        //manager.getMimeTypeForDownloadedFile(downloadId));
+                        //        startActivity(install);
+                        //        unregisterReceiver(this);
+                        //        subscriptions.clear();
+                        //        finish();
+                        //    }
+                        //};
 
-                        //register receiver for when .apk download is compete
-                        registerReceiver(onComplete, new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE));
+                        ///register receiver for when .apk download is compete
+                        //registerReceiver(onComplete, new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE));
                     }
 
                 }, e -> {
