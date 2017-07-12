@@ -40,7 +40,7 @@
                     android:layout_height="wrap_content"
                     android:hint="@string/prompt_mobile"
                     android:textColor="@color/black_semi_transparent_60"
-                    android:inputType="textEmailAddress"
+                    android:inputType="number"
                     android:maxLines="1"
                     android:singleLine="true" />
 

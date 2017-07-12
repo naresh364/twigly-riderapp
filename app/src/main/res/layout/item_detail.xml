@@ -2,30 +2,44 @@
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/item_detail"
-    android:layout_width="match_parent"
-    android:layout_height="50dp"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
     android:background="@color/white"
     android:orientation="horizontal">
 
-    <Button
-        android:id="@+id/item_quantity"
-        android:background="@drawable/food_item_count_back"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
-        android:textSize="@dimen/normal"
-        android:layout_gravity="center"
-        android:clickable="false"
-        android:textColor="@color/white"
-        android:text="9"/>
-
     <TextView
         android:id="@+id/item_name"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_weight="1"
         android:layout_gravity="center_vertical"
         android:layout_marginLeft="10dp"
         android:maxLines="2"
-        android:textSize="@dimen/normal"
-        android:text="asdf"/>
+        android:textSize="16sp"
+        android:text="pesto cottage cheese and sundried tomato sandwich"/>
+
+    <TextView
+        android:id="@+id/item_quantity"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_vertical"
+        android:clickable="false"
+        android:textColor="@color/style_color_accent"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:text="x 9"
+        />
+
+
+    <android.support.v7.widget.AppCompatCheckBox
+        android:id="@+id/verified"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_vertical"
+        android:layout_marginLeft="8dp"
+        android:layout_marginRight="8dp"
+        android:foregroundTint="@color/style_color_primary"
+        android:buttonTint="@color/style_color_primary"
+        />
 
 </LinearLayout>

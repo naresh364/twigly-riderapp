@@ -46,8 +46,8 @@ public class RegistrationIntentService extends IntentService {
     @Override
     protected void onHandleIntent(Intent intent) {
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-        if (sharedPreferences.getBoolean(QuickstartPreferences.SENT_TOKEN_TO_SERVER, false ||
-                DeliveryBoy.getInstance().getName() == null)){
+        if (sharedPreferences.getBoolean(QuickstartPreferences.SENT_TOKEN_TO_SERVER, false) ||
+                DeliveryBoy.getInstance().getName() == null){
             //no need to resend
             return;
         }

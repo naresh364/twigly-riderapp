@@ -47,9 +47,6 @@ public class OrderSummaryAdapter extends RecyclerView.Adapter<OrderSummaryAdapte
 
     List<Order> orders;
     Context context;
-    private Subscription getPostSubscription;
-    private CompositeSubscription subscriptions = new CompositeSubscription();
-    private int pos;
 
     //private XYZinterface xyzListener;
     public OrderSummaryAdapter(Context context, List<Order> orders) {
@@ -113,7 +110,6 @@ public class OrderSummaryAdapter extends RecyclerView.Adapter<OrderSummaryAdapte
         if(pending != 0){
             isPending = "*";
         }
-        pos = position;
 
         holder.customer_name.setText(order.getName());
         holder.customer_name.setTextColor(Color.parseColor("#009688"));
@@ -152,90 +148,27 @@ public class OrderSummaryAdapter extends RecyclerView.Adapter<OrderSummaryAdapte
             holder.navigateButton.setVisibility(View.VISIBLE);
         }
     }
-/*
-    @Override
-    public void onClick(View v) {
-        final int viewId = v.getId();
-
-        OrderViewHolder ovh = (OrderViewHolder)v.getTag();
-        if (ovh == null) return;
-
-        Order order = orders.get(ovh.getAdapterPosition());
-
-        if (viewId == R.id.call_button) {
-            //call the customer
-            String uri = "tel:" + orders.get(ovh.getLayoutPosition()).getMobileNumber().trim() ;
-            Intent intent = new Intent(Intent.ACTION_CALL);
-            intent.setData(Uri.parse(uri));
-            if (Utils.mayRequestPermission(context, Manifest.permission.CALL_PHONE)) {
-                context.startActivity(intent);
-            }
-            return;
-        }
-
-        if (viewId == R.id.navigate_button) {
-            Uri gmmIntentUri = Uri.parse("google.navigation:q=" + order.getLat() + ","+order.getLng());
-            Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
-            mapIntent.setPackage("com.google.android.apps.maps");
-            context.startActivity(mapIntent);
-            return;
-        }
-
-        if (viewId == R.id.checkin_button) {
-            checkIn(ovh, order);
-        }
-
-    }*/
-
     private final int REQUESTCODE_ORDERDONE = 0;
-    /*private void GoToDetails(OrderViewHolder ovh) {
-        //get the updated details of orders
-        ovh.showProgress(true);
-        TwiglyRestAPI api = TwiglyRestAPIBuilder.buildRetroService();
-        // iff async-call (done to twigly server)successful, use lambda to call GoToDetails
-        subscriptions.add(NetworkRequest.performAsyncRequest(
-                api.getOrders(),
-                (orders) -> {
-                    ovh.showProgress(false);
-                    Intent i = OrderDetailActivity.newIntent(context, orders.get(ovh.getAdapterPosition()));
-                    ((Activity)context).startActivityForResult(i, REQUESTCODE_ORDERDONE);
-                }, (error) -> {
-                    // Handle all errors at one place
-                    getPostSubscription = null;
 
-                }));
-
-        //RxBus.getInstance().post(order);
-        //EventBus.getDefault().postSticky(order);
-        //((Activity)context).startActivityForResult(new Intent(context, OrderDetailActivity.class), REQUESTCODE_ORDERDONE);
-
-    }*/
     private void GoToDetails(Order order, OrderViewHolder ovh){
         Timber.i("DB selected an order detail");
-        if(!order.isCheckedIn) order.isCheckedIn = mOrderCheckedIn;
-        Intent i = OrderDetailActivity.newIntent(context, order, ovh.getAdapterPosition());
+        Intent i = OrderDetailActivity.newIntent(context, order.getOrderId(), ovh.getAdapterPosition());
         ((Activity)context).startActivityForResult(i, REQUESTCODE_ORDERDONE);
     }
 
     private int mOrderDone;
-    private boolean mOrderCheckedIn = false;
     protected void onActivityResult(int requestCode, int resultCode, Intent data){
         if (resultCode != Activity.RESULT_OK) return;
         if (requestCode == REQUESTCODE_ORDERDONE) {
             if (data == null) {
                 return;
             }
-            mOrderCheckedIn = OrderDetailActivity.wasOrderCheckedIn(data);
             mOrderDone = OrderDetailActivity.wasOrderDone(data);
             if(mOrderDone >= 0){
                 orders.remove(mOrderDone);
                 notifyDataSetChanged();
             }
         }
-    }
-
-    public void onStop(){
-        if(getPostSubscription != null) getPostSubscription.unsubscribe();
     }
 
     public int getOrderStatus(){

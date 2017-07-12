@@ -56,7 +56,7 @@ dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
     testCompile 'junit:junit:4.12'
     apt 'com.jakewharton:butterknife-compiler:8.1.0'
-    compile files('libs/EzetapAndroidSDK-Cordova1.0.7.jar')
+    compile files('libs/EzetapAndroidSDK-v1.0.12.jar')
     compile('com.crashlytics.sdk.android:crashlytics:2.6.1@aar') {
         transitive = true;
     }

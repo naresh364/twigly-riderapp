@@ -314,13 +314,6 @@ public class OrderSummaryActivity extends BaseActivity {/*implements XYZinterfac
     }
 
     @Override
-    protected void onStop(){
-        super.onStop();
-        orderSummaryAdapter.onStop();
-
-    }
-
-    @Override
     protected void onPause() {
         super.onPause();
         if (eventReceiver != null) unregisterReceiver(eventReceiver);

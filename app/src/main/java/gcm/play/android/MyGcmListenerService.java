@@ -40,6 +40,7 @@ import android.support.v4.app.NotificationCompat;
 
 import com.app.twiglydb.OrderSummaryActivity;
 import com.app.twiglydb.R;
+import com.app.twiglydb.SplashScreenActivity;
 import com.app.twiglydb.models.TwiglyDBSharedPreference;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.PendingResult;
@@ -129,7 +130,7 @@ public class MyGcmListenerService extends GcmListenerService {
     private void sendNotification(String message) {
         Intent intent = new Intent(this, OrderSummaryActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0 , intent, PendingIntent.FLAG_ONE_SHOT);
+        PendingIntent pendingIntent = PendingIntent.getActivity(this, 1, intent, 0);
 
         Uri defaultSoundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
         NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this)
@@ -137,8 +138,9 @@ public class MyGcmListenerService extends GcmListenerService {
                 .setContentTitle("New Message")
                 .setContentText(message)
                 .setAutoCancel(true)
-                .setSound(defaultSoundUri);
-                //.setContentIntent(pendingIntent);
+                .setSound(defaultSoundUri)
+                .setContentIntent(pendingIntent);
+
 
         NotificationManager notificationManager =
                 (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);

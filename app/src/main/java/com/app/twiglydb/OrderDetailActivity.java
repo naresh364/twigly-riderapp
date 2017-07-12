@@ -4,16 +4,10 @@ import android.Manifest;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.graphics.Canvas;
 import android.graphics.Color;
-import android.location.Location;
-import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Bundle;
-import android.provider.CallLog;
-import android.support.annotation.NonNull;
-import android.support.v4.content.ContextCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.LinearLayoutManager;
@@ -26,7 +20,6 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
-import android.webkit.WebView;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.ImageButton;
@@ -40,11 +33,6 @@ import com.app.twiglydb.models.DeliveryBoy;
 import com.app.twiglydb.models.Order;
 import com.app.twiglydb.network.NetworkRequest;
 import com.app.twiglydb.network.ServerResponseCode;
-import com.app.twiglydb.network.TwiglyRestAPI;
-import com.app.twiglydb.network.TwiglyRestAPIBuilder;
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.location.LocationSettingsResult;
 
 //import org.greenrobot.eventbus.EventBus;
 //import org.greenrobot.eventbus.Subscribe;
@@ -57,10 +45,9 @@ import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
-import rx.subscriptions.CompositeSubscription;
 import timber.log.Timber;
 
-public class OrderDetailActivity extends BaseActivity {
+public class OrderDetailActivity extends BaseActivity implements ItemDetailAdapter.AllItemChecked{
     private Order order;
     private String ezTxnId = null;
     private final int REQUESTCODE_INIT = 10001;
@@ -98,20 +85,6 @@ public class OrderDetailActivity extends BaseActivity {
 
     @BindView(R.id.my_toolbar) Toolbar myToolbar;
     @BindView(R.id.text_toolbar) TextView textToolbar;
-/*
-    @OnClick(R.id.card_payment_button)
-    public void cardPayment(){
-        eztapper();
-        if(ez.strTxnId != null){
-            MarkOrderDone(order, "Card");
-        }
-    }
-
-    @OnClick(R.id.cash_payment_button)
-    public void cashPayment(){
-        MarkOrderDone(order, "Cash");
-    }
-*/
 
     ItemDetailAdapter itemDetailAdapter;
     CheckinAdapter checkinAdapter;
@@ -126,14 +99,14 @@ public class OrderDetailActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         this.mContext = this;
         //EventBus.getDefault().register(this);
-        order = getIntent().getBundleExtra(INTENTEXTRA_ORDERDETAILS).getParcelable(INTENTEXTRA_PARCEL_ORDERDETAILS);
+        String oId = getIntent().getBundleExtra(INTENTEXTRA_ORDERDETAILS).getString(INTENTEXTRA_PARCEL_ORDERDETAILS);
+        for (Order o: DeliveryBoy.getInstance().getAssignedOrders()) {
+            if (o.getOrderId().equals(oId)) {
+                order = o;
+            }
+        }
+
         pos = getIntent().getBundleExtra(INTENTEXTRA_ORDERDETAILS).getInt(INTENTEXTRA_POSITION);
-        //subscriptions = new CompositeSubscription();
-        //Toast.makeText(OrderDetailActivity.this, order.getOrderStatus(), Toast.LENGTH_SHORT).show();
-        //Toast.makeText(OrderDetailActivity.this, ""+order.isCheckedIn, Toast.LENGTH_SHORT).show();
-        //subscriptions.add( RxBus.getInstance().register(Order.class, o1 -> {
-        //    order = o1;
-        //setTitle("TwiglyDB: " + DeliveryBoy.getInstance().getName());
 
         // disable lock screen
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD);
@@ -155,7 +128,6 @@ public class OrderDetailActivity extends BaseActivity {
         mRecyclerView.setFocusable(false);
         checkinView.bringToFront();
 
-        //TODO: repeated stuff-----------------------------------------------------------------------
         pending = order.getUserPendingBalance();
         if(pending != 0.0){
             checkbox_pending.setVisibility(View.VISIBLE);
@@ -182,8 +154,7 @@ public class OrderDetailActivity extends BaseActivity {
                         qrCode = order.getQrCode();
                         pendingAmount = 0;
                     }
-                    cardCashLayout.setVisibility(View.GONE);
-                    checkProgress.setVisibility(View.VISIBLE);
+                    setState(STATE.DELIVERED_IN_PROGRESS);
                     String amount = String.format("%.2f",order.getTotal()+pendingAmount);
                     String htmlqr = "<html> <div style=\"text-align:center;\"><div><h2> Amount : &#8377;"
                             +amount+" </h2></div>  <div><h3> Customer Name : "+order.getName()+
@@ -234,8 +205,7 @@ public class OrderDetailActivity extends BaseActivity {
         }
 
         if(order.isCheckedIn){
-            checkinView.setVisibility(View.GONE);
-            cardCashLayout.setVisibility(View.VISIBLE);
+            setState(STATE.CHECKED_IN);
             setCardCashListener();
         } else {
             checkinAdapter = new CheckinAdapter(this);
@@ -255,20 +225,7 @@ public class OrderDetailActivity extends BaseActivity {
 
                     @Override
                     public void onSwiped(RecyclerView.ViewHolder viewHolder, int swipeDir) {
-                        //Remove swiped item from list and notify the RecyclerView
-                        checkProgress.setVisibility(View.VISIBLE);
-                        //checkinAdapter.notifyDataSetChanged();
-                        /*if(mGoogleApiClient.isConnected()){
-                            checkLocationSettings();
-                        }
-                        LocationManager manager = (LocationManager) getSystemService(Context.LOCATION_SERVICE );
-                        if(manager.isProviderEnabled(LocationManager.GPS_PROVIDER)){*/
                         checkIn(order);
-                        /*} else {
-                            checkProgress.setVisibility(View.GONE);
-                            checkinAdapter.notifyItemChanged(0);
-                        }*/
-
                     }
 
                     @Override
@@ -287,11 +244,7 @@ public class OrderDetailActivity extends BaseActivity {
             itemTouchHelper.attachToRecyclerView(checkinView);
         }
 
-        //}));
-        /*
-        Eventbus -> register here in onCreate; rest of the code (from setContentView onwards) in @subscribe
-        RxBus & Intent -> subscribe here in onCreate
-         */
+        setState(STATE.START);
     }
 
     //TODO: setTag on buttons for common functions
@@ -335,36 +288,9 @@ public class OrderDetailActivity extends BaseActivity {
         });
 
         paidButton.setOnClickListener(click -> {
-            /*if(mGoogleApiClient.isConnected()){
-                checkLocationSettings();
-            }
-            LocationManager manager = (LocationManager) getSystemService(Context.LOCATION_SERVICE );
-            if(manager.isProviderEnabled(LocationManager.GPS_PROVIDER)){*/
-                MarkOrderDone(order, "Online");
-            //}
+            MarkOrderDone(order, "Online");
         });
     }
-/*
-Eventbus specific---------------------------------------------------------
-    @Subscribe(sticky = true, threadMode = ThreadMode.MAIN)
-    public void onEvent(Order o) {
-        // UI updates must run on MainThread
-        setContentView(R.layout.order_detail);
-        ButterKnife.bind(this);
-        order = o;
-        itemDetailAdapter = new ItemDetailAdapter(this, order.getOrderDetails());
-        LinearLayoutManager llm = new LinearLayoutManager(this);
-        llm.setAutoMeasureEnabled(true); // sets height for the recycler view
-        mRecyclerView.setAdapter(itemDetailAdapter);
-        mRecyclerView.setLayoutManager(llm);
-        mRecyclerView.setFocusable(false);
-    }
-
-    @Override
-    public void onStop() {
-        EventBus.getDefault().unregister(this);
-        super.onStop();
-    }*/
 
     @Override
     protected void onResume(){
@@ -378,10 +304,9 @@ Eventbus specific---------------------------------------------------------
                 checkinView.setVisibility(View.VISIBLE);
             }
         }
-
         // if ez-transaction is complete but server call to twigly failed, simply call markorderdone on clicking card
         if(ezTxnId != null){
-            cardButton.setOnClickListener((click) -> MarkOrderDone(order, "CardOD"));
+            MarkOrderDone(order, "CardOd");
         }
 
     }
@@ -414,8 +339,7 @@ Eventbus specific---------------------------------------------------------
                         }, (error) -> {
                             //TODO: alert dialog and  option to call
                             Toast.makeText(OrderDetailActivity.this, "Order Status Update Failed", Toast.LENGTH_LONG).show();
-                            checkProgress.setVisibility(View.GONE);
-                            cardCashLayout.setVisibility(View.VISIBLE);
+                            setState(STATE.CHECKED_IN);
                         }));
 
 
@@ -444,8 +368,7 @@ Eventbus specific---------------------------------------------------------
                         e.printStackTrace();
                     }
                 } else {
-                    checkProgress.setVisibility(View.GONE);
-                    cardCashLayout.setVisibility(View.VISIBLE);
+                    setState(STATE.CHECKED_IN);
                 }
                 break;
             default:
@@ -456,8 +379,7 @@ Eventbus specific---------------------------------------------------------
     // saving location on markdone, not checkin
     private void MarkOrderDone(final Order order, String mode) {
         Timber.i("DB delivered");
-        cardCashLayout.setVisibility(View.GONE);
-        checkProgress.setVisibility(View.VISIBLE);
+        setState(STATE.DELIVERED_IN_PROGRESS);
 
         // iff async-call (done to twigly server)successful, use lambda to call setOrderDone
         subscriptions.add( NetworkRequest.performAsyncRequest(
@@ -466,7 +388,7 @@ Eventbus specific---------------------------------------------------------
                         order.shouldCollectPending()),
                 (data) -> {
                     if(ServerResponseCode.valueOf(data.code) == ServerResponseCode.OK) {
-                        checkProgress.setVisibility(View.GONE);
+                        setState(STATE.DELIVERED);
                         setOrderDone(pos);
                     }
                 }, (error) -> {
@@ -474,17 +396,15 @@ Eventbus specific---------------------------------------------------------
                     //getPostSubscription = null;
                     //TODO: alert dialog and  option to call
                     Toast.makeText(OrderDetailActivity.this, "Order Status Update Failed", Toast.LENGTH_LONG).show();
-                    checkProgress.setVisibility(View.GONE);
-                    cardCashLayout.setVisibility(View.VISIBLE);
-
+                    setState(STATE.CHECKED_IN);
                 }));
     }
 
     // OrderSummaryAdapter calls this function to start OrderDetailActivity
-    public static Intent newIntent(Context packageContext, Order o, int position) {
+    public static Intent newIntent(Context packageContext, String orderId, int position) {
         Intent i = new Intent(packageContext, OrderDetailActivity.class);
         Bundle b = new Bundle();
-        b.putParcelable(INTENTEXTRA_PARCEL_ORDERDETAILS, o);
+        b.putString(INTENTEXTRA_PARCEL_ORDERDETAILS, orderId);
         b.putInt(INTENTEXTRA_POSITION, position);
         i.putExtra(INTENTEXTRA_ORDERDETAILS, b);
         return i;
@@ -518,17 +438,17 @@ Eventbus specific---------------------------------------------------------
     private void checkIn(final Order order) {
         Timber.i("DB checking in");
         // iff async-call (done to twigly server)successful, use lambda to call GoToDetails
+        setState(STATE.CHECK_IN_PROGRESS);
         subscriptions.add(NetworkRequest.performAsyncRequest(
                 api.reachedDestination(order.getOrderId()),
                 (data) -> {
                     setOrderCheckedin(true);
-                    checkProgress.setVisibility(View.GONE);
-                    checkinView.setVisibility(View.GONE);
-                    cardCashLayout.setVisibility(View.VISIBLE);
+                    setState(STATE.CHECKED_IN);
                     setCardCashListener();
                     order.isCheckedIn = true;
+                    itemDetailAdapter.checkboxEnable(true);
                 }, (error) -> {
-                    checkProgress.setVisibility(View.GONE);
+                    setState(STATE.START);
                     Toast.makeText(OrderDetailActivity.this, "chekin fail", Toast.LENGTH_LONG).show();
                     checkinAdapter.notifyItemChanged(0);
                     // Handle error
@@ -604,9 +524,7 @@ Eventbus specific---------------------------------------------------------
              paidButton.setVisibility(View.GONE);
              cardButton.setVisibility(View.VISIBLE);
              cashButton.setVisibility(View.VISIBLE);
-
          }
-
     }
 
     private String getOrderTotal(boolean includePending) {
@@ -618,4 +536,61 @@ Eventbus specific---------------------------------------------------------
         return orderValue;
     }
 
+    boolean itemsChecked = false;
+
+    @Override
+    public void allItemsChecked(boolean checked) {
+        itemsChecked = checked;
+        if (order.isCheckedIn) {
+            setState(STATE.CHECKED_IN);
+        } else {
+            setState(STATE.START);
+        }
+    }
+
+    @Override
+    public void itemsInitialized() {
+        if (order.isCheckedIn) {
+            itemDetailAdapter.checkboxEnable(true);
+        }
+    }
+
+    private void setState(STATE state) {
+        switch (state) {
+            case START : {
+                checkProgress.setVisibility(View.GONE);
+                checkinView.setVisibility(View.VISIBLE);
+                cardCashLayout.setVisibility(View.GONE);
+                break;
+            }
+            case DELIVERED_IN_PROGRESS:
+            case CHECK_IN_PROGRESS: {
+                checkProgress.setVisibility(View.VISIBLE);
+                checkinView.setVisibility(View.GONE);
+                cardCashLayout.setVisibility(View.GONE);
+                break;
+            }
+            case CHECKED_IN: {
+                checkProgress.setVisibility(View.GONE);
+                checkinView.setVisibility(View.GONE);
+                if (itemsChecked) cardCashLayout.setVisibility(View.VISIBLE);
+                else cardCashLayout.setVisibility(View.GONE);
+                break;
+            }
+            case DELIVERED: {
+                checkProgress.setVisibility(View.GONE);
+                checkinView.setVisibility(View.GONE);
+                cardCashLayout.setVisibility(View.GONE);
+                break;
+            }
+        }
+    }
+
+    private enum STATE {
+        START,
+        CHECKED_IN,
+        CHECK_IN_PROGRESS,
+        DELIVERED_IN_PROGRESS,
+        DELIVERED
+    }
 }
