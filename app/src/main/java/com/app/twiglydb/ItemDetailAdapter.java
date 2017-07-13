@@ -34,7 +34,7 @@ public class ItemDetailAdapter extends RecyclerView.Adapter<ItemDetailAdapter.It
         public ItemViewHolder(View v) {
             super(v);
             ButterKnife.bind(this, v);
-            verified.setEnabled(false);
+            verified.setVisibility(View.INVISIBLE);
         }
     }
 
@@ -88,7 +88,7 @@ public class ItemDetailAdapter extends RecyclerView.Adapter<ItemDetailAdapter.It
 
     public void checkboxEnable(boolean enable) {
         for (ItemViewHolder ivh : itemViewHolders) {
-            ivh.verified.setEnabled(enable);
+            ivh.verified.setVisibility(enable?View.VISIBLE:View.INVISIBLE);
         }
     }
 
