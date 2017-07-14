@@ -7,6 +7,7 @@ package com.app.twiglydb.models;
 public class LocationParamas {
     long updateInterval;
     long offJobInterval;
+    String checklisturl;
 
     public long getUpdateInterval() {
         return updateInterval;
@@ -22,5 +23,13 @@ public class LocationParamas {
 
     public void setOffJobInterval(long offJobInterval) {
         this.offJobInterval = offJobInterval;
+    }
+
+    public String getChecklisturl() {
+        return checklisturl;
+    }
+
+    public void setChecklisturl(String checklisturl) {
+        this.checklisturl = checklisturl;
     }
 }

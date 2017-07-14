@@ -82,6 +82,9 @@ public class OrderSummaryActivity extends BaseActivity {/*implements XYZinterfac
     public int pos;
     ScheduledExecutorService scheduleTaskExecutor = Executors.newScheduledThreadPool(1);
 
+    private static String checklisturl
+            = "https://docs.google.com/forms/d/e/1FAIpQLSdmzQeHgNz_w_8zregojJeSIb7lwqcZhObgwQeFOfJH-WrlEg/viewform?usp=pp_url&entry.753978312=dbdate&entry.1679662107=dbid&entry.92591436=dbname";
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -223,6 +226,8 @@ public class OrderSummaryActivity extends BaseActivity {/*implements XYZinterfac
                         offJobRepeat = offJob;
                         sendLocationUpdate();
                     }
+                    String temp = params.getChecklisturl();
+                    if (temp != null) checklisturl = temp;
                 }, e -> {
 
                 }
