@@ -46,6 +46,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 
 import java.io.File;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -346,6 +347,19 @@ public class OrderSummaryActivity extends BaseActivity {/*implements XYZinterfac
 
             case R.id.action_summary:
                 startActivity(new Intent(this, DBSummaryActivity.class));
+                return true;
+
+            case R.id.action_checklist:
+                String url = "https://docs.google.com/forms/d/e/1FAIpQLSdmzQeHgNz_w_8zregojJeSIb7lwqcZhObgwQeFOfJH-WrlEg/viewform?usp=pp_url&entry.753978312=dbdate&entry.1679662107=dbid&entry.92591436=dbname";
+                url = url.replace("dbid", DeliveryBoy.getInstance().getDeliveryBoyId());
+                url = url.replace("dbname", DeliveryBoy.getInstance().getName());
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd+HH:mm");
+                String datestr = sdf.format(new Date());
+                url = url.replace("dbdate", datestr);
+                Intent intent = new Intent(this, TwiglyWebviewActivity.class);
+                intent.putExtra("webview_title", "DB Checklist");
+                intent.putExtra("webview_url", url);
+                startActivity(intent);
                 return true;
 
             default:

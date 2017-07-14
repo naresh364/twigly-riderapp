@@ -158,16 +158,17 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             // Show a progress spinner, and kick off a background task to
             // perform the user login attempt.
             showProgress(true);
-            DeliveryBoy.getInstance().setMob(mobile);
             String android_id = Settings.Secure.getString(this.getContentResolver(),
                     Settings.Secure.ANDROID_ID);
-            DeliveryBoy.getInstance().setDev_id(android_id);
 
             TwiglyRestAPI api = TwiglyRestAPIBuilder.buildRetroService();
             getPostSubscription = NetworkRequest.performAsyncRequest(
                 api.signup(mobile, android_id),
                 (deliveryBoy) -> {
+                    DeliveryBoy.getInstance().setMob(mobile);
                     DeliveryBoy.getInstance().setName(deliveryBoy.getName());
+                    DeliveryBoy.getInstance().setDev_id(android_id);
+                    DeliveryBoy.getInstance().setDeliveryBoyId(deliveryBoy.getDeliveryBoyId());
                     Toast.makeText(LoginActivity.this, "Contact admin for approval", Toast.LENGTH_LONG).show();
                     showProgress(false);
                 }, (error) -> {

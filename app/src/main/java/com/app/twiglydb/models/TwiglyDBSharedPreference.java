@@ -18,6 +18,7 @@ public class TwiglyDBSharedPreference {
     public static final String NUMBER_ADDED = "TWIGLY_NUMBERS_ADDED";
     public static final String LOC_UPDATE_ON_JOB = "LOC_UPDATE_ON_JOB";
     public static final String LOC_UPDATE_OFF_JOB = "LOC_UPDATE_OFF_JOB";
+    public static final String DBID = "DBID";
 
     public SharedPreferences sharedPreferences;
 
@@ -31,6 +32,10 @@ public class TwiglyDBSharedPreference {
         // ensures only one object is created at a time
         if (preference == null) preference = new TwiglyDBSharedPreference();
         return preference;
+    }
+
+    public String getDBId() {
+        return sharedPreferences.getString(DBID, null);
     }
 
     public String getMobNum() {
@@ -53,6 +58,12 @@ public class TwiglyDBSharedPreference {
         //SharedPref.Editor editor = sharedPreferences.edit();
         //editor.putString(MANAGER_NUM, mob);
         //editor.apply();
+    }
+
+    public void setDBId(String id){
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putString(DBID, id);
+        editor.apply();
     }
 
     public void setMobNum(String mob){

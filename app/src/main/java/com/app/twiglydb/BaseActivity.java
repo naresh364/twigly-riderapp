@@ -78,7 +78,9 @@ public abstract class BaseActivity extends AppCompatActivity implements GoogleAp
         //make sure we have all the permissions
         String[] permisions = {Manifest.permission.ACCESS_FINE_LOCATION,
                 Manifest.permission.READ_CONTACTS,
-                Manifest.permission.READ_SMS};
+                Manifest.permission.READ_SMS,
+                Manifest.permission.READ_PHONE_STATE,
+                Manifest.permission.PROCESS_OUTGOING_CALLS};
         Utils.mayRequestPermission(mContext, permisions);
 
         LocalBroadcastManager.getInstance(this).registerReceiver(

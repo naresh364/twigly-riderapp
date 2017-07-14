@@ -182,7 +182,6 @@ public class OrderDetailActivity extends BaseActivity implements ItemDetailAdapt
             if (Utils.mayRequestPermission(OrderDetailActivity.this, Manifest.permission.CALL_PHONE)) {
                 startActivity(intent);
             }
-            api.dbCalled(order.getMobileNumber());
         });
         navigateButton.setOnClickListener(view -> {
             Uri gmmIntentUri = Uri.parse("google.navigation:q=" + order.getLat() + ","+order.getLng());

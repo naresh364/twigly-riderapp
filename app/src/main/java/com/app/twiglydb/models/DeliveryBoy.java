@@ -95,16 +95,6 @@ public class DeliveryBoy {
         this.rating = rating;
     }
 
-    public void dbCalled(String mob) {
-        subscriptions.add(NetworkRequest.performAsyncRequest(
-                api.dbCalled(mob),
-                (data) -> {
-                    if(ServerResponseCode.valueOf(data.code) == ServerResponseCode.OK) {
-                    }
-                }, (error) -> {
-                }));
-
-    }
     public void updateOrders(OrderSummaryActivity.OrderRefreshCallback callback) {
 
         subscriptions.add(NetworkRequest.performAsyncRequest(
@@ -161,10 +151,14 @@ public class DeliveryBoy {
     }
 
     public String getDeliveryBoyId() {
+        if (deliveryBoyId == null) {
+            deliveryBoyId = TwiglyDBSharedPreference.getPreference().getDBId();
+        }
         return deliveryBoyId;
     }
 
     public void setDeliveryBoyId(String id) {
+        TwiglyDBSharedPreference.getPreference().setDBId(id);
         this.deliveryBoyId = id;
     }
 

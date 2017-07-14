@@ -64,8 +64,11 @@ public interface TwiglyRestAPI {
     @GET("/db/reached")
     Observable<ServerResponse> reachedDestination(@Query("displayId") String orderId);
 
-    @GET("/db/called")
-    Observable<ServerResponse> dbCalled(@Query("mobile") String mobileNumber);
+    @POST("/db/called/start")
+    Observable<ServerResponse> dbCalledStarted(@Query("time") Long time, @Query("mobile") String mobileNumber, @Query("type") String callType);
+
+    @POST("/db/called/end")
+    Observable<ServerResponse> dbCalledEnded(@Query("time") Long time, @Query("mobile") String mobileNumber, @Query("type") String callType);
 
     @GET("/db/updategcm")
     Observable<ServerResponse> updateGCM(@Query("gcmid") String gcmId);
